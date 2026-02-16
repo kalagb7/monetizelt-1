@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // User profiles (document ID = auth.uid)
+    match /users/{uid} {
+      allow read, create, update, delete: if isOwner(uid);
+    }
+
+    // Seller stats (owner can READ only; writes should be done by server)
+    match /userStats/{uid} {
+      allow read: if isOwner(uid);
+      allow create, update, delete: if false;
+    }
+
+    // Transactions: seller can read their own
+    match /transactions/{txId} {
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow create, update, delete: if false;
+    }
+
+    // Orders: seller can read their own orders (contains buyerEmail, but seller needs it)
+    match /orders/{orderId} {
+      allow read: if signedIn() && resource.data.sellerUid == request.auth.uid;
+      allow create, update, delete: if false;
+    }
+
+    // Product views: seller can read their own product views
+    match /productViews/{viewId} {
+      allow read: if signedIn() && resource.data.sellerUid == request.auth.uid;
+      allow create, update, delete: if false;
+    }
+
+    // Products: allow seller to read their own products (public reads are handled via Cloud Functions)
+    match /products/{productId} {
+      allow read: if signedIn() && resource.data.uid == request.auth.uid;
+      allow create, update, delete: if false;
+    }
+
+    // userId reservation (unique usernames)
+    match /userIds/{userId} {
+      allow create: if signedIn()
+                    && !exists(/databases/$(database)/documents/userIds/$(userId))
+                    && request.resource.data.uid == request.auth.uid;
+
+      allow read: if false;
+      allow update, delete: if false;
+    }
+
+    // phone index (optional)
+    match /phoneIndex/{e164} {
+      allow create: if signedIn()
+                    && !exists(/databases/$(database)/documents/phoneIndex/$(e164))
+                    && request.resource.data.uid == request.auth.uid;
+
+      allow read: if false;
+      allow update, delete: if false;
+    }
+  }
+}

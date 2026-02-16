@@ -1,0 +1,2788 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Monetizelt</title>
+
+  <meta name="description"
+    content="Your market, your rules. Monetizelt lets you sell time-limited digital videos easily. Generate, share, and cash in with full control." />
+  <link rel="canonical" href="https://monetizelt.com/" />
+
+  <meta property="og:title" content="Monetizelt — Sell and Share Your Digital Videos" />
+  <meta property="og:description"
+    content="Create your own market, share videos, and get paid instantly with Monetizelt." />
+  <meta property="og:url" content="https://monetizelt.com/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image"
+    content="https://firebasestorage.googleapis.com/v0/b/monetizelt-b235d.firebasestorage.app/o/1000009017_resized.jpg?alt=media&token=d69084a3-b285-44e4-81a5-f05971314175" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Monetizelt — Sell and Share Your Digital Videos" />
+  <meta name="twitter:description"
+    content="Create your own market, share videos, and get paid instantly with Monetizelt." />
+  <meta name="twitter:image"
+    content="https://firebasestorage.googleapis.com/v0/b/monetizelt-b235d.firebasestorage.app/o/1000009017_resized.jpg?alt=media&token=d69084a3-b285-44e4-81a5-f05971314175" />
+
+  <link rel="icon"
+    href="https://firebasestorage.googleapis.com/v0/b/monetizelt-b235d.firebasestorage.app/o/1000009017_resized.jpg?alt=media&token=d69084a3-b285-44e4-81a5-f05971314175" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+  <style>
+    :root {
+      --primary-color: #007BFF;
+      --primary-dark: #0056b3;
+      --background-color: #f5f5f5;
+      --text-color: #333;
+      --white: #ffffff;
+      --error-color: #ff3333;
+      --success-color: #28a745;
+      --warning-color: #ffc107;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', Arial, sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      line-height: 1.3;
+      font-size: 13px;
+      overflow-x: hidden;
+    }
+
+    header {
+      background-color: var(--white);
+      padding: 10px 15px;
+      display: flex;
+      justify-content: center;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .logo {
+      font-size: 2.2em;
+      font-family: 'Poppins', sans-serif;
+      color: var(--primary-color);
+      border: 1.5px solid var(--primary-color);
+      padding: 2px 11px;
+      border-radius: 13px;
+      transition: all 0.3s ease;
+      font-weight: 700;
+    }
+
+    .divider {
+      height: 2px;
+      background: linear-gradient(to right, transparent, var(--primary-color), transparent);
+      width: 100%;
+      margin: 2px 0;
+    }
+
+    .form-container {
+      padding: 12px;
+      text-align: center;
+      background-color: #e9f5ff;
+      border: 1px solid var(--primary-color);
+      border-radius: 30px;
+      margin: 12px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+      animation: slideUp 0.8s ease-out;
+      position: relative;
+      max-width: 520px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .button {
+      display: block;
+      background-color: #0077BE;
+      border: 1px solid var(--primary-color);
+      border-radius: 15px;
+      padding: 10px;
+      margin: 12px auto;
+      text-decoration: none;
+      color: white;
+      font-weight: 700;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      width: 80%;
+      max-width: 320px;
+      text-align: center;
+      position: relative;
+    }
+
+    .button:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #resetPasswordForm .button:disabled {
+      background-color: #cfcfcf !important;
+      border-color: #bdbdbd !important;
+      color: #666 !important;
+      opacity: 1 !important;
+      pointer-events: none;
+      box-shadow: none;
+    }
+
+    #resetPasswordForm .button:disabled:hover {
+      background-color: #cfcfcf !important;
+      transform: none !important;
+    }
+
+    .form-container input,
+    .form-container select,
+    .form-container textarea {
+      padding: 10px;
+      border: 1px solid var(--primary-color);
+      border-radius: 15px;
+      width: 80%;
+      max-width: 320px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      -webkit-appearance: none;
+      appearance: none;
+      max-height: 40px;
+    }
+
+    .toggle-button,
+    .forgot-password,
+    .go-back {
+      cursor: pointer;
+      margin: 12px;
+      color: var(--primary-color);
+      border: 1px solid var(--primary-color);
+      padding: 8px 12px;
+      border-radius: 10px;
+      display: inline-block;
+      transition: all 0.3s ease;
+      user-select: none;
+    }
+
+    .toggle-button:hover,
+    .forgot-password:hover,
+    .go-back:hover {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    h2 {
+      margin-bottom: 14px;
+      font-size: 28px;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+
+    .message {
+      margin: 12px auto;
+      padding: 10px;
+      border-radius: 10px;
+      max-width: 320px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      animation: fadeIn 0.3s ease;
+      line-height: 1.4;
+      text-align: left;
+    }
+
+    .message i {
+      margin-right: 8px;
+      font-size: 15px;
+    }
+
+    .message.error {
+      background-color: rgba(255, 51, 51, 0.1);
+      color: var(--error-color);
+      border: 1px solid rgba(255, 51, 51, 0.3);
+    }
+
+    .message.success {
+      background-color: rgba(40, 167, 69, 0.1);
+      color: var(--success-color);
+      border: 1px solid rgba(40, 167, 69, 0.3);
+    }
+
+    .message.warning {
+      background-color: rgba(255, 193, 7, 0.1);
+      color: #856404;
+      border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+
+    .message.info {
+      background-color: rgba(0, 123, 255, 0.1);
+      color: var(--primary-color);
+      border: 1px solid rgba(0, 123, 255, 0.3);
+    }
+
+    .footer-links {
+      margin-top: 18px;
+      font-size: 11px;
+    }
+
+    .footer-links a {
+      color: var(--primary-color);
+      text-decoration: none;
+      margin: 0 10px;
+    }
+
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background-color: var(--primary-color);
+      width: 0;
+      z-index: 1100;
+      transition: width 0.3s ease;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease;
+    }
+
+    .loading-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .loader {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(0, 123, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--primary-color);
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    .password-strength {
+      width: 80%;
+      max-width: 320px;
+      height: 4px;
+      background-color: #ddd;
+      margin: 4px auto 12px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .password-strength-meter {
+      height: 100%;
+      width: 0;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    .password-feedback {
+      font-size: 11px;
+      margin-bottom: 12px;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      background-color: var(--primary-color);
+      padding: 5px;
+      border-radius: 3px;
+      filter: invert(1);
+    }
+
+    .date-label {
+      font-size: 12px;
+      color: var(--primary-dark);
+      margin-bottom: 5px;
+      text-align: left;
+      width: 80%;
+      max-width: 320px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .account-type-selector {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+
+    .account-type-btn {
+      padding: 8px 16px;
+      border: 1px solid var(--primary-color);
+      background-color: var(--white);
+      color: var(--primary-color);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 700;
+    }
+
+    .account-type-btn:first-child {
+      border-radius: 15px 0 0 15px;
+    }
+
+    .account-type-btn:last-child {
+      border-radius: 0 15px 15px 0;
+    }
+
+    .account-type-btn.active {
+      background-color: var(--primary-color);
+      color: var(--white);
+    }
+
+    .field-group {
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .field-group.active {
+      display: block;
+    }
+
+    .form-section {
+      margin-bottom: 15px;
+    }
+
+    .form-section-title {
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--primary-dark);
+    }
+
+    .loading-dots {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 8px;
+      height: 16px;
+    }
+
+    .loading-dots .dot {
+      width: 6px;
+      height: 6px;
+      background-color: white;
+      border-radius: 50%;
+      margin: 0 3px;
+      animation: dotPulse 1.4s infinite ease-in-out;
+    }
+
+    .loading-dots .dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .loading-dots .dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    .loading-dots.hidden {
+      display: none;
+    }
+
+    .input-feedback {
+      font-size: 11px;
+      margin: -8px auto 8px;
+      max-width: 320px;
+      text-align: left;
+      padding-left: 10%;
+      min-height: 14px;
+      color: var(--primary-color);
+    }
+
+    .phone-input-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 80%;
+      max-width: 320px;
+      margin: 0 auto 12px;
+    }
+
+    .phone-prefix {
+      border: 1px solid var(--primary-color);
+      border-right: none;
+      border-radius: 15px 0 0 15px;
+      padding: 10px;
+      background-color: #f0f8ff;
+      width: 32%;
+      text-align: center;
+      font-size: 13px;
+      max-height: 40px;
+    }
+
+    .phone-number {
+      border: 1px solid var(--primary-color);
+      border-left: none;
+      border-radius: 0 15px 15px 0;
+      padding: 10px;
+      width: 68%;
+      font-size: 13px;
+      max-height: 40px;
+    }
+
+    .address-suggestions {
+      width: 80%;
+      max-width: 320px;
+      margin: -8px auto 12px;
+      text-align: left;
+      background-color: white;
+      border: 1px solid var(--primary-color);
+      border-radius: 10px;
+      max-height: 170px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .address-suggestion {
+      padding: 8px 10px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      border-bottom: 1px solid rgba(0, 123, 255, 0.12);
+    }
+
+    .address-suggestion:last-child {
+      border-bottom: none;
+    }
+
+    .address-suggestion:hover {
+      background-color: #f0f8ff;
+    }
+
+    .address-suggestion .primary {
+      font-weight: 600;
+      font-size: 12px;
+      color: #123;
+      line-height: 1.2;
+    }
+
+    .address-suggestion .secondary {
+      font-size: 11px;
+      color: #456;
+      margin-top: 2px;
+      line-height: 1.2;
+    }
+
+    .industry-selector {
+      width: 80%;
+      max-width: 320px;
+      margin: 0 auto 12px;
+    }
+
+    .verification-container {
+      text-align: center;
+      margin: 12px auto;
+      max-width: 320px;
+    }
+
+    .verification-hint {
+      font-size: 12px;
+      color: var(--primary-dark);
+      margin-top: 2px;
+    }
+
+    .verification-timer {
+      font-size: 12px;
+      margin-top: 8px;
+      color: var(--primary-dark);
+    }
+
+    .resend-code {
+      font-size: 12px;
+      color: var(--primary-color);
+      text-decoration: underline;
+      cursor: pointer;
+      margin-top: 4px;
+      display: none;
+      user-select: none;
+    }
+
+    .otp-input {
+      width: 80%;
+      max-width: 320px;
+      padding: 12px 14px;
+      border: 1px solid var(--primary-color);
+      border-radius: 15px;
+      font-size: 18px;
+      letter-spacing: 2px;
+      text-align: center;
+      margin-top: 10px;
+      background: white;
+    }
+
+    .multi-step-container {
+      position: relative;
+    }
+
+    .step-progress {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .step-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #ddd;
+      margin: 0 4px;
+      transition: background-color 0.3s;
+    }
+
+    .step-indicator.active {
+      background-color: var(--primary-color);
+    }
+
+    .form-step {
+      display: none;
+    }
+
+    .form-step.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .step-buttons {
+      display: flex;
+      justify-content: space-between;
+      width: 80%;
+      max-width: 320px;
+      margin: 20px auto 0;
+      gap: 10px;
+    }
+
+    .prev-step-btn {
+      background-color: #f0f0f0;
+      color: var(--text-color);
+      border: 1px solid #ddd;
+    }
+
+    .success-animation {
+      text-align: center;
+      margin: 20px auto;
+    }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background-color: var(--success-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      animation: scaleIn 0.5s ease;
+    }
+
+    .success-icon i {
+      color: white;
+      font-size: 40px;
+    }
+
+    .reset-password-container {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .reset-block {
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(0, 123, 255, 0.18);
+      border-radius: 18px;
+      padding: 12px;
+      margin: 10px auto;
+      width: 90%;
+      max-width: 420px;
+      text-align: center;
+    }
+
+    .reset-block-title {
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 8px;
+    }
+
+    .splash-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease;
+    }
+
+    .splash-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .dots-container {
+      width: 80%;
+      max-width: 300px;
+      height: 60px;
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .moving-dot {
+      width: 20px;
+      height: 20px;
+      background-color: var(--primary-color);
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    #leftDot {
+      left: 0;
+      animation: moveToCenterLeft 1.6s infinite ease-in-out;
+    }
+
+    #rightDot {
+      left: calc(100% - 20px);
+      animation: moveToCenterRight 1.6s infinite ease-in-out;
+    }
+
+    .slogan {
+      font-family: 'Poppins', sans-serif;
+      color: var(--primary-dark);
+      font-size: 18px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeSlogan 1.6s forwards;
+      text-align: center;
+      padding: 0 20px;
+      font-weight: 700;
+    }
+
+    #installPrompt {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: var(--white);
+      border: 1px solid var(--primary-color);
+      border-radius: 15px;
+      padding: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      width: 90%;
+      max-width: 320px;
+      text-align: center;
+      animation: slideUpPrompt 0.5s ease;
+    }
+
+    @keyframes slideUpPrompt {
+      from {
+        transform: translate(-50%, 100%);
+        opacity: 0;
+      }
+
+      to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+      }
+    }
+
+    .install-btn {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 8px 16px;
+      margin-top: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .close-prompt {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 18px;
+      cursor: pointer;
+      color: #999;
+    }
+
+    #recaptcha-container {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    @keyframes dotPulse {
+
+      0%,
+      80%,
+      100% {
+        transform: scale(0);
+        opacity: 0.5;
+      }
+
+      40% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes scaleIn {
+      from {
+        transform: scale(0);
+      }
+
+      to {
+        transform: scale(1);
+      }
+    }
+
+    @keyframes moveToCenterLeft {
+      0% {
+        left: 0;
+        transform: translateY(-50%) scale(1);
+      }
+
+      50% {
+        left: calc(50% - 10px);
+        transform: translateY(-50%) scale(1.12);
+      }
+
+      100% {
+        left: 0;
+        transform: translateY(-50%) scale(1);
+      }
+    }
+
+    @keyframes moveToCenterRight {
+      0% {
+        left: calc(100% - 20px);
+        transform: translateY(-50%) scale(1);
+      }
+
+      50% {
+        left: calc(50% - 10px);
+        transform: translateY(-50%) scale(1.12);
+      }
+
+      100% {
+        left: calc(100% - 20px);
+        transform: translateY(-50%) scale(1);
+      }
+    }
+
+    @keyframes fadeSlogan {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      60% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .logo {
+        font-size: 1.6em;
+      }
+
+      .form-container {
+        margin: 12px;
+        padding: 16px;
+      }
+
+      .button {
+        width: 90%;
+      }
+
+      .form-container input,
+      .form-container select,
+      .form-container textarea {
+        width: 90%;
+        max-height: 40px;
+        font-size: 16px;
+      }
+
+      h2 {
+        font-size: 24px;
+      }
+
+      .phone-input-container {
+        width: 90%;
+      }
+
+      .industry-selector {
+        width: 90%;
+      }
+
+      .otp-input {
+        width: 90%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="splash-screen" id="splashScreen">
+    <div class="dots-container" aria-hidden="true">
+      <div class="moving-dot" id="leftDot"></div>
+      <div class="moving-dot" id="rightDot"></div>
+    </div>
+  </div>
+
+  <div class="progress-bar" id="progressBar"></div>
+
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loader"></div>
+  </div>
+
+  <header>
+    <span class="logo" translate="no"><b>Monetizelt</b></span>
+  </header>
+  <div class="divider"></div>
+
+  <div id="installPrompt">
+    <span class="close-prompt" id="closePrompt">&times;</span>
+    <p>Install Monetizelt on your device for quick access.</p>
+    <button class="install-btn" id="installApp">Install</button>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="form-container" id="loginForm">
+    <h2><b>Welcome Back</b></h2>
+    <div id="loginMessages"></div>
+    <input type="email" id="loginEmail" placeholder="Enter your email" required autocomplete="email" />
+    <input type="password" id="loginPassword" placeholder="Password" required autocomplete="current-password" />
+    <button class="button" id="loginUser">
+      <div class="loading-dots hidden" id="loginDots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      Login
+    </button>
+
+    <p class="toggle-button" id="showSignup"><b>No account? Sign up</b></p>
+    <p class="forgot-password" id="forgotPassword"><b>Forgot password?</b></p>
+
+    <div class="footer-links">
+      <a href="terms.html">Terms of Use</a> |
+      <a href="privacy.html">Privacy Policy</a>
+    </div>
+  </div>
+
+  <!-- RECOVERY -->
+  <div class="form-container reset-password-container" id="resetPasswordForm">
+    <h2><b>Account Recovery</b></h2>
+    <div id="resetPasswordMessages"></div>
+
+    <div class="reset-block">
+      <div class="reset-block-title">1) Verify your phone number</div>
+
+      <select id="recoveryCountry" required>
+        <option value="" disabled selected>Select your country</option>
+      </select>
+
+      <div class="phone-input-container">
+        <select class="phone-prefix" id="recoveryPhonePrefix"></select>
+        <input type="tel" class="phone-number" id="recoveryPhone" placeholder="Phone number" required
+          inputmode="numeric" autocomplete="tel-national" />
+      </div>
+      <div class="input-feedback" id="recoveryPhoneFeedback"></div>
+
+      <button class="button" id="sendRecoveryCode">
+        <div class="loading-dots hidden" id="recoverySendDots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+        Send Code
+      </button>
+
+      <div class="verification-container" id="recoveryCodeBlock" style="display:none;">
+        <div class="verification-hint">Enter the 6-digit code sent by SMS</div>
+
+        <input class="otp-input" type="text" id="recoverySmsCode" placeholder="- - - - - -" inputmode="numeric"
+          autocomplete="one-time-code" />
+
+        <div class="verification-timer" id="recoveryTimer">Resend code in 01:00</div>
+        <div class="resend-code" id="recoveryResend">Resend code</div>
+
+        <button class="button" id="verifyRecoveryCode">
+          <div class="loading-dots hidden" id="recoveryVerifyDots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+          </div>
+          Verify Code
+        </button>
+      </div>
+    </div>
+
+    <div class="reset-block" id="newPasswordBlock" style="display:none;">
+      <div class="reset-block-title">2) Set a new password</div>
+      <input type="password" id="newPassword" placeholder="New password" autocomplete="new-password" />
+      <div class="password-strength">
+        <div class="password-strength-meter" id="newPasswordStrengthMeter"></div>
+      </div>
+      <div class="password-feedback" id="newPasswordFeedback"></div>
+
+      <input type="password" id="confirmNewPassword" placeholder="Confirm new password" autocomplete="new-password" />
+
+      <button class="button" id="setNewPasswordBtn">
+        <div class="loading-dots hidden" id="recoverySetPwdDots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+        Update Password
+      </button>
+    </div>
+
+    <p class="go-back" id="backToLogin"><b>Back to login</b></p>
+
+    <div class="footer-links">
+      <a href="terms.html">Terms of Use</a> |
+      <a href="privacy.html">Privacy Policy</a>
+    </div>
+  </div>
+
+  <!-- SIGNUP -->
+  <div class="form-container" id="signupForm" style="display: none;">
+    <h2><b>Welcome</b></h2>
+    <div id="signupMessages"></div>
+
+    <div class="multi-step-container">
+      <div class="step-progress">
+        <div class="step-indicator active" data-step="1"></div>
+        <div class="step-indicator" data-step="2"></div>
+        <div class="step-indicator" data-step="3"></div>
+      </div>
+
+      <div class="account-type-selector">
+        <button class="account-type-btn active" id="individualBtn">Individual</button>
+        <button class="account-type-btn" id="businessBtn">Business</button>
+      </div>
+
+      <div class="form-step active" id="step1">
+        <div class="form-section">
+          <div class="form-section-title">Account Information</div>
+          <input type="text" id="fullName" placeholder="Full name" required autocomplete="name" />
+          <select id="signupCountry" required>
+            <option value="" disabled selected>Select your country</option>
+          </select>
+
+          <div class="date-label">Select your birth date</div>
+          <input type="date" id="birthdate" required />
+
+          <input type="email" id="signupEmail" placeholder="Enter your email" required autocomplete="email" />
+
+          <input type="password" id="signupPassword" placeholder="Create a password" required
+            autocomplete="new-password" />
+          <div class="password-strength">
+            <div class="password-strength-meter" id="passwordStrengthMeter"></div>
+          </div>
+          <div class="password-feedback" id="passwordFeedback"></div>
+
+          <input type="password" id="confirmPassword" placeholder="Confirm password" required
+            autocomplete="new-password" />
+        </div>
+
+        <div class="step-buttons">
+          <button class="button" id="goToStep2">Continue</button>
+        </div>
+      </div>
+
+      <div class="form-step" id="step2">
+        <div class="field-group active" id="individualFields">
+          <div class="form-section">
+            <div class="form-section-title">Personal Information</div>
+
+            <div class="phone-input-container">
+              <select class="phone-prefix" id="individualPhonePrefix"></select>
+              <input type="tel" class="phone-number" id="individualPhone" placeholder="Phone number" required
+                inputmode="numeric" autocomplete="tel-national" />
+            </div>
+            <div class="input-feedback" id="individualPhoneFeedback"></div>
+
+            <input type="text" id="individualAddressLine1" placeholder="Address Line 1" required
+              autocomplete="address-line1" />
+            <div class="address-suggestions" id="individualAddressSuggestions"></div>
+
+            <input type="text" id="individualAddressLine2" placeholder="Address Line 2 (optional)"
+              autocomplete="address-line2" />
+            <input type="text" id="individualCity" placeholder="City" required autocomplete="address-level2" />
+            <input type="text" id="individualPostalCode" placeholder="Postal/ZIP Code" required
+              autocomplete="postal-code" />
+
+            <select id="individualOccupation" required>
+              <option value="" disabled selected>Select your occupation</option>
+              <option value="student">Student</option>
+              <option value="employed">Employed</option>
+              <option value="self-employed">Self-employed</option>
+              <option value="freelancer">Freelancer</option>
+              <option value="unemployed">Unemployed</option>
+              <option value="retired">Retired</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-group" id="businessFields">
+          <div class="form-section">
+            <div class="form-section-title">Business Information</div>
+
+            <input type="text" id="companyName" placeholder="Company name" required autocomplete="organization" />
+            <input type="text" id="businessRegistrationNumber" placeholder="Business registration number" required
+              maxlength="20" />
+
+            <select id="businessIndustry" class="industry-selector" required>
+              <option value="" disabled selected>Select your industry</option>
+              <option value="technology">Technology</option>
+              <option value="finance">Finance</option>
+              <option value="healthcare">Healthcare</option>
+              <option value="education">Education</option>
+              <option value="retail">Retail</option>
+              <option value="manufacturing">Manufacturing</option>
+              <option value="services">Professional Services</option>
+              <option value="entertainment">Entertainment</option>
+              <option value="ecommerce">E-commerce</option>
+              <option value="transportation">Transportation</option>
+              <option value="construction">Construction</option>
+              <option value="agriculture">Agriculture</option>
+              <option value="energy">Energy</option>
+              <option value="other">Other</option>
+            </select>
+
+            <select id="companySize" required>
+              <option value="" disabled selected>Company size</option>
+              <option value="1-10">1-10 employees</option>
+              <option value="11-50">11-50 employees</option>
+              <option value="51-200">51-200 employees</option>
+              <option value="201-500">201-500 employees</option>
+              <option value="500+">500+ employees</option>
+            </select>
+
+            <!-- ✅ UPDATED: Business email field (now REQUIRED) -->
+            <input type="email" id="businessEmail" placeholder="Business email *" required autocomplete="email" />
+
+            <div class="phone-input-container">
+              <select class="phone-prefix" id="businessPhonePrefix"></select>
+              <input type="tel" class="phone-number" id="businessPhone" placeholder="Business phone" required
+                inputmode="numeric" autocomplete="tel-national" />
+            </div>
+            <div class="input-feedback" id="businessPhoneFeedback"></div>
+
+            <input type="text" id="businessAddressLine1" placeholder="Business address line 1" required
+              autocomplete="address-line1" />
+            <div class="address-suggestions" id="businessAddressSuggestions"></div>
+
+            <input type="text" id="businessAddressLine2" placeholder="Business address line 2 (optional)"
+              autocomplete="address-line2" />
+            <input type="text" id="businessCity" placeholder="City" required autocomplete="address-level2" />
+            <input type="text" id="businessPostalCode" placeholder="Postal/ZIP Code" required
+              autocomplete="postal-code" />
+            <input type="text" id="businessWebsite" placeholder="Business website (optional)" autocomplete="url" />
+          </div>
+        </div>
+
+        <div class="step-buttons">
+          <button class="button prev-step-btn" id="backToStep1">Back</button>
+          <button class="button" id="goToStep3">Continue</button>
+        </div>
+      </div>
+
+      <div class="form-step" id="step3">
+        <div class="form-section">
+          <div class="form-section-title">Phone Verification</div>
+          <div class="verification-container">
+            <div class="verification-hint">Enter the 6-digit code sent by SMS</div>
+
+            <input class="otp-input" type="text" id="signupSmsCode" placeholder="- - - - - -" inputmode="numeric"
+              autocomplete="one-time-code" />
+
+            <div class="verification-timer" id="verificationTimer">Resend code in 01:00</div>
+            <div class="resend-code" id="resendCode">Resend code</div>
+          </div>
+        </div>
+
+        <div class="step-buttons">
+          <button class="button prev-step-btn" id="backToStep2">Back</button>
+          <button class="button" id="createAccount">
+            <div class="loading-dots hidden" id="signupDots">
+              <div class="dot"></div>
+              <div class="dot"></div>
+              <div class="dot"></div>
+            </div>
+            Verify & Create
+          </button>
+        </div>
+      </div>
+
+      <div class="form-step" id="successStep">
+        <div class="success-animation">
+          <div class="success-icon" aria-label="Success"><i class="fas fa-check"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="toggle-button" id="showLogin"><b>Already have an account? Log in</b></p>
+    <div class="footer-links">
+      <a href="terms.html">Terms of Use</a> |
+      <a href="privacy.html">Privacy Policy</a>
+    </div>
+  </div>
+
+  <div id="recaptcha-container"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      onAuthStateChanged,
+      signInWithPhoneNumber,
+      signInWithCredential,
+      RecaptchaVerifier,
+      PhoneAuthProvider,
+      linkWithCredential,
+      deleteUser,
+      updatePassword,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      getDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+
+    import {
+      parsePhoneNumberFromString,
+      getCountryCallingCode,
+      AsYouType
+    } from "https://cdn.jsdelivr.net/npm/libphonenumber-js@1.11.3/+esm";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDrCCbetOZdczDANtjrRWGxrJ20FxSRFv4",
+      authDomain: "monetizelt-1.firebaseapp.com",
+      projectId: "monetizelt-1",
+      storageBucket: "monetizelt-1.firebasestorage.app",
+      messagingSenderId: "785088686494",
+      appId: "1:785088686494:web:de12121775ed2e57bd4e8f",
+      measurementId: "G-YP5ZPNEM6G"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    try { getAnalytics(app); } catch (e) { }
+
+    const auth = getAuth(app);
+    auth.languageCode = "en";
+    const db = getFirestore(app);
+
+    const ALLOWED_COUNTRIES = [
+      { name: "Andorra", code: "AD" }, { name: "Argentina", code: "AR" }, { name: "Australia", code: "AU" },
+      { name: "Austria", code: "AT" }, { name: "Bahamas", code: "BS" }, { name: "Bahrain", code: "BH" },
+      { name: "Belgium", code: "BE" }, { name: "Bermuda", code: "BM" }, { name: "Botswana", code: "BW" },
+      { name: "Brazil", code: "BR" }, { name: "Bulgaria", code: "BG" }, { name: "Canada", code: "CA" },
+      { name: "Cayman Islands", code: "KY" }, { name: "Chile", code: "CL" }, { name: "China", code: "CN" },
+      { name: "Colombia", code: "CO" }, { name: "Costa Rica", code: "CR" }, { name: "Croatia", code: "HR" },
+      { name: "Cyprus", code: "CY" }, { name: "Czech Republic", code: "CZ" }, { name: "Denmark", code: "DK" },
+      { name: "Dominican Republic", code: "DO" }, { name: "Ecuador", code: "EC" }, { name: "El Salvador", code: "SV" },
+      { name: "Estonia", code: "EE" }, { name: "Faroe Islands", code: "FO" }, { name: "Finland", code: "FI" },
+      { name: "France", code: "FR" }, { name: "Georgia", code: "GE" }, { name: "Germany", code: "DE" },
+      { name: "Gibraltar", code: "GI" }, { name: "Greece", code: "GR" }, { name: "Greenland", code: "GL" },
+      { name: "Guatemala", code: "GT" }, { name: "Honduras", code: "HN" }, { name: "Hong Kong", code: "HK" },
+      { name: "Hungary", code: "HU" }, { name: "Iceland", code: "IS" }, { name: "India", code: "IN" },
+      { name: "Indonesia", code: "ID" }, { name: "Ireland", code: "IE" }, { name: "Israel", code: "IL" },
+      { name: "Italy", code: "IT" }, { name: "Jamaica", code: "JM" }, { name: "Japan", code: "JP" },
+      { name: "Jordan", code: "JO" }, { name: "Kazakhstan", code: "KZ" }, { name: "Kenya", code: "KE" },
+      { name: "Kuwait", code: "KW" }, { name: "Latvia", code: "LV" }, { name: "Lesotho", code: "LS" },
+      { name: "Liechtenstein", code: "LI" }, { name: "Lithuania", code: "LT" }, { name: "Luxembourg", code: "LU" },
+      { name: "Malaysia", code: "MY" }, { name: "Malta", code: "MT" }, { name: "Mauritius", code: "MU" },
+      { name: "Mexico", code: "MX" }, { name: "Moldova", code: "MD" }, { name: "Monaco", code: "MC" },
+      { name: "Morocco", code: "MA" }, { name: "Mozambique", code: "MZ" }, { name: "Netherlands", code: "NL" },
+      { name: "New Zealand", code: "NZ" }, { name: "Nicaragua", code: "NI" }, { name: "Norway", code: "NO" },
+      { name: "Oman", code: "OM" }, { name: "Panama", code: "PA" }, { name: "Peru", code: "PE" },
+      { name: "Philippines", code: "PH" }, { name: "Poland", code: "PL" }, { name: "Portugal", code: "PT" },
+      { name: "Qatar", code: "QA" }, { name: "Réunion", code: "RE" }, { name: "Romania", code: "RO" },
+      { name: "San Marino", code: "SM" }, { name: "Saudi Arabia", code: "SA" }, { name: "Senegal", code: "SN" },
+      { name: "Serbia", code: "RS" }, { name: "Singapore", code: "SG" }, { name: "Slovakia", code: "SK" },
+      { name: "Slovenia", code: "SI" }, { name: "South Africa", code: "ZA" }, { name: "Spain", code: "ES" },
+      { name: "Sweden", code: "SE" }, { name: "Switzerland", code: "CH" }, { name: "Turkey", code: "TR" },
+      { name: "United Arab Emirates", code: "AE" }, { name: "United Kingdom", code: "GB" },
+      { name: "United States", code: "US" }, { name: "Uruguay", code: "UY" }, { name: "Venezuela", code: "VE" },
+      { name: "Vietnam", code: "VN" }
+    ];
+
+    const ALLOWED_CODES = new Set(ALLOWED_COUNTRIES.map(c => c.code.toUpperCase()));
+    const ALLOWED_NAME_TO_CODE = new Map(ALLOWED_COUNTRIES.map(c => [c.name, c.code]));
+
+    const BUSINESS_REG_FORMATS = {
+      "United States": { regex: /^[0-9]{2}-[0-9]{7}$|^[0-9]{9}$/, maxLength: 10, placeholder: "XX-XXXXXXX or XXXXXXXXX", example: "12-3456789" },
+      "United Kingdom": { regex: /^[0-9]{8}$|^[A-Z]{2}[0-9]{6}$/, maxLength: 8, placeholder: "12345678", example: "12345678" },
+      "France": { regex: /^[0-9]{9}$|^[0-9]{14}$/, maxLength: 14, placeholder: "SIREN (9) or SIRET (14)", example: "123456789" },
+      "Germany": { regex: /^[A-Z]{2}[0-9]{6}$|^[0-9]{9}$/, maxLength: 9, placeholder: "HRB123456", example: "HRB123456" },
+      "Australia": { regex: /^[0-9]{9}$|^[0-9]{11}$/, maxLength: 11, placeholder: "ABN (11 digits)", example: "12345678901" },
+      "Canada": { regex: /^[0-9]{9}$|^[0-9]{15}$/, maxLength: 15, placeholder: "BN (9 or 15 digits)", example: "123456789" },
+      "Spain": { regex: /^[A-Z][0-9]{7}[A-Z0-9]$/, maxLength: 9, placeholder: "CIF: A12345678", example: "A12345678" },
+      "Italy": { regex: /^[0-9]{11}$/, maxLength: 11, placeholder: "Codice Fiscale", example: "12345678901" },
+      "Netherlands": { regex: /^[0-9]{8}$/, maxLength: 8, placeholder: "KVK Number", example: "12345678" },
+      "Brazil": { regex: /^[0-9]{14}$/, maxLength: 14, placeholder: "CNPJ (14 digits)", example: "12345678000190" },
+      "India": { regex: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][0-9][A-Z][0-9]$/, maxLength: 15, placeholder: "GSTIN", example: "22AAAAA0000A1Z5" },
+      "China": { regex: /^[0-9A-Z]{18}$/, maxLength: 18, placeholder: "USCC (18 chars)", example: "91110000000000000A" },
+      "Japan": { regex: /^[0-9]{13}$/, maxLength: 13, placeholder: "Corporate Number", example: "1234567890123" },
+      "Singapore": { regex: /^[0-9]{9}[A-Z]$|^[0-9]{10}[A-Z]$/, maxLength: 10, placeholder: "UEN", example: "123456789A" },
+      "South Africa": { regex: /^[0-9]{10}$/, maxLength: 10, placeholder: "Company Reg", example: "1234567890" },
+      "Mexico": { regex: /^[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}$/, maxLength: 13, placeholder: "RFC", example: "ABC123456XYZ" },
+      "Argentina": { regex: /^[0-9]{11}$/, maxLength: 11, placeholder: "CUIT", example: "20123456789" },
+      "Chile": { regex: /^[0-9]{8,9}-[0-9K]$/, maxLength: 10, placeholder: "RUT", example: "12345678-9" },
+      "Colombia": { regex: /^[0-9]{9,10}$/, maxLength: 10, placeholder: "NIT", example: "900123456" },
+      "Poland": { regex: /^[0-9]{10}$/, maxLength: 10, placeholder: "NIP", example: "1234567890" },
+      "Turkey": { regex: /^[0-9]{10}$/, maxLength: 10, placeholder: "Tax Number", example: "1234567890" },
+      "Sweden": { regex: /^[0-9]{10}$/, maxLength: 10, placeholder: "Org Number", example: "5560123456" },
+      "Norway": { regex: /^[0-9]{9}$/, maxLength: 9, placeholder: "Org Number", example: "123456789" },
+      "Denmark": { regex: /^[0-9]{8}$/, maxLength: 8, placeholder: "CVR", example: "12345678" },
+      "Finland": { regex: /^[0-9]{7}-[0-9]$/, maxLength: 9, placeholder: "Y-tunnus", example: "1234567-8" },
+      "Belgium": { regex: /^[0-9]{10}$/, maxLength: 10, placeholder: "Enterprise Number", example: "0123456789" },
+      "Austria": { regex: /^ATU[0-9]{8}$/, maxLength: 11, placeholder: "UID", example: "ATU12345678" },
+      "Switzerland": { regex: /^CHE-[0-9]{3}\.[0-9]{3}\.[0-9]{3}$/, maxLength: 15, placeholder: "UID", example: "CHE-123.456.789" },
+      "Portugal": { regex: /^[0-9]{9}$/, maxLength: 9, placeholder: "NIPC", example: "123456789" },
+      "Ireland": { regex: /^[0-9]{7}[A-Z]{1,2}$/, maxLength: 9, placeholder: "CRO", example: "1234567AB" },
+      "Czech Republic": { regex: /^[0-9]{8}$/, maxLength: 8, placeholder: "IČO", example: "12345678" },
+      "Hungary": { regex: /^[0-9]{11}$/, maxLength: 11, placeholder: "Tax Number", example: "12345678901" },
+      "Romania": { regex: /^[0-9]{2,10}$/, maxLength: 10, placeholder: "CUI", example: "1234567890" },
+      "Greece": { regex: /^[0-9]{9}$/, maxLength: 9, placeholder: "AFM", example: "123456789" },
+      "New Zealand": { regex: /^[0-9]{8}$|^[0-9]{13}$/, maxLength: 13, placeholder: "NZBN", example: "9429000000000" },
+      "Hong Kong": { regex: /^[0-9]{8}$/, maxLength: 8, placeholder: "Business Reg", example: "12345678" },
+      "Malaysia": { regex: /^[0-9]{12}$/, maxLength: 12, placeholder: "SSM Number", example: "123456789012" },
+      "Indonesia": { regex: /^[0-9]{15}$/, maxLength: 15, placeholder: "NPWP", example: "123456789012345" },
+      "Philippines": { regex: /^[0-9]{12}$/, maxLength: 12, placeholder: "TIN", example: "123456789012" },
+      "Vietnam": { regex: /^[0-9]{10}$|^[0-9]{13}$/, maxLength: 13, placeholder: "Tax Code", example: "0123456789" },
+      "United Arab Emirates": { regex: /^[0-9]{15}$/, maxLength: 15, placeholder: "Trade License", example: "123456789012345" },
+      "Saudi Arabia": { regex: /^[0-9]{10}$/, maxLength: 10, placeholder: "CR Number", example: "1234567890" },
+      "Israel": { regex: /^[0-9]{9}$/, maxLength: 9, placeholder: "Company Number", example: "123456789" },
+      "default": { regex: /^[A-Za-z0-9\-\s]{1,20}$/, maxLength: 20, placeholder: "Business registration number", example: "ABC123XYZ" }
+    };
+
+    const splashScreen = document.getElementById("splashScreen");
+    const installPrompt = document.getElementById("installPrompt");
+    const closePromptBtn = document.getElementById("closePrompt");
+    const installAppBtn = document.getElementById("installApp");
+    const progressBar = document.getElementById("progressBar");
+    const loadingOverlay = document.getElementById("loadingOverlay");
+
+    const loginMessages = document.getElementById("loginMessages");
+    const signupMessages = document.getElementById("signupMessages");
+    const resetPasswordMessages = document.getElementById("resetPasswordMessages");
+
+    const loginDots = document.getElementById("loginDots");
+    const signupDots = document.getElementById("signupDots");
+
+    const countrySelect = document.getElementById("signupCountry");
+
+    const loginForm = document.getElementById("loginForm");
+    const resetPasswordForm = document.getElementById("resetPasswordForm");
+    const signupForm = document.getElementById("signupForm");
+
+    const steps = document.querySelectorAll(".form-step");
+    const stepIndicators = document.querySelectorAll(".step-indicator");
+    const goToStep2Btn = document.getElementById("goToStep2");
+    const goToStep3Btn = document.getElementById("goToStep3");
+    const backToStep1Btn = document.getElementById("backToStep1");
+    const backToStep2Btn = document.getElementById("backToStep2");
+    const createAccountBtn = document.getElementById("createAccount");
+
+    const individualBtn = document.getElementById("individualBtn");
+    const businessBtn = document.getElementById("businessBtn");
+    const individualFields = document.getElementById("individualFields");
+    const businessFields = document.getElementById("businessFields");
+
+    const individualPhonePrefix = document.getElementById("individualPhonePrefix");
+    const businessPhonePrefix = document.getElementById("businessPhonePrefix");
+    const individualPhone = document.getElementById("individualPhone");
+    const businessPhone = document.getElementById("businessPhone");
+    const individualPhoneFeedback = document.getElementById("individualPhoneFeedback");
+    const businessPhoneFeedback = document.getElementById("businessPhoneFeedback");
+
+    const businessRegistrationNumber = document.getElementById("businessRegistrationNumber");
+    const businessEmailInput = document.getElementById("businessEmail");
+
+    const verificationTimer = document.getElementById("verificationTimer");
+    const resendCode = document.getElementById("resendCode");
+    const signupSmsCodeInput = document.getElementById("signupSmsCode");
+
+    const individualAddressSuggestions = document.getElementById("individualAddressSuggestions");
+    const businessAddressSuggestions = document.getElementById("businessAddressSuggestions");
+
+    const recoveryCountry = document.getElementById("recoveryCountry");
+    const recoveryPhonePrefix = document.getElementById("recoveryPhonePrefix");
+    const recoveryPhone = document.getElementById("recoveryPhone");
+    const recoveryPhoneFeedback = document.getElementById("recoveryPhoneFeedback");
+    const sendRecoveryCodeBtn = document.getElementById("sendRecoveryCode");
+    const recoverySendDots = document.getElementById("recoverySendDots");
+    const recoveryCodeBlock = document.getElementById("recoveryCodeBlock");
+    const recoverySmsCodeInput = document.getElementById("recoverySmsCode");
+    const verifyRecoveryCodeBtn = document.getElementById("verifyRecoveryCode");
+    const recoveryVerifyDots = document.getElementById("recoveryVerifyDots");
+    const recoveryTimer = document.getElementById("recoveryTimer");
+    const recoveryResend = document.getElementById("recoveryResend");
+    const newPasswordBlock = document.getElementById("newPasswordBlock");
+    const newPasswordInput = document.getElementById("newPassword");
+    const confirmNewPasswordInput = document.getElementById("confirmNewPassword");
+    const setNewPasswordBtn = document.getElementById("setNewPasswordBtn");
+    const recoverySetPwdDots = document.getElementById("recoverySetPwdDots");
+
+    let deferredPrompt = null;
+    let currentAccountType = "individual";
+    let redirectionActive = false;
+    let currentStep = 1;
+
+    let countriesLoaded = false;
+
+    let geoAllowed = true;
+    let geoCountryCode = null;
+
+    let recaptchaVerifier = null;
+    let recaptchaRenderPromise = null;
+    let recaptchaWidgetId = null;
+
+    let phoneVerificationId = null;
+    let pendingPhoneE164 = null;
+
+    let recoveryVerificationId = null;
+    let pendingRecoveryPhoneE164 = null;
+    let recoverySecondsLeft = 60;
+    let recoveryTimerInterval = null;
+
+    let recoveryCodeSent = false;
+    let recoveryCodeVerified = false;
+
+    let verificationTimerInterval = null;
+    const RESEND_SECONDS = 60;
+    let verificationSecondsLeft = RESEND_SECONDS;
+
+    let addressAutocompleteTimeout = null;
+    let addressAbortController = null;
+
+    function showMessage(container, message, type = "error") {
+      const iconClass =
+        type === "error" ? "fa-circle-exclamation" :
+          type === "success" ? "fa-circle-check" :
+            type === "warning" ? "fa-triangle-exclamation" : "fa-circle-info";
+
+      container.innerHTML = `
+        <div class="message ${type}">
+          <i class="fas ${iconClass}"></i>
+          <div>${message}</div>
+        </div>
+      `;
+    }
+
+    function simulateProgress(start, end, duration) {
+      const startTime = Date.now();
+      progressBar.style.width = start + "%";
+
+      function updateProgress() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min((elapsed / duration) * (end - start) + start, end);
+        progressBar.style.width = progress + "%";
+
+        if (progress < end) requestAnimationFrame(updateProgress);
+        else if (end === 100) setTimeout(() => { progressBar.style.width = "0%"; }, 300);
+      }
+      requestAnimationFrame(updateProgress);
+    }
+
+    function toggleLoader(show) {
+      if (show) loadingOverlay.classList.add("active");
+      else loadingOverlay.classList.remove("active");
+    }
+
+    function setBtnLocked(button, locked) {
+      button.dataset.locked = locked ? "1" : "0";
+      const isLoading = button.dataset.loading === "1";
+      button.disabled = locked || isLoading;
+    }
+
+    function setBtnLoading(button, dots, isLoading) {
+      button.dataset.loading = isLoading ? "1" : "0";
+      const locked = button.dataset.locked === "1";
+      button.disabled = isLoading || locked;
+      if (dots) dots.classList.toggle("hidden", !isLoading);
+    }
+
+    function redirectToDashboard() {
+      redirectionActive = true;
+      toggleLoader(true);
+      window.location.replace("dashboard.html");
+    }
+
+    function handleSplashScreen() {
+      setTimeout(() => {
+        splashScreen.classList.add("hidden");
+        setTimeout(() => { splashScreen.style.display = "none"; }, 500);
+      }, 1200);
+    }
+
+    function handlePWAInstallation() {
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        setTimeout(() => { installPrompt.style.display = "block"; }, 900);
+      });
+
+      closePromptBtn.addEventListener("click", () => { installPrompt.style.display = "none"; });
+
+      installAppBtn.addEventListener("click", async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        installPrompt.style.display = "none";
+        deferredPrompt = null;
+      });
+
+      window.addEventListener("appinstalled", () => {
+        installPrompt.style.display = "none";
+        deferredPrompt = null;
+      });
+    }
+
+    async function detectUserCountry() {
+      try {
+        const res = await fetch("https://ipwho.is/?fields=success,country_code,country");
+        const data = await res.json();
+        if (data && data.success && data.country_code) {
+          geoCountryCode = String(data.country_code).toUpperCase();
+          geoAllowed = ALLOWED_CODES.has(geoCountryCode);
+          return;
+        }
+      } catch (e) { }
+      geoAllowed = true;
+    }
+
+    function enforceCountryAvailabilityUI() {
+      const loginBtn = document.getElementById("loginUser");
+      const showSignupBtn = document.getElementById("showSignup");
+      const createAccountBtnEl = document.getElementById("createAccount");
+      const goStep2 = document.getElementById("goToStep2");
+      const goStep3 = document.getElementById("goToStep3");
+
+      if (!geoAllowed) {
+        const msg = "Sorry, Monetizelt is not available in your country yet. We apologize for the inconvenience.";
+        showMessage(loginMessages, msg, "warning");
+
+        loginBtn.disabled = true;
+        showSignupBtn.style.pointerEvents = "none";
+        showSignupBtn.style.opacity = "0.6";
+        goStep2.disabled = true;
+        goStep3.disabled = true;
+        createAccountBtnEl.disabled = true;
+      } else {
+        loginBtn.disabled = false;
+        showSignupBtn.style.pointerEvents = "auto";
+        showSignupBtn.style.opacity = "1";
+        goStep2.disabled = false;
+        goStep3.disabled = false;
+        createAccountBtnEl.disabled = false;
+      }
+    }
+
+    function assertAllowedOrBlock(container) {
+      if (!geoAllowed) {
+        showMessage(container, "Sorry, Monetizelt is not available in your country yet. We apologize for the inconvenience.", "warning");
+        return false;
+      }
+      return true;
+    }
+
+    function resetRecoveryUI() {
+      recoveryCodeBlock.style.display = "none";
+      newPasswordBlock.style.display = "none";
+
+      recoveryVerificationId = null;
+      pendingRecoveryPhoneE164 = null;
+      recoverySmsCodeInput.value = "";
+      newPasswordInput.value = "";
+      confirmNewPasswordInput.value = "";
+
+      clearInterval(recoveryTimerInterval);
+      recoveryTimer.style.display = "block";
+      recoveryTimer.textContent = `Resend code in 01:00`;
+      recoveryResend.style.display = "none";
+
+      recoveryCodeSent = false;
+      recoveryCodeVerified = false;
+      setBtnLocked(sendRecoveryCodeBtn, false);
+      setBtnLocked(verifyRecoveryCodeBtn, false);
+
+      recoverySmsCodeInput.disabled = false;
+    }
+
+    function switchForm(showFormId) {
+      loginForm.style.display = "none";
+      signupForm.style.display = "none";
+      resetPasswordForm.style.display = "none";
+
+      document.getElementById(showFormId).style.display = "block";
+
+      loginMessages.innerHTML = "";
+      signupMessages.innerHTML = "";
+      resetPasswordMessages.innerHTML = "";
+
+      if (showFormId === "resetPasswordForm") {
+        resetRecoveryUI();
+      }
+
+      if (!geoAllowed) {
+        const target = showFormId === "signupForm" ? signupMessages : (showFormId === "resetPasswordForm" ? resetPasswordMessages : loginMessages);
+        showMessage(target, "Sorry, Monetizelt is not available in your country yet. We apologize for the inconvenience.", "warning");
+      }
+    }
+
+    function goToStep(step) {
+      steps.forEach(s => s.classList.remove("active"));
+      stepIndicators.forEach(ind => {
+        if (parseInt(ind.dataset.step, 10) <= step) ind.classList.add("active");
+        else ind.classList.remove("active");
+      });
+      document.getElementById(`step${step}`).classList.add("active");
+      currentStep = step;
+      signupMessages.innerHTML = "";
+    }
+
+    function showSuccessStepAndRedirect() {
+      steps.forEach(s => s.classList.remove("active"));
+      document.getElementById("successStep").classList.add("active");
+      setTimeout(() => redirectToDashboard(), 250);
+    }
+
+    function evaluatePasswordStrength(password, meterElementId, feedbackElementId) {
+      const meter = document.getElementById(meterElementId);
+      const feedback = document.getElementById(feedbackElementId);
+
+      if (!password) {
+        meter.style.width = "0%";
+        feedback.textContent = "";
+        return;
+      }
+
+      let strength = 0;
+      if (password.length > 5) strength += 20;
+      if (password.length > 8) strength += 10;
+      if (/[a-z]/.test(password)) strength += 10;
+      if (/[A-Z]/.test(password)) strength += 15;
+      if (/[0-9]/.test(password)) strength += 15;
+      if (/[^a-zA-Z0-9]/.test(password)) strength += 20;
+
+      let color, message;
+      if (strength < 30) { color = "#ff4d4d"; message = "Very weak password"; }
+      else if (strength < 50) { color = "#ffaa00"; message = "Weak password"; }
+      else if (strength < 70) { color = "#ffdd00"; message = "Medium password"; }
+      else { color = "#4CAF50"; message = strength < 90 ? "Strong password" : "Very strong password"; }
+
+      meter.style.width = strength + "%";
+      meter.style.backgroundColor = color;
+      feedback.textContent = message;
+      feedback.style.color = color;
+    }
+
+    function normalizeOtp6(raw) {
+      const digits = String(raw || "").replace(/\D/g, "").slice(0, 6);
+      return digits;
+    }
+
+    function setupOtpInput(el) {
+      if (!el) return;
+      el.addEventListener("input", () => {
+        const digits = normalizeOtp6(el.value);
+        if (digits.length <= 3) el.value = digits;
+        else el.value = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+      });
+      el.addEventListener("paste", () => {
+        setTimeout(() => {
+          const digits = normalizeOtp6(el.value);
+          if (digits.length <= 3) el.value = digits;
+          else el.value = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+        }, 0);
+      });
+    }
+
+    const NANP_ISO2 = new Set(["US", "CA", "BS", "BM", "KY", "DO", "JM"]);
+
+    function getIso2FromCountryName(countryName) {
+      const iso2 = ALLOWED_NAME_TO_CODE.get(countryName);
+      return iso2 ? iso2.toUpperCase() : null;
+    }
+
+    function normalizeNationalDigits(digits, iso2) {
+      let d = String(digits || "").replace(/\D/g, "");
+      if (iso2 && NANP_ISO2.has(iso2) && d.length === 11 && d.startsWith("1")) d = d.slice(1);
+      if (d.length > 15) d = d.slice(0, 15);
+      return d;
+    }
+
+    function getCountryCallingCodeSafe(iso2) {
+      try {
+        if (!iso2) return null;
+        const cc = getCountryCallingCode(iso2);
+        return cc ? `+${cc}` : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function parseAndValidatePhone(nationalDigits, iso2) {
+      if (!iso2) return null;
+      const p = parsePhoneNumberFromString(nationalDigits, iso2);
+      if (!p) return null;
+      if (!p.isValid()) return null;
+      return p;
+    }
+
+    function setPrefixSelectToCountry(prefixSelect, iso2) {
+      const cc = getCountryCallingCodeSafe(iso2);
+      if (!cc) return;
+      prefixSelect.innerHTML = "";
+      const opt = document.createElement("option");
+      opt.value = cc;
+      opt.textContent = cc;
+      prefixSelect.appendChild(opt);
+      prefixSelect.value = cc;
+      prefixSelect.disabled = true;
+    }
+
+    function handlePhoneInput(inputElement, feedbackElement, iso2) {
+      let digits = normalizeNationalDigits(inputElement.value, iso2);
+
+      try {
+        if (iso2) {
+          const typer = new AsYouType(iso2);
+          inputElement.value = typer.input(digits);
+        } else {
+          inputElement.value = digits;
+        }
+      } catch {
+        inputElement.value = digits;
+      }
+
+      if (!iso2 || !digits) {
+        feedbackElement.textContent = "";
+        inputElement.style.borderColor = "var(--primary-color)";
+        return;
+      }
+
+      const phoneObj = parseAndValidatePhone(digits, iso2);
+      if (phoneObj) {
+        feedbackElement.textContent = `✓ Valid (${phoneObj.formatInternational()})`;
+        feedbackElement.style.color = "var(--success-color)";
+        inputElement.style.borderColor = "var(--success-color)";
+      } else {
+        feedbackElement.textContent = "Please enter a valid phone number.";
+        feedbackElement.style.color = "var(--error-color)";
+        inputElement.style.borderColor = "var(--error-color)";
+      }
+    }
+
+    function getPhoneE164FromUI(prefixEl, phoneEl, iso2) {
+      const digits = normalizeNationalDigits(phoneEl.value, iso2);
+      if (!iso2 || !digits) return null;
+      const phoneObj = parseAndValidatePhone(digits, iso2);
+      if (!phoneObj) return null;
+
+      const cc = getCountryCallingCodeSafe(iso2);
+      if (cc && prefixEl.value !== cc) prefixEl.value = cc;
+      return phoneObj.number;
+    }
+
+    function getSelectedCountryIso2() { return getIso2FromCountryName(countrySelect.value); }
+    function getRecoveryCountryIso2() { return getIso2FromCountryName(recoveryCountry.value); }
+
+    function setPrefixesFromSelectedCountry() {
+      const iso2 = getSelectedCountryIso2();
+      if (!iso2) return;
+
+      setPrefixSelectToCountry(individualPhonePrefix, iso2);
+      setPrefixSelectToCountry(businessPhonePrefix, iso2);
+
+      individualPhone.value = "";
+      businessPhone.value = "";
+      individualPhoneFeedback.textContent = "";
+      businessPhoneFeedback.textContent = "";
+
+      individualPhone.style.borderColor = "var(--primary-color)";
+      businessPhone.style.borderColor = "var(--primary-color)";
+    }
+
+    function setRecoveryPrefixFromCountry() {
+      const iso2 = getRecoveryCountryIso2();
+      if (!iso2) return;
+
+      setPrefixSelectToCountry(recoveryPhonePrefix, iso2);
+      recoveryPhone.value = "";
+      recoveryPhoneFeedback.textContent = "";
+      recoveryPhone.style.borderColor = "var(--primary-color)";
+    }
+
+    function ensureRecaptchaContainer() {
+      let el = document.getElementById("recaptcha-container");
+      if (!el) {
+        el = document.createElement("div");
+        el.id = "recaptcha-container";
+        document.body.appendChild(el);
+      }
+      return el;
+    }
+
+    async function initRecaptchaOnce() {
+      if (recaptchaVerifier && recaptchaRenderPromise) return recaptchaRenderPromise;
+
+      ensureRecaptchaContainer();
+
+      recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+        size: "invisible",
+        callback: () => { },
+        "expired-callback": () => { resetRecaptchaWidget(); }
+      });
+
+      recaptchaRenderPromise = recaptchaVerifier.render().then((widgetId) => {
+        recaptchaWidgetId = widgetId;
+        return widgetId;
+      });
+
+      return recaptchaRenderPromise;
+    }
+
+    function resetRecaptchaWidget() {
+      try {
+        if (typeof grecaptcha !== "undefined" && recaptchaWidgetId !== null) {
+          grecaptcha.reset(recaptchaWidgetId);
+        }
+      } catch (e) { }
+    }
+
+    function formatMMSS(totalSeconds) {
+      const m = Math.floor(totalSeconds / 60);
+      const s = totalSeconds % 60;
+      return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+
+    function startSignupVerificationTimer() {
+      verificationSecondsLeft = RESEND_SECONDS;
+      resendCode.style.display = "none";
+      verificationTimer.style.display = "block";
+      verificationTimer.textContent = `Resend code in ${formatMMSS(verificationSecondsLeft)}`;
+
+      clearInterval(verificationTimerInterval);
+      verificationTimerInterval = setInterval(() => {
+        verificationSecondsLeft--;
+        verificationTimer.textContent = `Resend code in ${formatMMSS(Math.max(0, verificationSecondsLeft))}`;
+        if (verificationSecondsLeft <= 0) {
+          clearInterval(verificationTimerInterval);
+          verificationTimer.style.display = "none";
+          resendCode.style.display = "block";
+        }
+      }, 1000);
+    }
+
+    function stopSignupTimerAllowResend() {
+      clearInterval(verificationTimerInterval);
+      verificationTimer.style.display = "none";
+      resendCode.style.display = "block";
+    }
+
+    function startRecoveryTimer() {
+      recoverySecondsLeft = RESEND_SECONDS;
+      recoveryResend.style.display = "none";
+      recoveryTimer.style.display = "block";
+      recoveryTimer.textContent = `Resend code in ${formatMMSS(recoverySecondsLeft)}`;
+
+      clearInterval(recoveryTimerInterval);
+      recoveryTimerInterval = setInterval(() => {
+        recoverySecondsLeft--;
+        recoveryTimer.textContent = `Resend code in ${formatMMSS(Math.max(0, recoverySecondsLeft))}`;
+        if (recoverySecondsLeft <= 0) {
+          clearInterval(recoveryTimerInterval);
+          recoveryTimer.style.display = "none";
+          recoveryResend.style.display = "block";
+        }
+      }, 1000);
+    }
+
+    function stopRecoveryTimerAllowResend() {
+      clearInterval(recoveryTimerInterval);
+      recoveryTimer.style.display = "none";
+      recoveryResend.style.display = "block";
+    }
+
+    function firebaseSmsSendErrorMessage(error) {
+      const code = error?.code || "";
+      if (code === "auth/invalid-phone-number") return "Invalid phone number. Please check the format and country.";
+      if (code === "auth/too-many-requests") return "Too many requests. Please wait and try again.";
+      if (code === "auth/operation-not-allowed") return "Phone authentication is not enabled in Firebase.";
+      if (code === "auth/captcha-check-failed") return "reCAPTCHA failed. Please refresh the page and try again.";
+      return error?.message || "Failed to send SMS. Please try again.";
+    }
+
+    function validateBusinessRegistrationNumber(number, country) {
+      const format = BUSINESS_REG_FORMATS[country] || BUSINESS_REG_FORMATS.default;
+      const cleaned = (number || "").trim();
+
+      if (cleaned.length > format.maxLength) {
+        return { valid: false, message: `Maximum ${format.maxLength} characters for ${country}` };
+      }
+
+      if (!format.regex.test(cleaned)) {
+        return { valid: false, message: `Invalid format for ${country}. Example: ${format.example}` };
+      }
+
+      return { valid: true, message: "Valid" };
+    }
+
+    function formatBusinessRegistrationNumber(input, country) {
+      const format = BUSINESS_REG_FORMATS[country] || BUSINESS_REG_FORMATS.default;
+      let value = input.value;
+
+      if (country === "United States") {
+        value = value.replace(/\s+/g, "");
+        if (value.length > 2 && !value.includes("-")) {
+          value = value.substring(0, 2) + "-" + value.substring(2);
+        }
+      } else if (country === "Chile") {
+        value = value.replace(/\s+/g, "");
+        const parts = value.split("-");
+        if (parts.length === 1 && value.length > 8) {
+          value = value.substring(0, value.length - 1) + "-" + value.substring(value.length - 1);
+        }
+      } else if (country === "Finland") {
+        value = value.replace(/\s+/g, "");
+        if (value.length > 7 && !value.includes("-")) {
+          value = value.substring(0, 7) + "-" + value.substring(7);
+        }
+      } else if (country === "Switzerland") {
+        value = value.toUpperCase().replace(/\s+/g, "");
+        if (value.startsWith("CHE") && value.length > 6 && !value.includes(".")) {
+          const digits = value.substring(3);
+          if (digits.length >= 3) {
+            value = "CHE-" + digits.substring(0, 3);
+            if (digits.length >= 6) {
+              value += "." + digits.substring(3, 6);
+              if (digits.length >= 9) {
+                value += "." + digits.substring(6, 9);
+              }
+            }
+          }
+        }
+      }
+
+      if (value.length > format.maxLength) {
+        value = value.substring(0, format.maxLength);
+      }
+
+      input.value = value;
+    }
+
+    function updateBusinessRegPlaceholder(country) {
+      const format = BUSINESS_REG_FORMATS[country] || BUSINESS_REG_FORMATS.default;
+      businessRegistrationNumber.placeholder = format.placeholder;
+      businessRegistrationNumber.setAttribute("maxlength", format.maxLength);
+    }
+
+    async function sendSignupSmsCode() {
+      const iso2 = getSelectedCountryIso2();
+      const prefixEl = currentAccountType === "individual" ? individualPhonePrefix : businessPhonePrefix;
+      const phoneEl = currentAccountType === "individual" ? individualPhone : businessPhone;
+
+      const e164 = getPhoneE164FromUI(prefixEl, phoneEl, iso2);
+      if (!e164) {
+        showMessage(signupMessages, "Please enter a valid phone number.", "error");
+        stopSignupTimerAllowResend();
+        return false;
+      }
+
+      pendingPhoneE164 = e164;
+      phoneVerificationId = null;
+      signupSmsCodeInput.value = "";
+
+      try {
+        showMessage(signupMessages, `Sending SMS to ${e164}...`, "info");
+
+        await initRecaptchaOnce();
+        resetRecaptchaWidget();
+
+        const confirmationResult = await signInWithPhoneNumber(auth, e164, recaptchaVerifier);
+        phoneVerificationId = confirmationResult.verificationId;
+
+        startSignupVerificationTimer();
+        showMessage(signupMessages, "Code sent.", "success");
+        return true;
+      } catch (error) {
+        console.error("Signup SMS send error:", error);
+        resetRecaptchaWidget();
+        showMessage(signupMessages, firebaseSmsSendErrorMessage(error), "error");
+        stopSignupTimerAllowResend();
+        return false;
+      }
+    }
+
+    resendCode.addEventListener("click", async () => {
+      if (!assertAllowedOrBlock(signupMessages)) return;
+      await sendSignupSmsCode();
+    });
+
+    async function sendRecoverySmsCode() {
+      const iso2 = getRecoveryCountryIso2();
+      const e164 = getPhoneE164FromUI(recoveryPhonePrefix, recoveryPhone, iso2);
+      if (!e164) {
+        showMessage(resetPasswordMessages, "Please enter a valid phone number.", "error");
+        stopRecoveryTimerAllowResend();
+        return false;
+      }
+
+      pendingRecoveryPhoneE164 = e164;
+      recoveryVerificationId = null;
+      recoverySmsCodeInput.value = "";
+
+      try {
+        showMessage(resetPasswordMessages, `Sending SMS to ${e164}...`, "info");
+
+        await initRecaptchaOnce();
+        resetRecaptchaWidget();
+
+        const confirmationResult = await signInWithPhoneNumber(auth, e164, recaptchaVerifier);
+        recoveryVerificationId = confirmationResult.verificationId;
+
+        recoveryCodeBlock.style.display = "block";
+        recoveryCodeSent = true;
+        setBtnLocked(sendRecoveryCodeBtn, true);
+
+        startRecoveryTimer();
+        showMessage(resetPasswordMessages, "Code sent.", "success");
+        return true;
+      } catch (error) {
+        console.error("Recovery SMS send error:", error);
+        resetRecaptchaWidget();
+        showMessage(resetPasswordMessages, firebaseSmsSendErrorMessage(error), "error");
+        stopRecoveryTimerAllowResend();
+        return false;
+      }
+    }
+
+    recoveryResend.addEventListener("click", async () => {
+      if (!assertAllowedOrBlock(resetPasswordMessages)) return;
+      await sendRecoverySmsCode();
+    });
+
+    function loadAllowedCountries() {
+      if (countriesLoaded) return;
+
+      const build = (selectEl) => {
+        selectEl.innerHTML = '<option value="" disabled selected>Select your country</option>';
+        ALLOWED_COUNTRIES.slice().sort((a, b) => a.name.localeCompare(b.name)).forEach(({ name }) => {
+          const opt = document.createElement("option");
+          opt.value = name;
+          opt.textContent = name;
+          selectEl.appendChild(opt);
+        });
+      };
+
+      build(countrySelect);
+      build(recoveryCountry);
+
+      countriesLoaded = true;
+    }
+
+    function switchAccountType(type) {
+      if (type === currentAccountType) return;
+
+      const oldFields = currentAccountType === "individual" ? individualFields : businessFields;
+      const newFields = type === "individual" ? individualFields : businessFields;
+
+      const fadeOut = oldFields.animate([{ opacity: 1 }, { opacity: 0 }], {
+        duration: 250, easing: "ease-out", fill: "forwards"
+      });
+
+      fadeOut.onfinish = () => {
+        oldFields.classList.remove("active");
+        newFields.classList.add("active");
+        newFields.animate([{ opacity: 0 }, { opacity: 1 }], {
+          duration: 250, easing: "ease-in", fill: "forwards"
+        });
+        currentAccountType = type;
+      };
+    }
+
+    individualBtn.addEventListener("click", () => {
+      individualBtn.classList.add("active");
+      businessBtn.classList.remove("active");
+      switchAccountType("individual");
+    });
+
+    businessBtn.addEventListener("click", () => {
+      businessBtn.classList.add("active");
+      individualBtn.classList.remove("active");
+      switchAccountType("business");
+    });
+
+    function normalizeWhitespace(s) {
+      return String(s || "").replace(/\s+/g, " ").trim();
+    }
+
+    function buildLine1({ house, road, name }) {
+      const line = normalizeWhitespace(`${house || ""} ${road || ""}`);
+      if (line.length >= 4) return line;
+      if (name && String(name).trim().length >= 4) return normalizeWhitespace(name);
+      return line || normalizeWhitespace(name) || "";
+    }
+
+    function countryNameToIso2Lower(name) {
+      const code = ALLOWED_NAME_TO_CODE.get(name);
+      return code ? code.toLowerCase() : null;
+    }
+
+    async function fetchNominatimSuggestions(query, iso2Lower, signal) {
+      const url = new URL("https://nominatim.openstreetmap.org/search");
+      url.searchParams.set("format", "json");
+      url.searchParams.set("addressdetails", "1");
+      url.searchParams.set("limit", "6");
+      url.searchParams.set("q", query);
+      url.searchParams.set("accept-language", "en");
+      if (iso2Lower) url.searchParams.set("countrycodes", iso2Lower);
+
+      const res = await fetch(url.toString(), {
+        signal,
+        headers: { "Accept": "application/json" },
+        referrerPolicy: "no-referrer"
+      });
+      if (!res.ok) return [];
+      const list = await res.json();
+
+      return list.map(item => {
+        const addr = item?.address || {};
+        const line1 = buildLine1({
+          house: addr.house_number,
+          road: addr.road || addr.pedestrian || addr.footway || addr.cycleway || addr.path,
+          name: item?.name
+        });
+        const city = addr.city || addr.town || addr.village || addr.county || "";
+        const postcode = addr.postcode || "";
+        const country = addr.country || "";
+        const secondary = normalizeWhitespace([city, postcode, country].filter(Boolean).join(", "));
+        return {
+          line1,
+          city,
+          postcode,
+          primary: line1 || String(item?.display_name || "").split(",")[0] || "Address",
+          secondary
+        };
+      }).filter(x => x.primary);
+    }
+
+    async function fetchAddressSuggestions(query, countryName, signal) {
+      const iso2Lower = countryNameToIso2Lower(countryName);
+      try {
+        return await fetchNominatimSuggestions(query, iso2Lower, signal);
+      } catch {
+        return [];
+      }
+    }
+
+    function renderSuggestions(list, suggestionsElement, onPick) {
+      suggestionsElement.innerHTML = "";
+      if (!list.length) {
+        suggestionsElement.style.display = "none";
+        return;
+      }
+
+      list.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "address-suggestion";
+        div.innerHTML = `
+          <div class="primary">${item.primary}</div>
+          <div class="secondary">${item.secondary || ""}</div>
+        `;
+        div.addEventListener("click", () => onPick(item));
+        suggestionsElement.appendChild(div);
+      });
+
+      suggestionsElement.style.display = "block";
+    }
+
+    function initAddressAutocomplete(inputElement, suggestionsElement, cityEl, postalEl) {
+      inputElement.addEventListener("input", function () {
+        clearTimeout(addressAutocompleteTimeout);
+
+        const q = this.value.trim();
+        if (q.length < 3) {
+          suggestionsElement.style.display = "none";
+          return;
+        }
+
+        addressAutocompleteTimeout = setTimeout(async () => {
+          const country = countrySelect.value;
+
+          if (addressAbortController) {
+            try { addressAbortController.abort(); } catch { }
+          }
+          addressAbortController = new AbortController();
+
+          try {
+            const list = await fetchAddressSuggestions(q, country, addressAbortController.signal);
+            renderSuggestions(list, suggestionsElement, (picked) => {
+              inputElement.value = picked.line1 || picked.primary || q;
+              if (cityEl && picked.city) cityEl.value = picked.city;
+              if (postalEl && picked.postcode) postalEl.value = picked.postcode;
+              suggestionsElement.style.display = "none";
+            });
+          } catch {
+            suggestionsElement.style.display = "none";
+          }
+        }, 300);
+      });
+    }
+
+    document.addEventListener("click", function (e) {
+      const targets = [
+        { input: document.getElementById("individualAddressLine1"), box: individualAddressSuggestions },
+        { input: document.getElementById("businessAddressLine1"), box: businessAddressSuggestions }
+      ];
+      for (const t of targets) {
+        if (!t.input || !t.box) continue;
+        if (e.target !== t.input && !t.box.contains(e.target)) t.box.style.display = "none";
+      }
+    });
+
+    function generateUserId() {
+      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      const numbers = "0123456789";
+      let result = "";
+      for (let i = 0; i < 3; i++) result += letters.charAt(Math.floor(Math.random() * letters.length));
+      for (let i = 0; i < 3; i++) result += numbers.charAt(Math.floor(Math.random() * numbers.length));
+      return result.split("").sort(() => 0.5 - Math.random()).join("");
+    }
+
+    async function reserveUniqueUserId(uid) {
+      for (let attempts = 0; attempts < 25; attempts++) {
+        const userId = generateUserId();
+        try {
+          await setDoc(doc(db, "userIds", userId), { uid });
+          return userId;
+        } catch (e) {
+          continue;
+        }
+      }
+      throw new Error("Unable to generate a unique userId. Check Firestore rules for userIds collection.");
+    }
+
+    function isRecoveryFlowActive() {
+      return resetPasswordForm.style.display !== "none";
+    }
+
+    async function checkUserProfileAndRedirect(user) {
+      try {
+        redirectionActive = true;
+        toggleLoader(true);
+
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          window.location.replace("dashboard.html");
+        } else {
+          redirectionActive = false;
+          toggleLoader(false);
+        }
+      } catch (e) {
+        console.error("Error checking user profile:", e);
+        redirectionActive = false;
+        toggleLoader(false);
+      }
+    }
+
+    goToStep2Btn.addEventListener("click", () => {
+      if (!assertAllowedOrBlock(signupMessages)) return;
+
+      const fullName = document.getElementById("fullName").value.trim();
+      const email = document.getElementById("signupEmail").value.trim();
+      const password = document.getElementById("signupPassword").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+      const country = countrySelect.value;
+      const birthdateRaw = document.getElementById("birthdate").value;
+      const birthdate = new Date(birthdateRaw);
+      const today = new Date();
+
+      if (!fullName) return showMessage(signupMessages, "Please enter your full name.", "error");
+      if (!country) return showMessage(signupMessages, "Please select your country.", "error");
+
+      const selectedCode = ALLOWED_NAME_TO_CODE.get(country);
+      if (!selectedCode) return showMessage(signupMessages, "Sorry, Monetizelt is not available in your country yet.", "warning");
+
+      if (!birthdateRaw || isNaN(birthdate.getTime())) return showMessage(signupMessages, "Please enter a valid birth date.", "error");
+
+      const age = today.getFullYear() - birthdate.getFullYear();
+      const monthDiff = today.getMonth() - birthdate.getMonth();
+      const adjustedAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthdate.getDate()) ? age - 1 : age;
+      if (adjustedAge < 18) return showMessage(signupMessages, "You must be at least 18 years old.", "error");
+
+      if (!email) return showMessage(signupMessages, "Please enter your email address.", "error");
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) return showMessage(signupMessages, "Please enter a valid email address.", "error");
+
+      if (!password) return showMessage(signupMessages, "Please enter a password.", "error");
+      if (password.length < 6) return showMessage(signupMessages, "Password must be at least 6 characters.", "error");
+      if (password !== confirmPassword) return showMessage(signupMessages, "Passwords don't match.", "error");
+
+      goToStep(2);
+      setPrefixesFromSelectedCountry();
+      updateBusinessRegPlaceholder(country);
+    });
+
+    backToStep1Btn.addEventListener("click", () => goToStep(1));
+
+    goToStep3Btn.addEventListener("click", async () => {
+      if (!assertAllowedOrBlock(signupMessages)) return;
+
+      const iso2 = getSelectedCountryIso2();
+      if (!iso2) return showMessage(signupMessages, "Please select your country first.", "error");
+
+      if (currentAccountType === "individual") {
+        const phoneE164 = getPhoneE164FromUI(individualPhonePrefix, individualPhone, iso2);
+        const addressLine1 = document.getElementById("individualAddressLine1").value.trim();
+        const city = document.getElementById("individualCity").value.trim();
+        const postalCode = document.getElementById("individualPostalCode").value.trim();
+        const occupation = document.getElementById("individualOccupation").value;
+
+        if (!phoneE164) return showMessage(signupMessages, "Please enter a valid phone number.", "error");
+        if (!addressLine1) return showMessage(signupMessages, "Please enter your address.", "error");
+        if (!city) return showMessage(signupMessages, "Please enter your city.", "error");
+        if (!postalCode) return showMessage(signupMessages, "Please enter your postal/ZIP code.", "error");
+        if (!occupation) return showMessage(signupMessages, "Please select your occupation.", "error");
+      } else {
+        const country = countrySelect.value;
+        const companyName = document.getElementById("companyName").value.trim();
+        const registrationNumber = document.getElementById("businessRegistrationNumber").value.trim();
+        const industry = document.getElementById("businessIndustry").value;
+        const companySize = document.getElementById("companySize").value;
+        const businessEmail = businessEmailInput.value.trim();
+        const phoneE164 = getPhoneE164FromUI(businessPhonePrefix, businessPhone, iso2);
+        const addressLine1 = document.getElementById("businessAddressLine1").value.trim();
+        const city = document.getElementById("businessCity").value.trim();
+        const postalCode = document.getElementById("businessPostalCode").value.trim();
+
+        if (!companyName) return showMessage(signupMessages, "Please enter your company name.", "error");
+        if (!registrationNumber) return showMessage(signupMessages, "Please enter business registration number.", "error");
+
+        const regValidation = validateBusinessRegistrationNumber(registrationNumber, country);
+        if (!regValidation.valid) return showMessage(signupMessages, regValidation.message, "error");
+
+        if (!industry) return showMessage(signupMessages, "Please select your industry.", "error");
+        if (!companySize) return showMessage(signupMessages, "Please select your company size.", "error");
+
+        // ✅ NEW: Validate business email
+        if (!businessEmail) return showMessage(signupMessages, "Please enter your business email.", "error");
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(businessEmail)) return showMessage(signupMessages, "Please enter a valid business email.", "error");
+
+        if (!phoneE164) return showMessage(signupMessages, "Please enter a valid business phone.", "error");
+        if (!addressLine1) return showMessage(signupMessages, "Please enter business address.", "error");
+        if (!city) return showMessage(signupMessages, "Please enter your city.", "error");
+        if (!postalCode) return showMessage(signupMessages, "Please enter your postal/ZIP code.", "error");
+      }
+
+      goToStep(3);
+
+      const ok = await sendSignupSmsCode();
+      if (ok) signupSmsCodeInput.focus();
+    });
+
+    backToStep2Btn.addEventListener("click", () => {
+      phoneVerificationId = null;
+      pendingPhoneE164 = null;
+      clearInterval(verificationTimerInterval);
+      verificationTimer.style.display = "block";
+      verificationTimer.textContent = `Resend code in ${formatMMSS(RESEND_SECONDS)}`;
+      resendCode.style.display = "none";
+      signupSmsCodeInput.value = "";
+      goToStep(2);
+    });
+
+    createAccountBtn.addEventListener("click", async function () {
+      if (!assertAllowedOrBlock(signupMessages)) return;
+
+      setBtnLoading(this, signupDots, true);
+      simulateProgress(0, 35, 250);
+
+      const enteredCode = normalizeOtp6(signupSmsCodeInput.value);
+      if (enteredCode.length !== 6) {
+        showMessage(signupMessages, "Please enter the 6-digit code.", "error");
+        setBtnLoading(this, signupDots, false);
+        simulateProgress(35, 100, 150);
+        return;
+      }
+
+      if (!phoneVerificationId || !pendingPhoneE164) {
+        showMessage(signupMessages, "Please request a new code and try again.", "error");
+        setBtnLoading(this, signupDots, false);
+        simulateProgress(35, 100, 150);
+        return;
+      }
+
+      const fullName = document.getElementById("fullName").value.trim();
+      const email = document.getElementById("signupEmail").value.trim();
+      const password = document.getElementById("signupPassword").value;
+      const country = countrySelect.value;
+      const birthdate = new Date(document.getElementById("birthdate").value);
+
+      const selectedCode = ALLOWED_NAME_TO_CODE.get(country);
+      if (!selectedCode) {
+        showMessage(signupMessages, "Sorry, Monetizelt is not available in your country yet.", "warning");
+        setBtnLoading(this, signupDots, false);
+        simulateProgress(35, 100, 150);
+        return;
+      }
+
+      let baseUserData = {
+        fullName,
+        email,
+        country,
+        countryCode: selectedCode,
+        birthdate: birthdate.toISOString().split("T")[0],
+        accountType: currentAccountType,
+        createdAt: serverTimestamp(),
+        lastLogin: serverTimestamp(),
+        onboardingComplete: false,
+        linksCount: 0,
+        viewsCount: 0,
+        ordersCount: 0,
+        shippedCount: 0,
+        revenueCount: 0
+      };
+
+      if (currentAccountType === "individual") {
+        baseUserData = {
+          ...baseUserData,
+          phonePrefix: individualPhonePrefix.value,
+          phone: normalizeNationalDigits(individualPhone.value, getSelectedCountryIso2()),
+          phoneE164: pendingPhoneE164,
+          address: {
+            line1: document.getElementById("individualAddressLine1").value.trim(),
+            line2: document.getElementById("individualAddressLine2").value.trim() || null,
+            city: document.getElementById("individualCity").value.trim(),
+            postalCode: document.getElementById("individualPostalCode").value.trim(),
+            country
+          },
+          occupation: document.getElementById("individualOccupation").value
+        };
+      } else {
+        // ✅ NEW: Save business email in Firestore
+        baseUserData = {
+          ...baseUserData,
+          companyName: document.getElementById("companyName").value.trim(),
+          registrationNumber: document.getElementById("businessRegistrationNumber").value.trim(),
+          industry: document.getElementById("businessIndustry").value,
+          companySize: document.getElementById("companySize").value,
+          businessEmail: businessEmailInput.value.trim(),
+          phonePrefix: businessPhonePrefix.value,
+          phone: normalizeNationalDigits(businessPhone.value, getSelectedCountryIso2()),
+          phoneE164: pendingPhoneE164,
+          address: {
+            line1: document.getElementById("businessAddressLine1").value.trim(),
+            line2: document.getElementById("businessAddressLine2").value.trim() || null,
+            city: document.getElementById("businessCity").value.trim(),
+            postalCode: document.getElementById("businessPostalCode").value.trim(),
+            country
+          },
+          website: document.getElementById("businessWebsite").value.trim() || null
+        };
+      }
+
+      simulateProgress(35, 55, 250);
+
+      let createdUser = null;
+
+      try {
+        showMessage(signupMessages, "Creating your account...", "info");
+
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        createdUser = userCredential.user;
+
+        simulateProgress(55, 70, 250);
+        showMessage(signupMessages, "Verifying your phone number...", "info");
+
+        const phoneCred = PhoneAuthProvider.credential(phoneVerificationId, enteredCode);
+        await linkWithCredential(createdUser, phoneCred);
+
+        simulateProgress(70, 80, 250);
+        showMessage(signupMessages, "Saving your profile...", "info");
+
+        await setDoc(doc(db, "users", createdUser.uid), { ...baseUserData, uid: createdUser.uid });
+
+        simulateProgress(80, 90, 250);
+        showMessage(signupMessages, "Generating your unique ID...", "info");
+
+        const userId = await reserveUniqueUserId(createdUser.uid);
+        await setDoc(doc(db, "users", createdUser.uid), { userId }, { merge: true });
+
+        simulateProgress(90, 100, 250);
+
+        showSuccessStepAndRedirect();
+      } catch (error) {
+        console.error("Create account error:", error);
+
+        if (createdUser) {
+          try { await deleteUser(createdUser); } catch (e) { console.warn("Failed to delete partially created user:", e); }
+        }
+
+        let errorMessage = "Error creating account. Please try again.";
+        if (error?.code === "auth/invalid-email") errorMessage = "Invalid email address format.";
+        else if (error?.code === "auth/weak-password") errorMessage = "Password should be at least 6 characters.";
+        else if (error?.code === "auth/email-already-in-use") errorMessage = "This email is already associated with an account. Please log in.";
+        else if (error?.code === "auth/invalid-verification-code") errorMessage = "Invalid code. Please try again.";
+        else if (error?.code === "auth/code-expired") errorMessage = "Code expired. Please resend and try again.";
+        else if (error?.code === "auth/credential-already-in-use") errorMessage = "This phone number is already linked to another account.";
+        else if (error?.code === "auth/too-many-requests") errorMessage = "Too many attempts. Please wait and try again later.";
+        else if (error?.message) errorMessage = error.message;
+
+        showMessage(signupMessages, errorMessage, "error");
+      } finally {
+        setBtnLoading(this, signupDots, false);
+        simulateProgress(60, 100, 150);
+      }
+    });
+
+    document.getElementById("loginUser").addEventListener("click", async function () {
+      if (!assertAllowedOrBlock(loginMessages)) return;
+
+      setBtnLoading(this, loginDots, true);
+      simulateProgress(0, 50, 500);
+
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+
+      if (!email) {
+        showMessage(loginMessages, "Please enter your email.", "error");
+        setBtnLoading(this, loginDots, false);
+        simulateProgress(50, 100, 100);
+        return;
+      }
+      if (!password) {
+        showMessage(loginMessages, "Please enter your password.", "error");
+        setBtnLoading(this, loginDots, false);
+        simulateProgress(50, 100, 100);
+        return;
+      }
+
+      try {
+        showMessage(loginMessages, "Logging in...", "info");
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        try {
+          await setDoc(doc(db, "users", user.uid), { lastLogin: serverTimestamp() }, { merge: true });
+        } catch (e) { }
+
+        simulateProgress(50, 100, 250);
+        redirectToDashboard();
+      } catch (error) {
+        console.error("Login error:", error);
+
+        let errorMessage = "Login error. Please try again later.";
+        if (error.code === "auth/user-not-found") errorMessage = "No account found with this email address.";
+        else if (error.code === "auth/wrong-password") errorMessage = "Incorrect password. Please try again.";
+        else if (error.code === "auth/invalid-email") errorMessage = "Invalid email format.";
+        else if (error.code === "auth/too-many-requests") errorMessage = "Too many failed attempts. Please try again later.";
+        else if (error.code === "auth/network-request-failed") errorMessage = "Network error. Please check your internet connection.";
+
+        showMessage(loginMessages, errorMessage, "error");
+      } finally {
+        setBtnLoading(this, loginDots, false);
+        simulateProgress(50, 100, 100);
+      }
+    });
+
+    sendRecoveryCodeBtn.addEventListener("click", async () => {
+      if (!assertAllowedOrBlock(resetPasswordMessages)) return;
+      if (recoveryCodeSent) return;
+
+      try { if (auth.currentUser) await signOut(auth); } catch { }
+
+      setBtnLoading(sendRecoveryCodeBtn, recoverySendDots, true);
+      simulateProgress(0, 35, 300);
+
+      try {
+        const ok = await sendRecoverySmsCode();
+        if (ok) {
+          recoverySmsCodeInput.focus();
+          simulateProgress(35, 100, 300);
+        } else {
+          simulateProgress(35, 100, 120);
+        }
+      } finally {
+        setBtnLoading(sendRecoveryCodeBtn, recoverySendDots, false);
+      }
+    });
+
+    verifyRecoveryCodeBtn.addEventListener("click", async () => {
+      if (!assertAllowedOrBlock(resetPasswordMessages)) return;
+      if (recoveryCodeVerified) return;
+
+      const code = normalizeOtp6(recoverySmsCodeInput.value);
+      if (code.length !== 6) return showMessage(resetPasswordMessages, "Please enter the 6-digit code.", "error");
+      if (!recoveryVerificationId || !pendingRecoveryPhoneE164) return showMessage(resetPasswordMessages, "Please request a new code and try again.", "error");
+
+      setBtnLoading(verifyRecoveryCodeBtn, recoveryVerifyDots, true);
+      simulateProgress(0, 60, 350);
+
+      try {
+        const cred = PhoneAuthProvider.credential(recoveryVerificationId, code);
+        const userCred = await signInWithCredential(auth, cred);
+
+        const uid = userCred.user.uid;
+        const snap = await getDoc(doc(db, "users", uid));
+
+        if (!snap.exists()) {
+          try { await deleteUser(userCred.user); } catch { }
+          showMessage(resetPasswordMessages, "No Monetizelt account found for this phone number.", "error");
+          return;
+        }
+
+        showMessage(resetPasswordMessages, "Phone verified. You can now set a new password.", "success");
+
+        newPasswordBlock.style.display = "block";
+        newPasswordInput.focus();
+
+        recoveryCodeVerified = true;
+        setBtnLocked(verifyRecoveryCodeBtn, true);
+        recoverySmsCodeInput.disabled = true;
+        clearInterval(recoveryTimerInterval);
+        recoveryTimer.style.display = "none";
+        recoveryResend.style.display = "none";
+
+        simulateProgress(60, 100, 350);
+      } catch (e) {
+        console.error("Verify recovery code error:", e);
+
+        let msg = "Verification failed. Please try again.";
+        if (e?.code === "auth/invalid-verification-code") msg = "Invalid code. Please try again.";
+        if (e?.code === "auth/code-expired") msg = "Code expired. Please resend and try again.";
+        showMessage(resetPasswordMessages, msg, "error");
+        simulateProgress(60, 100, 120);
+      } finally {
+        setBtnLoading(verifyRecoveryCodeBtn, recoveryVerifyDots, false);
+      }
+    });
+
+    setNewPasswordBtn.addEventListener("click", async () => {
+      if (!assertAllowedOrBlock(resetPasswordMessages)) return;
+
+      const pwd = newPasswordInput.value;
+      const pwd2 = confirmNewPasswordInput.value;
+
+      if (!auth.currentUser) return showMessage(resetPasswordMessages, "Please verify your phone first.", "error");
+      if (!pwd || pwd.length < 6) return showMessage(resetPasswordMessages, "Password must be at least 6 characters.", "error");
+      if (pwd !== pwd2) return showMessage(resetPasswordMessages, "Passwords don't match.", "error");
+
+      setBtnLoading(setNewPasswordBtn, recoverySetPwdDots, true);
+      simulateProgress(0, 70, 400);
+
+      try {
+        await updatePassword(auth.currentUser, pwd);
+        showMessage(resetPasswordMessages, "Password updated successfully!", "success");
+        simulateProgress(70, 100, 250);
+
+        setBtnLocked(setNewPasswordBtn, true);
+
+        redirectToDashboard();
+      } catch (e) {
+        console.error("Update password error:", e);
+        let msg = "Could not update password. Please try again.";
+        if (e?.code === "auth/requires-recent-login") msg = "Please verify again (security check).";
+        showMessage(resetPasswordMessages, msg, "error");
+        simulateProgress(70, 100, 120);
+      } finally {
+        setBtnLoading(setNewPasswordBtn, recoverySetPwdDots, false);
+      }
+    });
+
+    document.getElementById("forgotPassword").addEventListener("click", () => switchForm("resetPasswordForm"));
+    document.getElementById("backToLogin").addEventListener("click", () => switchForm("loginForm"));
+
+    document.getElementById("showSignup").addEventListener("click", () => {
+      switchForm("signupForm");
+      document.getElementById("fullName").focus();
+    });
+
+    document.getElementById("showLogin").addEventListener("click", () => {
+      switchForm("loginForm");
+      document.getElementById("loginEmail").focus();
+    });
+
+    document.getElementById("loginEmail").addEventListener("keypress", (e) => { if (e.key === "Enter") document.getElementById("loginPassword").focus(); });
+    document.getElementById("loginPassword").addEventListener("keypress", (e) => { if (e.key === "Enter") document.getElementById("loginUser").click(); });
+
+    document.getElementById("fullName").addEventListener("keypress", (e) => { if (e.key === "Enter") document.getElementById("signupCountry").focus(); });
+    document.getElementById("signupCountry").addEventListener("keypress", (e) => { if (e.key === "Enter") document.getElementById("birthdate").focus(); });
+    document.getElementById("birthdate").addEventListener("keypress", (e) => { if (e.key === "Enter") document.getElementById("signupEmail").focus(); });
+    document.getElementById("signupEmail").addEventListener("keypress", (e) => { if (e.key === "Enter") document.getElementById("signupPassword").focus(); });
+    document.getElementById("signupPassword").addEventListener("keypress", (e) => { if (e.key === "Enter") document.getElementById("confirmPassword").focus(); });
+    document.getElementById("confirmPassword").addEventListener("keypress", (e) => { if (e.key === "Enter") document.getElementById("goToStep2").click(); });
+
+    recoveryPhone.addEventListener("keypress", (e) => { if (e.key === "Enter") sendRecoveryCodeBtn.click(); });
+
+    function setupPhoneListeners() {
+      individualPhone.addEventListener("input", function () {
+        handlePhoneInput(this, individualPhoneFeedback, getSelectedCountryIso2());
+      });
+      businessPhone.addEventListener("input", function () {
+        handlePhoneInput(this, businessPhoneFeedback, getSelectedCountryIso2());
+      });
+      recoveryPhone.addEventListener("input", function () {
+        handlePhoneInput(this, recoveryPhoneFeedback, getRecoveryCountryIso2());
+      });
+
+      individualPhone.addEventListener("keypress", e => { if (!/\d/.test(e.key)) e.preventDefault(); });
+      businessPhone.addEventListener("keypress", e => { if (!/\d/.test(e.key)) e.preventDefault(); });
+      recoveryPhone.addEventListener("keypress", e => { if (!/\d/.test(e.key)) e.preventDefault(); });
+
+      businessRegistrationNumber.addEventListener("input", () => {
+        const country = countrySelect.value;
+        formatBusinessRegistrationNumber(businessRegistrationNumber, country);
+      });
+
+      countrySelect.addEventListener("change", function () {
+        setPrefixesFromSelectedCountry();
+        const country = this.value;
+        updateBusinessRegPlaceholder(country);
+        if (businessRegistrationNumber.value) formatBusinessRegistrationNumber(businessRegistrationNumber, country);
+      });
+
+      recoveryCountry.addEventListener("change", () => {
+        setRecoveryPrefixFromCountry();
+      });
+    }
+
+    async function init() {
+      handleSplashScreen();
+      handlePWAInstallation();
+
+      const today = new Date();
+      document.getElementById("birthdate").setAttribute("max", today.toISOString().split("T")[0]);
+
+      await detectUserCountry();
+      enforceCountryAvailabilityUI();
+
+      loadAllowedCountries();
+      setupPhoneListeners();
+
+      initAddressAutocomplete(
+        document.getElementById("individualAddressLine1"),
+        individualAddressSuggestions,
+        document.getElementById("individualCity"),
+        document.getElementById("individualPostalCode")
+      );
+      initAddressAutocomplete(
+        document.getElementById("businessAddressLine1"),
+        businessAddressSuggestions,
+        document.getElementById("businessCity"),
+        document.getElementById("businessPostalCode")
+      );
+
+      document.getElementById("signupPassword").addEventListener("input", function () {
+        evaluatePasswordStrength(this.value, "passwordStrengthMeter", "passwordFeedback");
+      });
+
+      newPasswordInput.addEventListener("input", function () {
+        evaluatePasswordStrength(this.value, "newPasswordStrengthMeter", "newPasswordFeedback");
+      });
+
+      setupOtpInput(signupSmsCodeInput);
+      setupOtpInput(recoverySmsCodeInput);
+
+      try { await initRecaptchaOnce(); } catch { }
+
+      onAuthStateChanged(auth, (user) => {
+        if (user && !redirectionActive && !isRecoveryFlowActive()) {
+          checkUserProfileAndRedirect(user);
+        }
+      });
+    }
+
+    init();
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("/sw.js").then(
+          reg => console.log("ServiceWorker registration successful with scope:", reg.scope),
+          err => console.log("ServiceWorker registration failed:", err)
+        );
+      });
+    }
+  </script>
+</body>
+
+</html>

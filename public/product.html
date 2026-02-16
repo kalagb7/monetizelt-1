@@ -1,0 +1,1922 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Monetizelt</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="icon"
+        href="https://firebasestorage.googleapis.com/v0/b/monetizelt-b235d.firebasestorage.app/o/1000009017_resized.jpg?alt=media&token=d69084a3-b285-44e4-81a5-f05971314175" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <style>
+        :root {
+            --primary: #007bff;
+            --bg: #f5f5f5;
+            --text: #333;
+            --muted: #666;
+            --danger: #dc3545;
+            --border: #007bff;
+            --modal-surface: #f6f9ff;
+            --modal-surface-2: #eef5ff;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        button,
+        a,
+        input,
+        textarea,
+        [role="button"] {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: "Poppins", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg);
+            color: var(--text);
+        }
+
+        body.modal-open {
+            overflow: hidden;
+        }
+
+        header {
+            background-color: #ffffff;
+            padding: 14px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            gap: 10px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.3em;
+            font-family: 'Poppins', sans-serif;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            padding: 7px 10px;
+            border-radius: 14px;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .icon-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border: 1px solid var(--primary);
+            border-radius: 10px;
+            background-color: white;
+            color: var(--primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            user-select: none;
+            pointer-events: auto;
+            padding: 0;
+        }
+
+        .icon:hover {
+            background-color: #e9f5ff;
+        }
+
+        .icon:active {
+            transform: scale(0.95);
+            background-color: #d0e7ff;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: var(--primary);
+            width: 100%;
+            margin: 0 0 8px 0;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            padding: 0;
+            margin: 0 0 6px 0;
+            overflow-x: auto;
+            white-space: nowrap;
+            gap: 10px;
+        }
+
+        .status-button {
+            background-color: white;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            border-radius: 13px;
+            padding: 8px 15px;
+            font-size: 0.7em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .status-button:hover {
+            background-color: #e9f5ff;
+        }
+
+        .status-button:active {
+            transform: scale(0.97);
+            background-color: #d0e7ff;
+        }
+
+        .verification-badge {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            background-color: #4caf50;
+            border-radius: 50%;
+            margin-right: 6px;
+            position: relative;
+            flex: 0 0 auto;
+        }
+
+        .verification-badge:after {
+            content: '✓';
+            color: white;
+            font-size: 10px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .content-container {
+            width: calc(100% - 24px);
+            max-width: 500px;
+            margin: 10px auto;
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px;
+            background-color: #ffffff;
+            border: 2px solid var(--primary);
+            min-height: 250px;
+        }
+
+        .slider {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .cover-image-container {
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            min-height: 250px;
+        }
+
+        .cover-image-container .placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #ffffff;
+            color: #888;
+            font-size: 14px;
+            min-height: 250px;
+        }
+
+        .cover-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            background: #ffffff;
+            border-radius: 14px;
+        }
+
+        .cover-image.loaded {
+            opacity: 1;
+        }
+
+        /* Icône de type de produit (vidéo/musique) - maintenant en haut à droite */
+        .product-type-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 34px;
+            height: 34px;
+            background-color: rgba(246, 249, 255, 0.9);
+            border: 1px solid rgba(0, 123, 255, 0.35);
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            z-index: 100;
+            backdrop-filter: blur(2px);
+            pointer-events: none;
+        }
+
+        .product-type-icon.visible {
+            display: inline-flex;
+        }
+
+        .fullscreen-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fullscreen-image {
+            max-width: 92%;
+            max-height: 92%;
+            object-fit: contain;
+        }
+
+        .close-fullscreen {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+        }
+
+        .product-info {
+            width: calc(100% - 34px);
+            max-width: 340px;
+            margin: 10px auto;
+            padding: 10px 12px;
+            background-color: #f0f8ff;
+            border-radius: 13px;
+            border: 1px solid var(--border);
+            text-align: center;
+            min-height: 100px;
+        }
+
+        .product-title {
+            font-weight: 900;
+            color: var(--primary);
+            margin: 0;
+            font-size: 1.05em;
+            letter-spacing: 0.2px;
+            line-height: 1.25;
+            min-height: 24px;
+        }
+
+        .seller-line {
+            margin-top: 6px;
+            font-size: 0.85em;
+            color: #000;
+            min-height: 20px;
+        }
+
+        .seller-link {
+            appearance: none;
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin: 0;
+            color: var(--primary);
+            font-weight: 800;
+            cursor: pointer;
+            text-decoration: none;
+            font-family: inherit;
+            font-size: inherit;
+            pointer-events: auto;
+        }
+
+        .seller-link:hover {
+            text-decoration: underline;
+        }
+
+        .product-price {
+            font-size: 1.06em;
+            margin: 8px 0 0 0;
+            color: var(--primary);
+            font-weight: 900;
+            min-height: 26px;
+        }
+
+        .description {
+            width: calc(100% - 34px);
+            max-width: 340px;
+            margin: 10px auto;
+            padding: 12px;
+            background-color: #f5f5f5;
+            border-radius: 13px;
+            border: 1px solid var(--border);
+            text-align: left;
+            min-height: auto;
+        }
+
+        .description h3 {
+            margin: 0 0 6px 0;
+            color: var(--primary);
+            font-size: 0.92em;
+        }
+
+        .description p {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.5;
+            font-size: 0.92em;
+            color: #000;
+            max-height: none;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+        }
+
+        .description p:not(.skeleton-loading) {
+            min-height: auto;
+        }
+
+        .description p.skeleton-loading {
+            min-height: 60px;
+        }
+
+        .purchase-button-container {
+            display: flex;
+            justify-content: center;
+            margin: 18px auto 18px;
+        }
+
+        .purchase-button {
+            background-color: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: 30px;
+            padding: 12px 40px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-family: inherit;
+            pointer-events: auto;
+            user-select: none;
+        }
+
+        .purchase-button:hover {
+            background-color: #e9f5ff;
+        }
+
+        .purchase-button:active {
+            transform: scale(0.97);
+            background-color: #d0e7ff;
+        }
+
+        .purchase-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .copy-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 123, 255, 0.92);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            z-index: 1600;
+            opacity: 0;
+            transition: opacity 0.3s;
+            max-width: calc(100% - 26px);
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .copy-notification.show {
+            opacity: 1;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeInOverlay 0.3s ease forwards;
+        }
+
+        @keyframes fadeInOverlay {
+            from {
+                background-color: rgba(0, 0, 0, 0);
+            }
+
+            to {
+                background-color: rgba(0, 0, 0, 0.55);
+            }
+        }
+
+        .modal {
+            display: none;
+            max-width: calc(100% - 26px);
+            background-color: var(--modal-surface);
+            border-radius: 22px;
+            border: 2px solid var(--primary);
+            box-shadow: 0 8px 26px rgba(0, 0, 0, 0.22);
+            padding: 18px;
+            text-align: center;
+            position: relative;
+            opacity: 0;
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .modal.active {
+            display: block;
+            animation: modalFadeIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.85) translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .email-modal {
+            width: 290px;
+        }
+
+        .email-modal h3 {
+            color: var(--primary);
+            margin: 6px 0 10px 0;
+            font-weight: 900;
+            font-size: 1.05em;
+            letter-spacing: 0.2px;
+        }
+
+        .email-modal p {
+            margin: 0 0 10px 0;
+            color: #2f3b4b;
+            font-size: 0.9em;
+            line-height: 1.35;
+        }
+
+        .email-input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0 8px 0;
+            border: 1px solid var(--primary);
+            border-radius: 15px;
+            font-size: 16px;
+            outline: none;
+            font-family: inherit;
+            background: #fff;
+        }
+
+        .email-submit {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s ease;
+            font-weight: 800;
+            width: 100%;
+            font-family: inherit;
+            pointer-events: auto;
+            user-select: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .email-submit:hover:not(:disabled) {
+            background-color: #0055aa;
+        }
+
+        .email-submit:active:not(:disabled) {
+            transform: scale(0.98);
+            background-color: #004494;
+        }
+
+        .email-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .terms-container {
+            margin-top: 10px;
+            padding: 6px 8px;
+            background-color: #fff;
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            display: inline-block;
+            width: auto;
+        }
+
+        .terms-link {
+            display: inline;
+            font-size: 12px;
+            text-align: center;
+            margin: 0;
+        }
+
+        .terms-link a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .terms-link a:hover {
+            text-decoration: underline;
+        }
+
+        .payment-loading {
+            display: none;
+            margin-top: 12px;
+            text-align: center;
+            color: #2f3b4b;
+        }
+
+        .loader {
+            border: 4px solid #e7eefc;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .email-result {
+            margin-top: 10px;
+            font-weight: 800;
+            display: none;
+            font-size: 0.92em;
+            line-height: 1.35;
+        }
+
+        .success {
+            color: #1e7e34;
+        }
+
+        .error {
+            color: #c62828;
+        }
+
+        .seller-modal {
+            width: 300px;
+            padding: 16px 14px 14px;
+        }
+
+        .report-modal {
+            width: 310px;
+            padding: 16px 14px 14px;
+            text-align: left;
+        }
+
+        .modal-close-x {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid var(--danger);
+            color: var(--danger);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--modal-surface);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+            user-select: none;
+            padding: 0;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close-x:active {
+            transform: translateX(-50%) scale(0.95);
+        }
+
+        .seller-modal h3 {
+            margin: 10px 0 8px 0;
+            color: var(--primary);
+            font-size: 1.05em;
+            font-weight: 900;
+            letter-spacing: 0.2px;
+        }
+
+        .seller-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #d7e7ff;
+            background: var(--modal-surface-2);
+            border-radius: 14px;
+            padding: 10px 12px;
+            margin: 8px 0;
+            width: 100%;
+            text-align: left;
+            min-height: 52px;
+        }
+
+        .seller-pill i {
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .seller-pill .text-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .seller-pill .label {
+            font-size: 12px;
+            color: #555;
+            margin-bottom: 2px;
+        }
+
+        .seller-pill .value {
+            font-size: 13px;
+            font-weight: 900;
+            color: var(--primary);
+            word-break: break-word;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-height: 18px;
+        }
+
+        .seller-pill .value.skeleton-loading {
+            height: 18px;
+            width: 100%;
+            border-radius: 6px;
+        }
+
+        .seller-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .seller-btn {
+            flex: 1;
+            border-radius: 14px;
+            padding: 10px 10px;
+            font-weight: 900;
+            cursor: pointer;
+            border: 1px solid var(--primary);
+            background: #fff;
+            color: var(--primary);
+            transition: all 0.2s ease;
+            font-family: inherit;
+            font-size: 14px;
+            pointer-events: auto;
+        }
+
+        .seller-btn.primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .seller-btn:hover:not(:disabled) {
+            background: #e9f5ff;
+        }
+
+        .seller-btn.primary:hover:not(:disabled) {
+            background: #0055aa;
+        }
+
+        .seller-btn:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+
+        .seller-btn.primary:active:not(:disabled) {
+            background: #004494;
+        }
+
+        .seller-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .report-modal h3 {
+            margin: 10px 0 10px 0;
+            color: var(--primary);
+            text-align: center;
+            font-size: 1.05em;
+            font-weight: 900;
+            letter-spacing: 0.2px;
+        }
+
+        .report-list {
+            display: grid;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .report-option {
+            border: 1px solid #d7e7ff;
+            background: var(--modal-surface-2);
+            border-radius: 14px;
+            padding: 10px 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .report-option input {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
+        }
+
+        .report-option .txt {
+            font-size: 13px;
+            font-weight: 800;
+            color: #111;
+        }
+
+        .report-extra {
+            margin-top: 10px;
+        }
+
+        .report-textarea {
+            width: 100%;
+            min-height: 72px;
+            border-radius: 14px;
+            border: 1px solid var(--primary);
+            padding: 10px 10px;
+            font-family: inherit;
+            outline: none;
+            font-size: 14px;
+            resize: vertical;
+            background: #fff;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .report-btn {
+            flex: 1;
+            border-radius: 14px;
+            padding: 10px 10px;
+            font-weight: 900;
+            cursor: pointer;
+            border: 1px solid var(--primary);
+            background: #fff;
+            color: var(--primary);
+            transition: all 0.2s ease;
+            font-family: inherit;
+            font-size: 14px;
+            pointer-events: auto;
+        }
+
+        .report-btn.primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .report-btn:hover:not(:disabled) {
+            background: #e9f5ff;
+        }
+
+        .report-btn.primary:hover:not(:disabled) {
+            background: #0055aa;
+        }
+
+        .report-btn:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+
+        .report-btn.primary:active:not(:disabled) {
+            background: #004494;
+        }
+
+        .report-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        @keyframes dots {
+
+            0%,
+            20% {
+                content: '.';
+            }
+
+            40% {
+                content: '..';
+            }
+
+            60%,
+            100% {
+                content: '...';
+            }
+        }
+
+        .report-btn.loading::after {
+            content: '.';
+            animation: dots 1.5s infinite;
+        }
+
+        .report-result {
+            display: none;
+            margin-top: 10px;
+            font-weight: 900;
+            font-size: 0.92em;
+            text-align: center;
+            line-height: 1.35;
+        }
+
+        .purchase-success {
+            display: none;
+            width: calc(100% - 34px);
+            max-width: 340px;
+            margin: 20px auto;
+            padding: 15px;
+            background-color: #e8f5e9;
+            border-radius: 13px;
+            border: 1px solid #4caf50;
+            text-align: center;
+            color: #2e7d32;
+        }
+
+        .purchase-success h3 {
+            margin-top: 0;
+        }
+
+        .purchase-error {
+            display: none;
+            width: calc(100% - 34px);
+            max-width: 340px;
+            margin: 20px auto;
+            padding: 15px;
+            background-color: #ffebee;
+            border-radius: 13px;
+            border: 1px solid #f44336;
+            text-align: center;
+            color: #c62828;
+        }
+
+        .purchase-error h3 {
+            margin-top: 0;
+        }
+
+        .skeleton-loading {
+            background: linear-gradient(90deg, #e0ebff 0%, #cfe0ff 50%, #e0ebff 100%);
+            background-size: 200% 100%;
+            animation: loading 1.2s ease-in-out infinite;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skeleton-loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .notfound-screen {
+            display: none;
+            min-height: 100vh;
+            background: #ffffff;
+            padding: 28px 18px;
+        }
+
+        .notfound-card {
+            max-width: 520px;
+            margin: 0 auto;
+            border: 1px solid #e6e6e6;
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+        }
+
+        .notfound-icon {
+            font-size: 38px;
+            color: #dc3545;
+            margin-bottom: 10px;
+        }
+
+        .notfound-title {
+            font-size: 18px;
+            font-weight: 800;
+            margin: 0 0 8px 0;
+            color: #111;
+        }
+
+        .notfound-message {
+            margin: 0 0 12px 0;
+            color: #444;
+            line-height: 1.45;
+            font-size: 14px;
+        }
+
+        .notfound-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .nf-btn {
+            border: 1px solid var(--primary);
+            background: var(--primary);
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .nf-btn:active {
+            transform: scale(0.97);
+        }
+
+        .nf-btn.secondary {
+            background: #fff;
+            color: var(--primary);
+        }
+
+        .main-app {
+            display: block;
+        }
+
+        .terms-wrapper {
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="notfound-screen" id="notfoundScreen">
+        <div class="notfound-card">
+            <div class="notfound-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <h2 class="notfound-title">Product not available</h2>
+            <p class="notfound-message" id="notfoundMessage">
+                We can't find this product. It may have been removed by the seller, taken down, or the link may be
+                incorrect.
+                <br /><br />
+                If you believe this is a mistake, please contact support.
+            </p>
+            <div class="notfound-actions">
+                <button class="nf-btn" id="goHomeBtn" type="button">Go back</button>
+                <button class="nf-btn secondary" id="copyLinkBtn" type="button">Copy link</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-app" id="mainApp">
+        <header>
+            <h1 translate="no">Monetizelt</h1>
+            <div class="icon-container">
+                <button class="icon" id="reportButton" aria-label="Report product" title="Report" type="button">
+                    <i class="fas fa-flag" style="font-size: 18px;"></i>
+                </button>
+
+                <button class="icon" id="shareButton" aria-label="Share link" title="Share" type="button">
+                    <i class="fas fa-share" style="font-size: 18px;"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="divider"></div>
+
+        <div class="button-container">
+            <a href="privacy-buyer.html" class="status-button">
+                <span class="verification-badge"></span> Secure checkout
+            </a>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="content-container" id="contentContainer">
+            <div class="slider" id="contentSlider">
+                <div class="slide" id="coverSlide">
+                    <div class="cover-image-container">
+                        <div class="placeholder skeleton-loading" id="image-placeholder"></div>
+                        <img src="" alt="Cover" class="cover-image" id="cover-image" />
+                        <!-- Icône de type de produit (vidéo/musique) maintenant en haut à droite -->
+                        <div class="product-type-icon" id="product-type-icon" title="Product type">
+                            <i class="fas fa-question" style="font-size: 16px;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="product-info" id="product-info">
+            <h2 class="product-title skeleton-loading" id="product-title"></h2>
+            <div class="seller-line skeleton-loading" id="seller-line"></div>
+            <div class="product-price skeleton-loading" id="product-price"></div>
+        </div>
+
+        <div class="description" id="descriptionBox">
+            <h3>Description</h3>
+            <p id="product-description" class="skeleton-loading"></p>
+        </div>
+
+        <div class="purchase-success" id="purchaseSuccess">
+            <h3><i class="fas fa-check-circle"></i> Payment successful</h3>
+            <p>
+                Thanks for your purchase. You will receive an email with access instructions shortly.
+                If you don't see it, please check your spam folder.
+            </p>
+        </div>
+
+        <div class="purchase-error" id="purchaseError">
+            <h3><i class="fas fa-exclamation-circle"></i> Payment not completed</h3>
+            <p>Your payment was cancelled or could not be processed. Please try again.</p>
+        </div>
+
+        <div class="purchase-button-container" id="purchaseButtonContainer">
+            <button class="purchase-button" id="purchaseButton" type="button">
+                Get
+            </button>
+        </div>
+
+        <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
+            <div class="email-modal modal" id="emailModal" role="dialog" aria-modal="true"
+                aria-labelledby="emailModalTitle">
+                <button class="modal-close-x" id="closeEmailModal" aria-label="Close" type="button">
+                    <i class="fas fa-times" style="font-size: 12px;"></i>
+                </button>
+
+                <h3 id="emailModalTitle">「 Quick registration 」</h3>
+                <p>This email will be the access key to the product.</p>
+
+                <form id="emailForm" novalidate>
+                    <input type="email" class="email-input" id="emailInput" placeholder="Your email address"
+                        autocomplete="email" inputmode="email" />
+
+                    <div class="email-result" id="emailResult"></div>
+
+                    <button class="email-submit" id="emailSubmit" type="submit">Continue to payment</button>
+
+                    <div class="terms-wrapper">
+                        <div class="terms-container">
+                            <div class="terms-link">
+                                <a href="terms-buyer.html" target="_blank">Terms</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="payment-loading" id="paymentLoading">
+                        <div class="loader"></div>
+                        <p>Redirecting to secure payment...</p>
+                    </div>
+                </form>
+            </div>
+
+            <div class="seller-modal modal" id="sellerModal" role="dialog" aria-modal="true"
+                aria-labelledby="sellerModalTitle">
+                <button class="modal-close-x" id="closeSellerModal" aria-label="Close" type="button">
+                    <i class="fas fa-times" style="font-size: 12px;"></i>
+                </button>
+
+                <h3 id="sellerModalTitle">「 Seller 」</h3>
+
+                <div class="seller-pill">
+                    <i class="fas fa-user"></i>
+                    <div class="text-content">
+                        <div class="label">Name</div>
+                        <div class="value skeleton-loading" id="sellerModalName"></div>
+                    </div>
+                </div>
+
+                <div class="seller-pill">
+                    <i class="fas fa-envelope"></i>
+                    <div class="text-content">
+                        <div class="label">Email</div>
+                        <div class="value skeleton-loading" id="sellerModalEmail"></div>
+                    </div>
+                </div>
+
+                <div class="seller-actions">
+                    <button class="seller-btn" id="copySellerEmailBtn" type="button" disabled>Copy email</button>
+                    <button class="seller-btn primary" id="mailSellerBtn" type="button" disabled>Email</button>
+                </div>
+            </div>
+
+            <div class="report-modal modal" id="reportModal" role="dialog" aria-modal="true"
+                aria-labelledby="reportModalTitle">
+                <button class="modal-close-x" id="closeReportModal" aria-label="Close" type="button">
+                    <i class="fas fa-times" style="font-size: 12px;"></i>
+                </button>
+
+                <h3 id="reportModalTitle">「 Report 」</h3>
+
+                <div class="report-list" id="reportList">
+                    <label class="report-option">
+                        <input type="radio" name="reportReason" value="violent_content" />
+                        <span class="txt">Violence / hate content</span>
+                    </label>
+
+                    <label class="report-option">
+                        <input type="radio" name="reportReason" value="copyright" />
+                        <span class="txt">Copyright / stolen content</span>
+                    </label>
+
+                    <label class="report-option">
+                        <input type="radio" name="reportReason" value="adult_content" />
+                        <span class="txt">Adult / inappropriate content</span>
+                    </label>
+
+                    <label class="report-option">
+                        <input type="radio" name="reportReason" value="scam" />
+                        <span class="txt">Scam / phishing</span>
+                    </label>
+
+                    <label class="report-option">
+                        <input type="radio" name="reportReason" value="other" />
+                        <span class="txt">Other</span>
+                    </label>
+                </div>
+
+                <div class="report-extra">
+                    <textarea class="report-textarea" id="reportDetails" placeholder="Details (optional)"></textarea>
+                </div>
+
+                <div class="report-actions">
+                    <button class="report-btn" id="cancelReportBtn" type="button">Cancel</button>
+                    <button class="report-btn primary" id="submitReportBtn" type="button">Send</button>
+                </div>
+
+                <div class="report-result" id="reportResult"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="copy-notification" id="shareNotification">Link shared successfully!</div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDrCCbetOZdczDANtjrRWGxrJ20FxSRFv4",
+            authDomain: "monetizelt-1.firebaseapp.com",
+            projectId: "monetizelt-1",
+            storageBucket: "monetizelt-1.firebasestorage.app",
+            messagingSenderId: "785088686494",
+            appId: "1:785088686494:web:de12121775ed2e57bd4e8f",
+            measurementId: "G-YP5ZPNEM6G"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        try { getAnalytics(app); } catch { }
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const shareButton = document.getElementById('shareButton');
+            const reportButton = document.getElementById('reportButton');
+            const shareNotification = document.getElementById('shareNotification');
+            const purchaseButton = document.getElementById('purchaseButton');
+            const purchaseButtonContainer = document.getElementById('purchaseButtonContainer');
+            const coverImage = document.getElementById('cover-image');
+            const imagePlaceholder = document.getElementById('image-placeholder');
+            const productDescription = document.getElementById('product-description');
+            const productTitle = document.getElementById('product-title');
+            const productPrice = document.getElementById('product-price');
+            const sellerLine = document.getElementById('seller-line');
+            const productTypeIcon = document.getElementById('product-type-icon');
+
+            const modalOverlay = document.getElementById('modalOverlay');
+            const emailModal = document.getElementById('emailModal');
+            const closeEmailModal = document.getElementById('closeEmailModal');
+            const emailForm = document.getElementById('emailForm');
+            const emailInput = document.getElementById('emailInput');
+            const emailSubmit = document.getElementById('emailSubmit');
+            const emailResult = document.getElementById('emailResult');
+            const paymentLoading = document.getElementById('paymentLoading');
+
+            const sellerModal = document.getElementById('sellerModal');
+            const closeSellerModal = document.getElementById('closeSellerModal');
+            const sellerModalName = document.getElementById('sellerModalName');
+            const sellerModalEmail = document.getElementById('sellerModalEmail');
+            const copySellerEmailBtn = document.getElementById('copySellerEmailBtn');
+            const mailSellerBtn = document.getElementById('mailSellerBtn');
+
+            const reportModal = document.getElementById('reportModal');
+            const closeReportModal = document.getElementById('closeReportModal');
+            const cancelReportBtn = document.getElementById('cancelReportBtn');
+            const submitReportBtn = document.getElementById('submitReportBtn');
+            const reportDetails = document.getElementById('reportDetails');
+            const reportResult = document.getElementById('reportResult');
+
+            const purchaseSuccess = document.getElementById('purchaseSuccess');
+            const purchaseError = document.getElementById('purchaseError');
+
+            const notfoundScreen = document.getElementById('notfoundScreen');
+            const mainApp = document.getElementById('mainApp');
+            const goHomeBtn = document.getElementById('goHomeBtn');
+            const copyLinkBtn = document.getElementById('copyLinkBtn');
+
+            const API_BASE = 'https://us-central1-monetizelt-1.cloudfunctions.net';
+            const getProductDetailsUrl = `${API_BASE}/getProductDetails`;
+            const getSellerInfoUrl = `${API_BASE}/getSellerInfo`;
+            const collectBuyerEmailUrl = `${API_BASE}/collectBuyerEmail`;
+            const createStripeCheckoutSessionUrl = `${API_BASE}/createStripeCheckoutSession`;
+            const recordProductViewUrl = `${API_BASE}/recordProductView`;
+            const reportProductUrl = `${API_BASE}/reportProduct`;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('productId');
+            const success = urlParams.get('success');
+            const cancel = urlParams.get('cancel');
+            const errorParam = urlParams.get('error');
+
+            let currentProduct = null;
+            let isProcessingPayment = false;
+            let sellerInfoCache = null;
+            let lastPaymentTriggerAt = 0;
+
+            function getDeviceFingerprint() {
+                const fingerprint = {
+                    userAgent: navigator.userAgent,
+                    language: navigator.language,
+                    languages: navigator.languages ? [...navigator.languages] : [],
+                    platform: navigator.platform,
+                    screenResolution: `${screen.width}x${screen.height}`,
+                    colorDepth: screen.colorDepth,
+                    pixelRatio: window.devicePixelRatio,
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    timezoneOffset: new Date().getTimezoneOffset(),
+                    touchSupport: 'ontouchstart' in window,
+                    cookieEnabled: navigator.cookieEnabled,
+                    doNotTrack: navigator.doNotTrack,
+                    hardwareConcurrency: navigator.hardwareConcurrency,
+                    deviceMemory: navigator.deviceMemory,
+                    timestamp: Date.now()
+                };
+
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    ctx.textBaseline = 'top';
+                    ctx.font = '14px Arial';
+                    ctx.fillText('Device fingerprint', 2, 2);
+                    fingerprint.canvasHash = canvas.toDataURL().slice(-50);
+                } catch (e) { }
+
+                return fingerprint;
+            }
+
+            function toast(msg) {
+                shareNotification.textContent = msg;
+                shareNotification.classList.add('show');
+                setTimeout(() => shareNotification.classList.remove('show'), 2200);
+            }
+
+            function clearPaymentParams() {
+                const url = new URL(window.location.href);
+                url.searchParams.delete('success');
+                url.searchParams.delete('cancel');
+                url.searchParams.delete('error');
+                url.searchParams.delete('session');
+                url.searchParams.delete('sessionId');
+                window.history.replaceState({}, document.title, url.toString());
+            }
+
+            function isValidEmail(email) {
+                const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return regex.test(email);
+            }
+
+            function preloadImage(url) {
+                return new Promise((resolve, reject) => {
+                    if (!url) return reject(new Error('No image URL provided'));
+                    const img = new Image();
+                    img.onload = () => resolve(url);
+                    img.onerror = () => reject(new Error('Failed to load image'));
+                    img.src = url;
+                });
+            }
+
+            function showNotFound(message) {
+                mainApp.style.display = 'none';
+                notfoundScreen.style.display = 'block';
+                const msgEl = document.getElementById('notfoundMessage');
+                if (message && msgEl) msgEl.textContent = message;
+            }
+
+            function showPaymentErrorTemporary() {
+                purchaseError.style.display = 'block';
+                purchaseButtonContainer.style.display = 'flex';
+                purchaseButton.style.display = 'inline-flex';
+                clearPaymentParams();
+                setTimeout(() => { purchaseError.style.display = 'none'; }, 7000);
+            }
+
+            function showPaymentSuccessPermanent() {
+                purchaseError.style.display = 'none';
+                purchaseButtonContainer.style.display = 'none';
+                purchaseSuccess.style.display = 'block';
+                clearPaymentParams();
+
+                setTimeout(() => {
+                    window.location.href = 'my-content.html';
+                }, 2000);
+            }
+
+            function openModal(modalEl) {
+                document.body.classList.add('modal-open');
+                modalOverlay.classList.add('active');
+                modalOverlay.setAttribute('aria-hidden', 'false');
+
+                [emailModal, sellerModal, reportModal].forEach(m => m.classList.remove('active'));
+                modalEl.classList.add('active');
+            }
+
+            function closeAllModals() {
+                modalOverlay.classList.remove('active');
+                modalOverlay.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('modal-open');
+
+                [emailModal, sellerModal, reportModal].forEach(m => m.classList.remove('active'));
+
+                paymentLoading.style.display = 'none';
+                emailSubmit.disabled = false;
+                isProcessingPayment = false;
+                lastPaymentTriggerAt = 0;
+
+                submitReportBtn.classList.remove('loading');
+                submitReportBtn.textContent = 'Send';
+            }
+
+            function safeGetProductId() {
+                return (currentProduct && currentProduct.id) ? currentProduct.id : productId;
+            }
+
+            function updateProductTypeIcon(category) {
+                if (!category) {
+                    productTypeIcon.classList.remove('visible');
+                    return;
+                }
+
+                const iconEl = productTypeIcon.querySelector('i');
+                const normalizedCategory = String(category).toLowerCase().trim();
+
+                if (normalizedCategory === 'video') {
+                    iconEl.className = 'fas fa-film';
+                    productTypeIcon.title = 'Video';
+                    productTypeIcon.classList.add('visible');
+                } else if (normalizedCategory === 'music') {
+                    iconEl.className = 'fas fa-music';
+                    productTypeIcon.title = 'Music';
+                    productTypeIcon.classList.add('visible');
+                } else {
+                    productTypeIcon.classList.remove('visible');
+                }
+            }
+
+            async function loadSellerInfo(sellerId) {
+                if (sellerInfoCache) {
+                    return sellerInfoCache;
+                }
+
+                try {
+                    const response = await fetch(`${getSellerInfoUrl}?sellerId=${encodeURIComponent(sellerId)}`);
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data?.error || `HTTP ${response.status}`);
+                    }
+
+                    if (data.success && data.seller) {
+                        sellerInfoCache = data.seller;
+                        return data.seller;
+                    }
+
+                    throw new Error('Seller info not available');
+                } catch (error) {
+                    console.error('Error loading seller info:', error);
+                    return null;
+                }
+            }
+
+            goHomeBtn.addEventListener('click', () => { window.location.href = 'welcome.html'; });
+
+            copyLinkBtn.addEventListener('click', async () => {
+                try {
+                    await navigator.clipboard.writeText(window.location.href);
+                    toast("URL copied to clipboard!");
+                } catch {
+                    toast("Copy is not available on this browser.");
+                }
+            });
+
+            shareButton.addEventListener('click', function () {
+                const currentUrl = window.location.href;
+                if (navigator.share) {
+                    navigator.share({ title: 'Monetizelt product', url: currentUrl })
+                        .then(() => toast("Link shared successfully!"))
+                        .catch(() => copyToClipboard(currentUrl));
+                } else {
+                    copyToClipboard(currentUrl);
+                }
+            });
+
+            function copyToClipboard(text) {
+                if (!navigator.clipboard || !navigator.clipboard.writeText) {
+                    toast("Copy is not available on this browser.");
+                    return;
+                }
+                navigator.clipboard.writeText(text)
+                    .then(() => toast("URL copied to clipboard!"))
+                    .catch(() => toast("Copy failed. Please try again."));
+            }
+
+            closeEmailModal.addEventListener('click', closeAllModals);
+            closeSellerModal.addEventListener('click', closeAllModals);
+            closeReportModal.addEventListener('click', closeAllModals);
+            cancelReportBtn.addEventListener('click', closeAllModals);
+
+            purchaseButton.addEventListener('click', function () {
+                if (isProcessingPayment) return;
+
+                const pid = safeGetProductId();
+                if (!pid) {
+                    toast("Missing product ID. Please check the link.");
+                    return;
+                }
+
+                openModal(emailModal);
+                emailInput.value = '';
+                emailResult.style.display = 'none';
+                emailResult.className = 'email-result';
+                emailSubmit.disabled = false;
+                paymentLoading.style.display = 'none';
+                isProcessingPayment = false;
+                lastPaymentTriggerAt = 0;
+
+                setTimeout(() => {
+                    try { emailInput.focus({ preventScroll: true }); } catch { emailInput.focus(); }
+                }, 50);
+            });
+
+            reportButton.addEventListener('click', function () {
+                const pid = safeGetProductId();
+                if (!pid) {
+                    toast("Missing product ID. Please check the link.");
+                    return;
+                }
+
+                reportResult.style.display = 'none';
+                reportResult.textContent = '';
+                reportResult.className = 'report-result';
+                reportDetails.value = '';
+                submitReportBtn.disabled = false;
+                submitReportBtn.classList.remove('loading');
+                submitReportBtn.textContent = 'Send';
+
+                document.querySelectorAll('input[name="reportReason"]').forEach(r => r.checked = false);
+                openModal(reportModal);
+            });
+
+            submitReportBtn.addEventListener('click', function () {
+                const pid = safeGetProductId();
+                const selected = document.querySelector('input[name="reportReason"]:checked');
+                const details = (reportDetails.value || '').trim();
+
+                if (!pid) {
+                    reportResult.textContent = "Missing product. Please reload the page.";
+                    reportResult.className = "report-result error";
+                    reportResult.style.display = "block";
+                    return;
+                }
+
+                if (!selected) {
+                    reportResult.textContent = "Please choose a reason.";
+                    reportResult.className = "report-result error";
+                    reportResult.style.display = "block";
+                    return;
+                }
+
+                const reason = details
+                    ? `${selected.value}:${details}`.slice(0, 200)
+                    : selected.value;
+
+                submitReportBtn.disabled = true;
+                submitReportBtn.classList.add('loading');
+                submitReportBtn.textContent = 'Sending';
+                reportResult.style.display = "none";
+
+                fetch(reportProductUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        productId: pid,
+                        reason,
+                        reporterUid: ""
+                    })
+                })
+                    .then(async (res) => {
+                        const data = await res.json().catch(() => ({}));
+                        if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+                        return data;
+                    })
+                    .then(() => {
+                        submitReportBtn.classList.remove('loading');
+                        submitReportBtn.textContent = 'Send';
+                        reportResult.textContent = "Thank you. Your report has been sent.";
+                        reportResult.className = "report-result success";
+                        reportResult.style.display = "block";
+                        setTimeout(() => closeAllModals(), 1200);
+                    })
+                    .catch((e) => {
+                        submitReportBtn.classList.remove('loading');
+                        submitReportBtn.textContent = 'Send';
+                        reportResult.textContent = e.message || "Failed to send report. Please try again.";
+                        reportResult.className = "report-result error";
+                        reportResult.style.display = "block";
+                        submitReportBtn.disabled = false;
+                    });
+            });
+
+            copySellerEmailBtn.addEventListener('click', async () => {
+                const email = sellerModalEmail.textContent.trim();
+                if (!email || email === "—") return;
+                try {
+                    await navigator.clipboard.writeText(email);
+                    toast("Seller email copied!");
+                } catch {
+                    toast("Copy failed. Please try again.");
+                }
+            });
+
+            mailSellerBtn.addEventListener('click', () => {
+                const email = sellerModalEmail.textContent.trim();
+                if (!email || email === "—") return;
+                window.location.href = `mailto:${encodeURIComponent(email)}`;
+            });
+
+            if (success === 'true') {
+                showPaymentSuccessPermanent();
+            } else if (cancel === 'true' || errorParam) {
+                showPaymentErrorTemporary();
+            }
+
+            if (!productId) {
+                showNotFound("Missing product ID. Please check the link and try again.");
+                return;
+            }
+
+            fetch(`${getProductDetailsUrl}?productId=${encodeURIComponent(productId)}`)
+                .then(async (res) => {
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                        const msg = data?.error || `Request failed (HTTP ${res.status}).`;
+                        throw new Error(msg);
+                    }
+                    return data;
+                })
+                .then(async (data) => {
+                    if (!data || !data.success || !data.product) {
+                        throw new Error(data?.error || "Product not available.");
+                    }
+
+                    const product = data.product;
+
+                    if (!product.sellable) {
+                        showNotFound(
+                            "This product is not available. It may have been removed, taken down, or is no longer for sale."
+                        );
+                        return;
+                    }
+
+                    currentProduct = product;
+                    try { sessionStorage.setItem('monetizelt_product', JSON.stringify(product)); } catch { }
+
+                    // Afficher l'icône de type de produit
+                    updateProductTypeIcon(product.category);
+
+                    if (product.coverUrl) {
+                        preloadImage(product.coverUrl)
+                            .then(() => {
+                                coverImage.src = product.coverUrl;
+                                coverImage.classList.add('loaded');
+                                imagePlaceholder.style.display = 'none';
+                            })
+                            .catch(() => {
+                                imagePlaceholder.classList.remove('skeleton-loading');
+                                imagePlaceholder.textContent = "Image unavailable";
+                            });
+                    } else {
+                        imagePlaceholder.classList.remove('skeleton-loading');
+                        imagePlaceholder.textContent = "No image";
+                    }
+
+                    const safeTitle = (product.title || "Untitled").trim();
+                    productTitle.textContent = `「 ${safeTitle} 」`;
+                    productTitle.classList.remove('skeleton-loading');
+
+                    const sellerFullName = (product.sellerName || "Seller").trim();
+                    const firstName = sellerFullName.split(/\s+/)[0] || sellerFullName;
+
+                    sellerLine.innerHTML = `By - <button class="seller-link" id="sellerNameLink" type="button">${firstName}</button>`;
+                    sellerLine.classList.remove('skeleton-loading');
+
+                    const sellerNameLink = document.getElementById('sellerNameLink');
+                    if (sellerNameLink) {
+                        sellerNameLink.addEventListener('click', async () => {
+                            openModal(sellerModal);
+
+                            sellerModalName.textContent = '';
+                            sellerModalName.classList.add('skeleton-loading');
+                            sellerModalEmail.textContent = '';
+                            sellerModalEmail.classList.add('skeleton-loading');
+                            copySellerEmailBtn.disabled = true;
+                            mailSellerBtn.disabled = true;
+
+                            const sellerId = product.sellerId;
+                            if (!sellerId) {
+                                sellerModalName.textContent = 'Unknown';
+                                sellerModalName.classList.remove('skeleton-loading');
+                                sellerModalEmail.textContent = '—';
+                                sellerModalEmail.classList.remove('skeleton-loading');
+                                return;
+                            }
+
+                            const sellerInfo = await loadSellerInfo(sellerId);
+
+                            if (sellerInfo) {
+                                const isBusiness = sellerInfo.accountType === 'business';
+                                const displayName = isBusiness
+                                    ? (sellerInfo.businessName || sellerInfo.fullName || 'Business')
+                                    : (sellerInfo.fullName || 'Individual');
+                                const displayEmail = sellerInfo.email || '—';
+
+                                sellerModalName.textContent = displayName;
+                                sellerModalEmail.textContent = displayEmail;
+
+                                const hasEmail = displayEmail !== '—';
+                                copySellerEmailBtn.disabled = !hasEmail;
+                                mailSellerBtn.disabled = !hasEmail;
+                            } else {
+                                const sellerEmail = product?.sellerProfile?.contactEmail || "";
+                                sellerModalName.textContent = sellerFullName || "Seller";
+                                sellerModalEmail.textContent = sellerEmail || "—";
+
+                                const hasEmail = !!sellerEmail;
+                                copySellerEmailBtn.disabled = !hasEmail;
+                                mailSellerBtn.disabled = !hasEmail;
+                            }
+
+                            sellerModalName.classList.remove('skeleton-loading');
+                            sellerModalEmail.classList.remove('skeleton-loading');
+                        });
+                    }
+
+                    const p = Number(product.price || 0);
+                    productPrice.textContent = p > 0 ? `$${p.toFixed(2)}` : "Price unavailable";
+                    productPrice.classList.remove('skeleton-loading');
+
+                    const desc = (product.description || "No description available.").trim();
+                    productDescription.textContent = desc;
+                    productDescription.classList.remove('skeleton-loading');
+
+                    try {
+                        const viewerIdKey = 'monetizelt_viewer_id';
+                        let viewerId = null;
+                        try { viewerId = sessionStorage.getItem(viewerIdKey); } catch { }
+                        if (!viewerId) {
+                            viewerId = (Math.random().toString(16).slice(2) + Date.now().toString(16));
+                            try { sessionStorage.setItem(viewerIdKey, viewerId); } catch { }
+                        }
+                        fetch(recordProductViewUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                productId: product.id,
+                                userAgent: navigator.userAgent,
+                                viewerId
+                            })
+                        }).catch(() => { });
+                    } catch { }
+                })
+                .catch((err) => {
+                    console.error("Product load error:", err);
+                    showNotFound(
+                        "We can't find this product. It may have been removed, taken down, expired, or the link is incorrect."
+                    );
+                });
+
+            function startPaymentFlow() {
+                if (isProcessingPayment) return;
+
+                const email = emailInput.value.trim();
+                const pid = safeGetProductId();
+
+                if (!isValidEmail(email)) {
+                    emailResult.textContent = "Please enter a valid email address.";
+                    emailResult.className = 'email-result error';
+                    emailResult.style.display = 'block';
+                    return;
+                }
+                if (!pid) {
+                    emailResult.textContent = "Product information is missing. Please reload the page.";
+                    emailResult.className = 'email-result error';
+                    emailResult.style.display = 'block';
+                    return;
+                }
+
+                isProcessingPayment = true;
+                emailSubmit.disabled = true;
+                emailResult.style.display = 'none';
+                paymentLoading.style.display = 'block';
+
+                const deviceFingerprint = getDeviceFingerprint();
+
+                fetch(collectBuyerEmailUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email,
+                        productId: pid,
+                        userAgent: navigator.userAgent,
+                        deviceFingerprint: deviceFingerprint
+                    })
+                })
+                    .then(async (res) => {
+                        const data = await res.json().catch(() => ({}));
+                        if (!res.ok) throw new Error(data?.error || `Email collection failed (HTTP ${res.status})`);
+                        return data;
+                    })
+                    .then((data) => {
+                        if (!data.success || !data.sessionId) {
+                            throw new Error(data?.error || "Failed to collect email.");
+                        }
+
+                        const appSessionId = data.sessionId;
+                        const baseReturn = `${window.location.origin}${window.location.pathname}`;
+                        const successUrl = `${baseReturn}?productId=${encodeURIComponent(pid)}&success=true`;
+                        const cancelUrl = `${baseReturn}?productId=${encodeURIComponent(pid)}&cancel=true`;
+
+                        return fetch(createStripeCheckoutSessionUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                productId: pid,
+                                sessionId: appSessionId,
+                                successUrl,
+                                cancelUrl
+                            })
+                        });
+                    })
+                    .then(async (res) => {
+                        const data = await res.json().catch(() => ({}));
+                        if (!res.ok) throw new Error(data?.error || `Stripe session creation failed (HTTP ${res.status})`);
+                        return data;
+                    })
+                    .then((data) => {
+                        if (data.success && data.url) {
+                            window.location.href = data.url;
+                        } else {
+                            throw new Error(data?.error || "Failed to create Stripe checkout session.");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Payment flow error:", error);
+                        isProcessingPayment = false;
+                        emailSubmit.disabled = false;
+                        paymentLoading.style.display = 'none';
+                        emailResult.textContent = error.message || "An error occurred. Please try again.";
+                        emailResult.className = 'email-result error';
+                        emailResult.style.display = 'block';
+                    });
+            }
+
+            function triggerPayment(e) {
+                if (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+
+                const now = Date.now();
+                if (isProcessingPayment) return;
+                if (now - lastPaymentTriggerAt < 800) return;
+                lastPaymentTriggerAt = now;
+
+                try {
+                    if (document.activeElement === emailInput) emailInput.blur();
+                } catch { }
+
+                setTimeout(() => {
+                    startPaymentFlow();
+                }, 0);
+            }
+
+            emailForm.addEventListener('submit', triggerPayment);
+            emailSubmit.addEventListener('pointerdown', triggerPayment, { passive: false });
+            emailSubmit.addEventListener('click', triggerPayment);
+        });
+    </script>
+
+</body>
+
+</html>

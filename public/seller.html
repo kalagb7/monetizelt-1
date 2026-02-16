@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Monetizelt — Seller</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            margin: 0;
+            background: #f5f5f5;
+            color: #111827;
+        }
+
+        header {
+            background: #fff;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, .08);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .brand {
+            font-weight: 800;
+            color: #007BFF;
+            border: 2px solid #007BFF;
+            padding: 3px 10px;
+            border-radius: 13px;
+            letter-spacing: .2px;
+            text-decoration: none;
+        }
+
+        .wrap {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #007BFF;
+            border-radius: 14px;
+            padding: 12px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, .08);
+        }
+
+        .sellerTop {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .avatar {
+            width: 62px;
+            height: 62px;
+            border-radius: 16px;
+            background: #e9f5ff;
+            border: 1px solid #007BFF;
+            overflow: hidden;
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #007BFF;
+            font-weight: 800;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .sellerName {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #007BFF;
+            margin: 0;
+        }
+
+        .sellerHandle {
+            font-size: .85rem;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .sellerDesc {
+            margin: 10px 0 0 0;
+            color: #374151;
+            line-height: 1.55;
+            font-size: .95rem;
+        }
+
+        .linksRow {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 10px;
+            border-radius: 999px;
+            border: 1px solid #007BFF;
+            background: #e9f5ff;
+            color: #007BFF;
+            text-decoration: none;
+            font-size: .85rem;
+            font-weight: 700;
+        }
+
+        .sectionTitle {
+            margin: 14px 0 8px 0;
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .prod {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid #007BFF;
+            border-radius: 12px;
+            background: #f9fafb;
+            margin-bottom: 8px;
+        }
+
+        .prod a {
+            color: #007BFF;
+            font-weight: 800;
+            text-decoration: none;
+        }
+
+        .prod a:hover {
+            text-decoration: underline;
+        }
+
+        .meta {
+            font-size: .85rem;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .price {
+            font-weight: 900;
+            color: #16a34a;
+            white-space: nowrap;
+        }
+
+        .muted {
+            color: #6b7280;
+            font-size: .9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <a class="brand" href="/" translate="no">Monetizelt</a>
+        <a class="pill" href="/dashboard.html">Dashboard</a>
+    </header>
+
+    <div class="wrap">
+        <div class="card" id="sellerCard">
+            <div class="muted">Loading seller...</div>
+        </div>
+
+        <div class="sectionTitle">Products</div>
+        <div id="productsList" class="muted">Loading products...</div>
+    </div>
+
+    <script>
+        const firebaseProjectId = "monetizelt-1";
+        const API_ROOT = (() => {
+            const custom = window.__API_BASE_URL__;
+            if (custom && String(custom).trim()) return String(custom).trim().replace(/\/+$/, "");
+            return `https://us-central1-${firebaseProjectId}.cloudfunctions.net`;
+        })();
+
+        function getHandleFromPath() {
+            // expects /@kaba
+            const p = window.location.pathname || "/";
+            const m = p.match(/^\/@([^\/?#]+)/);
+            return m ? decodeURIComponent(m[1]) : "";
+        }
+
+        function esc(s) {
+            return String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+        }
+
+        function formatCurrency(n) {
+            const x = Number(n || 0);
+            return x.toFixed(2);
+        }
+
+        async function load() {
+            const handle = getHandleFromPath();
+            if (!handle) {
+                document.getElementById("sellerCard").innerHTML = '<div class="muted">Invalid seller URL.</div>';
+                document.getElementById("productsList").innerHTML = '';
+                return;
+            }
+
+            const url = `${API_ROOT}/getSellerPageByHandle?handle=${encodeURIComponent(handle)}`;
+            const resp = await fetch(url, { method: "GET", mode: "cors", cache: "no-store" });
+            const dataText = await resp.text();
+            let data = null;
+            try { data = JSON.parse(dataText); } catch { data = { success: false, error: dataText }; }
+
+            if (!resp.ok || !data || data.success === false) {
+                document.getElementById("sellerCard").innerHTML = `<div class="muted">Seller not found.</div>`;
+                document.getElementById("productsList").innerHTML = '';
+                return;
+            }
+
+            const seller = data.seller || {};
+            const prof = seller.profile || {};
+            document.title = `Monetizelt — @${seller.handle || handle}`;
+
+            const initials = (seller.displayName || "S").trim().slice(0, 1).toUpperCase();
+            const avatarHtml = prof.photoUrl
+                ? `<img src="${esc(prof.photoUrl)}" alt="Seller photo" />`
+                : `<div>${esc(initials)}</div>`;
+
+            const contactLinks = prof.contactLinks && typeof prof.contactLinks === "object" ? prof.contactLinks : {};
+            const pills = [];
+
+            if (prof.contactEmail) {
+                pills.push(`<a class="pill" href="mailto:${esc(prof.contactEmail)}">Contact</a>`);
+            }
+
+            for (const [k, v] of Object.entries(contactLinks)) {
+                if (!v) continue;
+                const label = esc(k).slice(0, 20);
+                const href = esc(v);
+                pills.push(`<a class="pill" href="${href}" target="_blank" rel="noopener">${label}</a>`);
+            }
+
+            document.getElementById("sellerCard").innerHTML = `
+        <div class="sellerTop">
+          <div class="avatar">${avatarHtml}</div>
+          <div style="min-width:0">
+            <p class="sellerName">${esc(seller.displayName || "Seller")}</p>
+            <div class="sellerHandle">@${esc(seller.handle || handle)}</div>
+          </div>
+        </div>
+        ${prof.description ? `<p class="sellerDesc">${esc(prof.description)}</p>` : `<p class="sellerDesc muted">No description.</p>`}
+        ${pills.length ? `<div class="linksRow">${pills.join("")}</div>` : ``}
+      `;
+
+            const products = Array.isArray(data.products) ? data.products : [];
+            const list = document.getElementById("productsList");
+
+            if (!products.length) {
+                list.innerHTML = `<div class="muted">No active products.</div>`;
+                return;
+            }
+
+            list.innerHTML = products.map(p => `
+        <div class="prod">
+          <div style="min-width:0">
+            <a href="${esc(p.shareableLink || "#")}" target="_blank" rel="noopener">${esc(p.title || "Untitled")}</a>
+            <div class="meta">${esc(p.category || "")} • ${esc(p.subtype || "")}</div>
+          </div>
+          <div class="price">$${formatCurrency(p.price || 0)}</div>
+        </div>
+      `).join("");
+        }
+
+        load().catch(() => {
+            document.getElementById("sellerCard").innerHTML = `<div class="muted">Error loading seller.</div>`;
+            document.getElementById("productsList").innerHTML = ``;
+        });
+    </script>
+</body>
+
+</html>

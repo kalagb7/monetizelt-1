@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Seller Profile — Monetizelt</title>
+
+    <link rel="icon"
+        href="https://firebasestorage.googleapis.com/v0/b/monetizelt-1.firebasestorage.app/o/brand%2Favatar.png?alt=media">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <style>
+        body {
+            font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        header {
+            background-color: #ffffff;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #007BFF;
+            border: 2px solid #007BFF;
+            padding: 3px 10px;
+            border-radius: 13px;
+            letter-spacing: 0.2px;
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        .profile-header {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border: 2px solid #007BFF;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid #007BFF;
+            margin: 0 auto 15px;
+            background-color: #e9f5ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .profile-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-photo i {
+            font-size: 60px;
+            color: #007BFF;
+        }
+
+        .profile-name {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #007BFF;
+            margin-bottom: 8px;
+        }
+
+        .profile-username {
+            font-size: 1em;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .profile-description {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .profile-meta {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .profile-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #007BFF;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e9f5ff;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border: 1px solid #007BFF;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+        }
+
+        .product-cover {
+            width: 100%;
+            height: 180px;
+            background-color: #e9f5ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .product-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-cover i {
+            font-size: 50px;
+            color: #007BFF;
+        }
+
+        .product-body {
+            padding: 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-title {
+            font-size: 1.05em;
+            font-weight: 700;
+            color: #007BFF;
+            margin-bottom: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+
+            -webkit-box-orient: vertical;
+        }
+
+        .product-description {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+
+            -webkit-box-orient: vertical;
+            flex: 1;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 8px;
+            border-top: 1px solid #e9f5ff;
+        }
+
+        .product-price {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #4CAF50;
+        }
+
+        .product-stats {
+            font-size: 0.8em;
+            color: #888;
+            display: flex;
+            gap: 12px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error-message {
+            background: #ffebee;
+            border: 1px solid #f44336;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            color: #f44336;
+            margin: 20px;
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes skeleton-loading {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .skeleton-header {
+            height: 250px;
+            margin-bottom: 20px;
+        }
+
+        .skeleton-product {
+            height: 320px;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.35em;
+            }
+
+            .profile-name {
+                font-size: 1.5em;
+            }
+
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1 translate="no" onclick="window.location.href='index.html'">Monetizelt</h1>
+    </header>
+
+    <div class="container">
+        <div id="loadingState" class="loading">
+            <div class="skeleton skeleton-header"></div>
+            <div class="products-grid">
+                <div class="skeleton skeleton-product"></div>
+                <div class="skeleton skeleton-product"></div>
+                <div class="skeleton skeleton-product"></div>
+            </div>
+        </div>
+
+        <div id="profileContent" style="display: none;">
+            <div class="profile-header">
+                <div class="profile-photo" id="profilePhoto">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="profile-name" id="profileName">Loading...</div>
+                <div class="profile-username" id="profileUsername">@username</div>
+                <div class="profile-description" id="profileDescription"></div>
+                <div class="profile-meta">
+                    <div class="profile-meta-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span id="memberSince">Member since</span>
+                    </div>
+                    <div class="profile-meta-item">
+                        <i class="fas fa-box"></i>
+                        <span id="productCount">0 products</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">Products</div>
+            <div class="products-grid" id="productsGrid">
+                <div class="loading">No products yet</div>
+            </div>
+        </div>
+
+        <div id="errorState" style="display: none;" class="error-message">
+            <i class="fas fa-exclamation-triangle" style="font-size: 2em; margin-bottom: 10px;"></i>
+            <div id="errorMessage">Seller not found</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDrCCbetOZdczDANtjrRWGxrJ20FxSRFv4",
+            authDomain: "monetizelt-1.firebaseapp.com",
+            projectId: "monetizelt-1",
+            storageBucket: "monetizelt-1.firebasestorage.app",
+            messagingSenderId: "785088686494",
+            appId: "1:785088686494:web:de12121775ed2e57bd4e8f",
+            measurementId: "G-YP5ZPNEM6G"
+        };
+
+        const API_ROOT = (() => {
+            const custom = window.__API_BASE_URL__;
+            if (custom && String(custom).trim()) return String(custom).trim().replace(/\/+$/, "");
+            return `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net`;
+        })();
+
+        const app = initializeApp(firebaseConfig);
+
+        function buildApiUrl(endpoint) {
+            return `${API_ROOT.replace(/\/+$/, "")}/${String(endpoint).replace(/^\/+/, "")}`;
+        }
+
+        function formatCurrency(n) {
+            return Number(n || 0).toFixed(2);
+        }
+
+        function formatDate(d) {
+            if (!d) return "Unknown";
+            const date = new Date(d);
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+        }
+
+        async function loadSellerProfile(username) {
+            try {
+                const url = buildApiUrl("getSellerPublicProfile") + `?username=${encodeURIComponent(username)}`;
+                const response = await fetch(url, {
+                    method: "GET",
+                    mode: "cors",
+                    credentials: "omit",
+                    cache: "no-store"
+                });
+
+                if (!response.ok) {
+                    throw new Error("Seller not found");
+                }
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || "Failed to load profile");
+                }
+
+                return data;
+            } catch (e) {
+                console.error(e);
+                throw e;
+            }
+        }
+
+        function renderProfile(data) {
+            const { seller, products } = data;
+
+            // Profile photo
+            const photoEl = document.getElementById("profilePhoto");
+            if (seller.photoUrl) {
+                photoEl.innerHTML = `<img src="${seller.photoUrl}" alt="${seller.username}">`;
+            }
+
+            // Profile info
+            document.getElementById("profileName").textContent = seller.username;
+            document.getElementById("profileUsername").textContent = `@${seller.username}`;
+            document.getElementById("profileDescription").textContent = seller.description || "No description yet.";
+            document.getElementById("memberSince").textContent = `Member since ${formatDate(seller.memberSince)}`;
+            document.getElementById("productCount").textContent = `${products.length} product${products.length !== 1 ? 's' : ''}`;
+
+            // Products grid
+            const grid = document.getElementById("productsGrid");
+            grid.innerHTML = "";
+
+            if (products.length === 0) {
+                grid.innerHTML = '<div class="loading">No products yet</div>';
+                return;
+            }
+
+            products.forEach(product => {
+                const card = document.createElement("a");
+                card.href = product.shareableLink;
+                card.className = "product-card";
+                card.target = "_blank";
+                card.rel = "noopener";
+
+                const categoryIcon = product.category === 'video' ? 'fa-video' :
+                    product.category === 'music' ? 'fa-music' : 'fa-file';
+
+                card.innerHTML = `
+                    <div class="product-cover">
+                        ${product.coverUrl ?
+                        `<img src="${product.coverUrl}" alt="${product.title}">` :
+                        `<i class="fas ${categoryIcon}"></i>`
+                    }
+                    </div>
+                    <div class="product-body">
+                        <div class="product-title">${product.title}</div>
+                        <div class="product-description">${product.description}</div>
+                        <div class="product-footer">
+                            <div class="product-price">$${formatCurrency(product.price)}</div>
+                            <div class="product-stats">
+                                <span><i class="fas fa-eye"></i> ${product.counters.viewsCount}</span>
+                                <span><i class="fas fa-shopping-cart"></i> ${product.counters.salesCount}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        function showError(message) {
+            document.getElementById("loadingState").style.display = "none";
+            document.getElementById("profileContent").style.display = "none";
+            document.getElementById("errorState").style.display = "block";
+            document.getElementById("errorMessage").textContent = message;
+        }
+
+        function showProfile() {
+            document.getElementById("loadingState").style.display = "none";
+            document.getElementById("errorState").style.display = "none";
+            document.getElementById("profileContent").style.display = "block";
+        }
+
+        // Get username from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const username = urlParams.get('seller');
+
+        if (!username) {
+            showError("No seller specified in URL");
+        } else {
+            loadSellerProfile(username)
+                .then(data => {
+                    renderProfile(data);
+                    showProfile();
+                })
+                .catch(e => {
+                    showError(e.message || "Failed to load seller profile");
+                });
+        }
+    </script>
+</body>
+
+</html>
