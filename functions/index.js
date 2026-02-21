@@ -87,10 +87,15 @@ const PRODUCT_COLLECTION_ARCHIVED = "archivedProducts";
 const PAYPAL_PAYOUT_MAX_ITEMS_PER_BATCH = 100;
 const PAYPAL_PAYOUT_INTER_BATCH_DELAY_MS = 2200; // a few seconds between batches (safety)
 
-/* ============================= EMAIL CONFIG ============================= */
-
-const EMAIL_FROM = { email: "noreply@monetizelt.com", name: "Monetizelt" };
-const EMAIL_REPLY_TO = { email: "support@monetizelt.com", name: "Monetizelt Support" };
+/* ============================= EMAIL CONFIG (LIVE) ============================= */
+/**
+ * ✅ Per your request:
+ * - Sender: hello@monetizelt.com
+ * - Help: contact@monetizelt.com (reply-to + footer)
+ * - No noreply
+ */
+const EMAIL_FROM = { email: "hello@monetizelt.com", name: "Monetizelt" };
+const EMAIL_REPLY_TO = { email: "contact@monetizelt.com", name: "Monetizelt Support" };
 
 const LIST_UNSUBSCRIBE_MAILTO = "mailto:unsubscribe@monetizelt.com?subject=unsubscribe";
 const LIST_UNSUBSCRIBE_URL_FALLBACK = "/unsubscribe.html";
@@ -473,11 +478,58 @@ async function requireAuth(req) {
     }
 }
 
+/**
+ * ✅ Updated: blocks banned accounts AND temporarily frozen accounts.
+ * Freezes auto-expire after freezeUntil. If freeze expired, we auto-unfreeze best-effort.
+ */
 async function ensureUserNotBanned(uid) {
-    const userDoc = await db.collection("users").doc(uid).get();
-    if (userDoc.exists && userDoc.data()?.isBanned) {
+    const userRef = db.collection("users").doc(uid);
+    const userDoc = await userRef.get();
+
+    if (!userDoc.exists) return userDoc;
+
+    const u = userDoc.data() || {};
+
+    if (u.isBanned) {
         throw createHttpError(403, "permission_denied", "Account is banned.");
     }
+
+    const status = String(u.accountStatus || "active").toLowerCase();
+    if (status === "frozen") {
+        const untilTs = u.freezeUntil || null;
+        const until = untilTs?.toDate?.() || (untilTs ? new Date(untilTs) : null);
+
+        if (until && until.getTime() <= Date.now()) {
+            // Auto-unfreeze if expired (fail-safe)
+            try {
+                await userRef.set(
+                    {
+                        accountStatus: "active",
+                        freezeUntil: admin.firestore.FieldValue.delete(),
+                        freeze: admin.firestore.FieldValue.delete(),
+                        updatedAt: nowServerTimestamp(),
+                    },
+                    { merge: true }
+                );
+            } catch (e) {
+                console.error("Auto-unfreeze failed:", e?.message);
+            }
+
+            // Best-effort re-enable Auth
+            try {
+                await admin.auth().updateUser(uid, { disabled: false });
+            } catch {
+                // ignore
+            }
+
+            return await userRef.get();
+        }
+
+        throw createHttpError(403, "account_frozen", "Account is temporarily frozen.", {
+            freezeUntil: until ? until.toISOString() : null,
+        });
+    }
+
     return userDoc;
 }
 
@@ -528,27 +580,27 @@ function buildSellerPublicInfo(userData, sellerId) {
     };
 }
 
-/* ============================= EMAIL TEMPLATES ============================= */
+/* ============================= EMAIL TEMPLATES (WHITE + BLUE 007bff) ============================= */
 
 function emailShell({ title, bodyHtml, preheader = "" }) {
     const year = new Date().getFullYear();
 
+    // ✅ Per request: white background, blue borders (#007bff), Poppins, mixed blue/gray, green for revenue
     const colors = {
-        bg: "#0b0f14",
-        card: "#111827",
-        card2: "#0f172a",
-        border: "#1f2937",
-        text: "#e5e7eb",
-        muted: "#9ca3af",
-        primary: "#3b82f6",
-        success: "#10b981",
-        danger: "#ef4444",
-        warn: "#f59e0b",
+        bg: "#ffffff",
+        card: "#ffffff",
+        border: "#007bff",
+        text: "#212529",
+        muted: "#6c757d",
+        primary: "#007bff",
+        success: "#28a745",
+        danger: "#dc3545",
+        warn: "#fd7e14",
+        softBlueBg: "#f2f8ff",
     };
 
     const logoUrl =
-        "https://firebasestorage.googleapis.com/v0/b/monetizelt-1.firebasestorage.app/o/brand%2Favatar.png?alt=media";
-
+        "https://firebasestorage.googleapis.com/v0/b/monetizelt-1.firebasestorage.app/o/Monetizelt.jpg?alt=media&token=c942c3a7-0a4b-42f7-82bc-5cfde360e06e"
     const preheaderHtml = `
       <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
         ${String(preheader || "").slice(0, 140)}
@@ -558,37 +610,45 @@ function emailShell({ title, bodyHtml, preheader = "" }) {
     return `
   <div style="margin:0;padding:0;background:${colors.bg};">
     ${preheaderHtml}
+
+    <!-- font: best-effort (some clients ignore) -->
+    <div style="display:none;max-height:0;overflow:hidden;">
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
+      </style>
+    </div>
+
     <div style="max-width:600px;margin:0 auto;padding:18px;">
-      <div style="text-align:center;margin:10px 0 16px 0;">
-        <div style="display:inline-flex;align-items:center;gap:10px;">
-          <span style="display:inline-block;width:44px;height:44px;border-radius:12px;overflow:hidden;border:1px solid ${colors.border};background:${colors.card2};">
-            <img src="${logoUrl}" alt="Monetizelt" style="width:44px;height:44px;object-fit:cover;display:block;">
-          </span>
-          <span style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;font-size:16px;font-weight:800;color:${colors.text};letter-spacing:0.2px;">
-            Monetizelt
+      <div style="text-align:center;margin:6px 0 14px 0;">
+        <div style="display:inline-block;">
+          <span style="display:inline-block;width:44px;height:44px;border-radius:12px;overflow:hidden;border:2px solid ${colors.border};background:${colors.card};">
+            <img src="${logoUrl}" alt="Logo" style="width:44px;height:44px;object-fit:cover;display:block;">
           </span>
         </div>
-        <div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;font-size:12px;color:${colors.muted};margin-top:6px;">
+        <div style="font-family:Poppins,Segoe UI,Tahoma,Geneva,Verdana,sans-serif;font-size:12px;color:${colors.muted};margin-top:6px;">
           Digital content marketplace
         </div>
       </div>
 
-      <div style="background:${colors.card};border:1px solid ${colors.border};border-radius:16px;overflow:hidden;">
-        <div style="padding:16px 18px;background:linear-gradient(135deg, rgba(59,130,246,0.18), rgba(17,24,39,0));border-bottom:1px solid ${colors.border};">
-          <div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;font-size:16px;font-weight:800;color:${colors.text};margin:0;">
+      <div style="background:${colors.card};border:2px solid ${colors.border};border-radius:16px;overflow:hidden;">
+        <div style="padding:16px 18px;background:${colors.softBlueBg};border-bottom:2px solid ${colors.border};">
+          <div style="font-family:Poppins,Segoe UI,Tahoma,Geneva,Verdana,sans-serif;font-size:16px;font-weight:800;color:${colors.primary};margin:0;">
             ${title}
           </div>
         </div>
 
         <div style="padding:18px;">
-          <div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;font-size:14px;line-height:1.55;color:${colors.text};">
+          <div style="font-family:Poppins,Segoe UI,Tahoma,Geneva,Verdana,sans-serif;font-size:14px;line-height:1.55;color:${colors.text};">
             ${bodyHtml}
           </div>
         </div>
       </div>
 
-      <div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;margin-top:14px;color:${colors.muted};font-size:12px;line-height:1.4;text-align:center;">
-        <div>Need help? Reply to this email or contact <a href="mailto:support@monetizelt.com" style="color:${colors.primary};text-decoration:none;">support@monetizelt.com</a>.</div>
+      <div style="font-family:Poppins,Segoe UI,Tahoma,Geneva,Verdana,sans-serif;margin-top:14px;color:${colors.muted};font-size:12px;line-height:1.4;text-align:center;">
+        <div>
+          Need help? Reply to this email or contact
+          <a href="mailto:contact@monetizelt.com" style="color:${colors.primary};text-decoration:none;font-weight:700;">contact@monetizelt.com</a>.
+        </div>
         <div style="margin-top:8px;">© ${year} Monetizelt</div>
       </div>
     </div>
@@ -597,16 +657,17 @@ function emailShell({ title, bodyHtml, preheader = "" }) {
 
 function emailButton({ href, label, tone = "primary" }) {
     const tones = {
-        primary: { bg: "#3b82f6", text: "#ffffff" },
-        success: { bg: "#10b981", text: "#06110c" },
-        danger: { bg: "#ef4444", text: "#ffffff" },
-        neutral: { bg: "#111827", text: "#ffffff" },
+        primary: { bg: "#007bff", text: "#ffffff", border: "#007bff" },
+        success: { bg: "#28a745", text: "#ffffff", border: "#28a745" },
+        danger: { bg: "#dc3545", text: "#ffffff", border: "#dc3545" },
+        neutral: { bg: "#ffffff", text: "#007bff", border: "#007bff" },
     };
     const t = tones[tone] || tones.primary;
+
     return `
     <div style="text-align:center;margin:14px 0 8px 0;">
       <a href="${href}"
-         style="display:inline-block;background:${t.bg};color:${t.text};padding:11px 16px;border-radius:12px;text-decoration:none;font-weight:800;font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;">
+         style="display:inline-block;background:${t.bg};color:${t.text};padding:11px 16px;border-radius:12px;text-decoration:none;font-weight:800;font-family:Poppins,Segoe UI,Tahoma,Geneva,Verdana,sans-serif;border:2px solid ${t.border};">
         ${label}
       </a>
     </div>
@@ -615,23 +676,23 @@ function emailButton({ href, label, tone = "primary" }) {
 
 function kvTable(rows) {
     const safeRows = Array.isArray(rows) ? rows : [];
-    const border = "#1f2937";
-    const text = "#e5e7eb";
-    const muted = "#9ca3af";
+    const border = "#007bff";
+    const text = "#212529";
+    const muted = "#6c757d";
 
     const tr = safeRows
         .map(
             ([k, v]) => `
       <tr>
-        <td style="padding:10px 10px;border-bottom:1px solid ${border};color:${muted};font-size:12px;white-space:nowrap;">${k}</td>
-        <td style="padding:10px 10px;border-bottom:1px solid ${border};color:${text};font-size:13px;font-weight:700;">${v}</td>
+        <td style="padding:10px 10px;border-bottom:1px solid ${border};color:${muted};font-size:12px;white-space:nowrap;font-family:Poppins,Segoe UI,Tahoma,Geneva,Verdana,sans-serif;">${k}</td>
+        <td style="padding:10px 10px;border-bottom:1px solid ${border};color:${text};font-size:13px;font-weight:700;font-family:Poppins,Segoe UI,Tahoma,Geneva,Verdana,sans-serif;">${v}</td>
       </tr>
     `
         )
         .join("");
 
     return `
-    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;border:1px solid ${border};border-radius:12px;overflow:hidden;">
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;border:2px solid ${border};border-radius:12px;overflow:hidden;">
       <tbody>
         ${tr}
       </tbody>
@@ -828,6 +889,7 @@ async function prepareWeeklyPayoutCandidates({ trigger = "schedule" } = {}) {
             const u = docSnap.data() || {};
 
             if (u.isBanned) continue;
+            if (String(u.accountStatus || "active").toLowerCase() === "frozen") continue;
 
             const balance = Number(u.balance || 0);
             const paypalEmail = String(u.paypalEmail || "").trim();
@@ -947,6 +1009,7 @@ async function processWeeklyFridayPayouts({ trigger = "schedule", messageId = nu
                     const balance = Number(u.balance || 0);
                     const paypalEmail = String(u.paypalEmail || "").trim();
                     if (u.isBanned) continue;
+                    if (String(u.accountStatus || "active").toLowerCase() === "frozen") continue;
                     if (!Number.isFinite(balance) || balance < MIN_PAYOUT_AMOUNT) continue;
                     if (!isEmail(paypalEmail)) continue;
                     candidateDocs.push(d);
@@ -988,16 +1051,19 @@ async function processWeeklyFridayPayouts({ trigger = "schedule", messageId = nu
                 const balance = Number(u.balance || 0);
                 const paypalEmail = String(u.paypalEmail || "").trim();
 
-                if (u.isBanned) {
+                if (u.isBanned || String(u.accountStatus || "active").toLowerCase() === "frozen") {
                     skippedCount++;
                     continue;
                 }
+
                 if (!Number.isFinite(balance) || balance < MIN_PAYOUT_AMOUNT) {
                     skippedCount++;
                     continue;
                 }
+
                 if (!isEmail(paypalEmail)) {
                     skippedCount++;
+
                     bw.set(
                         db.collection("users").doc(uid),
                         {
@@ -1006,6 +1072,36 @@ async function processWeeklyFridayPayouts({ trigger = "schedule", messageId = nu
                         },
                         { merge: true }
                     );
+
+                    // ✅ Email seller: action required (button only, no raw link)
+                    try {
+                        const userSnap = await db.collection("users").doc(uid).get();
+                        const to = userSnap.data()?.email;
+                        if (to && isEmail(to)) {
+                            await sendEmail("paypal_action_required", {
+                                to,
+                                subject: "Action required: add or update your PayPal email",
+                                title: "Action required",
+                                preheader: "We couldn't process your payout because your PayPal email is missing or invalid.",
+                                bodyHtml: `
+                                  <p>We couldn’t process your payout because your PayPal email is missing or invalid.</p>
+                                  ${kvTable([
+                                    ["What to do", `<span style="font-weight:800;color:#007bff;">Update your payout email</span>`],
+                                    ["Where", `<span style="font-weight:700;">Dashboard</span>`],
+                                    ["Schedule", `<span style="font-weight:700;">${weeklyScheduleLabel()}</span>`],
+                                ])}
+                                  ${emailButton({ href: dashboardUrl, label: "Open dashboard to update PayPal email", tone: "primary" })}
+                                  <p style="color:#6c757d;font-size:12px;margin-top:10px;">
+                                    After you update it, we’ll automatically retry on the next scheduled payout.
+                                  </p>
+                                `,
+                                uid,
+                            });
+                        }
+                    } catch (e) {
+                        console.error(`[${FN}] paypal_action_required email failed uid=${uid}:`, e?.message);
+                    }
+
                     continue;
                 }
 
@@ -1222,6 +1318,10 @@ async function processWeeklyFridayPayouts({ trigger = "schedule", messageId = nu
  *
  * ✅ IMPORTANT CHANGE:
  * - No PayPal fee is deducted from seller balance (gross == net in our payout accounting).
+ *
+ * ✅ Per your request:
+ * - If a PayPal error happens, email seller with a BUTTON to dashboard to update payout email.
+ * - Never show raw links in the email body.
  */
 async function reconcilePaypalBatch({
     paypalBatchId,
@@ -1393,14 +1493,14 @@ async function reconcilePaypalBatch({
                         bodyHtml: `
                           <p>Your weekly payout has been sent successfully.</p>
                           ${kvTable([
-                            ["Schedule", `<span style="font-weight:800;">${weeklyScheduleLabel()}</span>`],
+                            ["Schedule", `<span style="font-weight:800;color:#007bff;">${weeklyScheduleLabel()}</span>`],
                             ["PayPal email", `<span style="font-weight:800;">${paypalEmail}</span>`],
-                            ["Amount sent", `<span style="font-weight:900;color:#10b981;">${Number(netAmount).toFixed(2)} USD</span>`],
+                            ["Amount sent", `<span style="font-weight:900;color:#28a745;">${Number(netAmount).toFixed(2)} USD</span>`],
                             ["Batch ID", `<span style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;">${paypalBatchId}</span>`],
                             ["Week", `<span style="font-weight:800;">${fridayKey}</span>`],
                         ])}
                           ${emailButton({ href: dashboardUrl, label: "Open dashboard", tone: "primary" })}
-                          <p style="color:#9ca3af;font-size:12px;margin-top:10px;">
+                          <p style="color:#6c757d;font-size:12px;margin-top:10px;">
                             Processing times can vary depending on PayPal. Keep this email for your records.
                           </p>
                         `,
@@ -1446,34 +1546,35 @@ async function reconcilePaypalBatch({
                 { merge: true }
             );
 
-            // Notify user: generic (no fee details)
+            // ✅ Notify user: action required, includes dashboard BUTTON (no raw links)
             try {
                 const userSnap = await db.collection("users").doc(uid).get();
                 const to = userSnap.data()?.email;
 
                 if (to && isEmail(to)) {
-                    await sendEmail("payout_processing", {
+                    await sendEmail("paypal_error_seller", {
                         to,
-                        subject: "Your payout is still being processed",
-                        title: "Payout in progress",
-                        preheader: "Your payout is being processed. No action is required right now.",
+                        subject: "PayPal payout error — action may be required",
+                        title: "Payout needs attention",
+                        preheader: "PayPal reported an issue processing your payout. You can update your payout email from the dashboard.",
                         bodyHtml: `
-                          <p>Your weekly payout is still being processed.</p>
+                          <p>PayPal reported an issue while processing your weekly payout. Your balance was <strong>not</strong> deducted.</p>
                           ${kvTable([
-                            ["Schedule", `<span style="font-weight:800;">${weeklyScheduleLabel()}</span>`],
-                            ["Week", `<span style="font-weight:800;">${fridayKey}</span>`],
-                            ["Next update", `<span style="font-weight:900;">We will retry next Friday if needed</span>`],
+                            ["Status", `<span style="font-weight:900;color:#dc3545;">${itemStatus}</span>`],
+                            ["PayPal message", `<span style="font-weight:700;">${String(errorText).slice(0, 240)}</span>`],
+                            ["Next attempt", `<span style="font-weight:800;color:#007bff;">We will retry next Friday if needed</span>`],
                         ])}
-                          ${emailButton({ href: dashboardUrl, label: "Open dashboard", tone: "neutral" })}
-                          <p style="color:#9ca3af;font-size:12px;margin-top:10px;">
-                            If the payout remains pending, we will automatically retry. If you recently changed your PayPal email, review your settings.
+                          ${emailButton({ href: dashboardUrl, label: "Open dashboard to update PayPal email", tone: "primary" })}
+                          ${emailButton({ href: settingsUrl, label: "Open settings", tone: "neutral" })}
+                          <p style="color:#6c757d;font-size:12px;margin-top:10px;">
+                            If your PayPal email is correct and this keeps happening, reply to this email and we will help.
                           </p>
                         `,
                         uid,
                     });
                 }
             } catch (e) {
-                console.error(`[${FN}] payout failure email failed uid=${uid}:`, e?.message);
+                console.error(`[${FN}] paypal_error_seller email failed uid=${uid}:`, e?.message);
             }
 
             continue;
@@ -1943,7 +2044,7 @@ exports.updatePayoutSettings = onRequest({ invoker: "public", secrets: [sendgrid
                       <p>Your payout method is ready. We’ll send payouts to:</p>
                       ${kvTable([
                         ["PayPal email", `<span style="font-weight:800;">${String(paypalEmail).trim()}</span>`],
-                        ["Schedule", `<span style="font-weight:800;">${weeklyScheduleLabel()}</span>`],
+                        ["Schedule", `<span style="font-weight:800;color:#007bff;">${weeklyScheduleLabel()}</span>`],
                         ["Minimum payout", `<span style="font-weight:800;">${MIN_PAYOUT_AMOUNT.toFixed(2)} USD</span>`],
                         ["Next payout", `<span style="font-weight:800;">${firstNext.toUTCString()}</span>`],
                     ])}
@@ -1986,6 +2087,8 @@ exports.getPayoutSettings = onRequest({ invoker: "public" }, async (req, res) =>
                 balance: Number(u.balance || 0),
                 isBanned: !!u.isBanned,
                 minPayoutAmount: MIN_PAYOUT_AMOUNT,
+                accountStatus: u.accountStatus || "active",
+                freezeUntil: u.freezeUntil?.toDate?.()?.toISOString?.() || null,
             });
         } catch (e) {
             console.error(FN, e);
@@ -2050,6 +2153,8 @@ exports.getUserData = onRequest({ invoker: "public" }, async (req, res) => {
                     payoutSchedule: u.payoutSchedule || { type: "weekly_friday", minAmount: MIN_PAYOUT_AMOUNT },
                     strikes: u.strikes || { points: 0, reds: 0 },
                     isBanned: !!u.isBanned,
+                    accountStatus: u.accountStatus || "active",
+                    freezeUntil: u.freezeUntil?.toDate?.()?.toISOString?.() || null,
                 },
                 stats: {
                     generatedLinksCount: Number(st.generatedLinksCount || 0),
@@ -2153,6 +2258,9 @@ exports.getDashboardSummary = onRequest({ invoker: "public" }, async (req, res) 
                     paypalEmail: user.paypalEmail || null,
                     payoutSchedule: user.payoutSchedule || { type: "weekly_friday", minAmount: MIN_PAYOUT_AMOUNT },
                     payoutNextAt: user.payoutNextAt?.toDate?.()?.toISOString?.() || null,
+
+                    accountStatus: user.accountStatus || "active",
+                    freezeUntil: user.freezeUntil?.toDate?.()?.toISOString?.() || null,
                 },
             });
         } catch (e) {
@@ -3254,12 +3362,12 @@ exports.stripeWebhook = onRequest(
 
             await statsInc(String(sellerUid), { ordersCount: 1, lifetimeNetIncome: sellerAmount });
 
-            // Buyer email includes code + instructions (English)
+            // Buyer email includes code + instructions (English) — ✅ no raw links in body
             try {
                 const securityNote =
                     "For security, your library can auto-unlock on the purchase device. If you use a new device, you can unlock with your email + access code.";
 
-                const libraryUrl = `${base}/access.html`;
+                const libraryButtonUrl = `${base}/access.html`;
 
                 await sendEmail("buyer_purchase_confirmed", {
                     to: buyerEmail,
@@ -3267,18 +3375,18 @@ exports.stripeWebhook = onRequest(
                     title: "Your purchase is confirmed",
                     preheader: "Your access link and code are ready.",
                     bodyHtml: `
-                      <p>Thanks for your purchase. Your access link is ready:</p>
+                      <p>Thanks for your purchase. Your access is ready:</p>
                       ${emailButton({ href: accessUrl, label: "Access your content", tone: "success" })}
 
                       <p style="margin-top:12px;">
                         <strong>Your access code:</strong><br>
-                        <span style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:16px;font-weight:900;letter-spacing:1px;">
+                        <span style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:16px;font-weight:900;letter-spacing:1px;color:#007bff;">
                           ${accessCodePlain}
                         </span>
                       </p>
 
                       <p>
-                        Keep this <strong>email</strong> and <strong>access code</strong>. If you open <strong>${libraryUrl}</strong> on a new device,
+                        Keep this <strong>email</strong> and <strong>access code</strong>. If you open your library on a new device,
                         you can unlock your purchases using your email + this code.
                       </p>
 
@@ -3287,11 +3395,12 @@ exports.stripeWebhook = onRequest(
                         ["Product", `<span style="font-weight:800;">${productTitle}</span>`],
                         ["Total paid", `<span style="font-weight:800;">${productPrice.toFixed(2)} USD</span>`],
                         ["Order ID", `<span style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;">${orderRef.id}</span>`],
-                        ["Library page", `<span style="font-weight:800;">${libraryUrl}</span>`],
                     ])}
                       </div>
 
-                      <p style="color:#9ca3af;font-size:12px;margin-top:10px;">${securityNote}</p>
+                      ${emailButton({ href: libraryButtonUrl, label: "Open your library", tone: "primary" })}
+
+                      <p style="color:#6c757d;font-size:12px;margin-top:10px;">${securityNote}</p>
                     `,
                     productId: productRef.id,
                     meta: { orderId: orderRef.id },
@@ -3321,14 +3430,16 @@ exports.stripeWebhook = onRequest(
                             ["Gross price", `${productPrice.toFixed(2)} USD`],
                             ["Stripe fee", `${Number(stripeFee || 0).toFixed(2)} USD`],
                             ["Platform fee", `${Number(platformFee || 0).toFixed(2)} USD`],
-                            ["Your earnings", `<span style="color:#10b981;font-weight:900;">${sellerAmount.toFixed(2)} USD</span>`],
-                            ["Buyer email", `<span style="color:#e5e7eb;">${buyerEmail}</span>`],
+                            ["Your earnings", `<span style="color:#28a745;font-weight:900;">${sellerAmount.toFixed(2)} USD</span>`],
+                            ["Buyer email", `<span style="color:#212529;">${buyerEmail}</span>`],
                             ["Order ID", `<span style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;">${orderRef.id}</span>`],
                         ])}
                           </div>
                           ${emailButton({ href: dashUrl, label: "View dashboard", tone: "primary" })}
-                          <p style="color:#9ca3af;font-size:12px;margin-top:10px;">
-                            Your earnings were added to your available balance. Payouts are sent weekly (Friday) when you reach the $${MIN_PAYOUT_AMOUNT} minimum.
+                          <p style="color:#6c757d;font-size:12px;margin-top:10px;">
+                            Your earnings were added to your available balance. Payouts are sent weekly (Friday) when you reach the ${MIN_PAYOUT_AMOUNT.toFixed(
+                            2
+                        )} USD minimum.
                           </p>
                         `,
                         uid: String(sellerUid),
@@ -3700,7 +3811,74 @@ exports.downloadProductAsset = onRequest({ invoker: "public" }, async (req, res)
     });
 });
 
-/* ============================= REPORTING ============================= */
+/* ============================= REPORTING (AUTO-TAKEDOWN + 7-DAY FREEZE) ============================= */
+
+/**
+ * ✅ Only these reasons count toward auto-takedown:
+ * Violence, Copyright, Adult, Scam
+ */
+const REPORT_REASON = {
+    VIOLENCE: "violence",
+    COPYRIGHT: "copyright",
+    ADULT: "adult",
+    SCAM: "scam",
+};
+
+const REPORT_REASON_LABEL = {
+    [REPORT_REASON.VIOLENCE]: "Violence",
+    [REPORT_REASON.COPYRIGHT]: "Copyright",
+    [REPORT_REASON.ADULT]: "Adult content",
+    [REPORT_REASON.SCAM]: "Scam / Fraud",
+};
+
+function normalizeReportReason(input) {
+    const s = String(input || "").trim().toLowerCase();
+    if (!s) return null;
+
+    // Accept small variants but map to canonical set
+    if (s === "violence" || s === "violent") return REPORT_REASON.VIOLENCE;
+    if (s === "copyright" || s === "dmca" || s === "piracy") return REPORT_REASON.COPYRIGHT;
+    if (s === "adult" || s === "nsfw" || s === "porn" || s === "pornography" || s === "sexual") return REPORT_REASON.ADULT;
+    if (s === "scam" || s === "fraud" || s === "spam") return REPORT_REASON.SCAM;
+
+    return null;
+}
+
+function freezeUntilDate(days = 7) {
+    return new Date(Date.now() + Number(days) * 24 * 60 * 60 * 1000);
+}
+
+async function freezeSellerAccountForReports({ sellerUid, productId, productTitle, reasonKey }) {
+    const userRef = db.collection("users").doc(String(sellerUid));
+    const until = freezeUntilDate(7);
+    const untilTs = admin.firestore.Timestamp.fromDate(until);
+
+    await userRef.set(
+        {
+            accountStatus: "frozen",
+            freezeUntil: untilTs,
+            freeze: {
+                type: "reports_auto_enforcement",
+                productId: String(productId || ""),
+                productTitle: String(productTitle || ""),
+                reason: String(reasonKey || ""),
+                frozenAt: nowServerTimestamp(),
+                until: untilTs,
+            },
+            updatedAt: nowServerTimestamp(),
+        },
+        { merge: true }
+    );
+
+    // Best-effort: disable Auth to block sign-in refresh
+    try {
+        await admin.auth().updateUser(String(sellerUid), { disabled: true });
+    } catch (e) {
+        console.error("freeze auth disable failed:", e?.message);
+    }
+
+    return { until };
+}
 
 exports.reportProduct = onRequest({ invoker: "public", secrets: [sendgridApiKey, appBaseUrl] }, async (req, res) => {
     corsMiddleware(req, res, async (req2, res2) => {
@@ -3710,6 +3888,11 @@ exports.reportProduct = onRequest({ invoker: "public", secrets: [sendgridApiKey,
             if (!productId) throw createHttpError(400, "invalid_argument", "Missing productId.");
             if (!reason || String(reason).length < 3) throw createHttpError(400, "invalid_argument", "Missing reason.");
 
+            const reasonKey = normalizeReportReason(reason);
+            if (!reasonKey) {
+                throw createHttpError(400, "invalid_argument", "Invalid reason. Allowed: Violence, Copyright, Adult, Scam.");
+            }
+
             const productRef = db.collection(PRODUCT_COLLECTION_ACTIVE).doc(String(productId));
             const productSnap = await productRef.get();
             if (!productSnap.exists) throw createHttpError(404, "not_found", "Product not found.");
@@ -3717,9 +3900,9 @@ exports.reportProduct = onRequest({ invoker: "public", secrets: [sendgridApiKey,
 
             const ip = req2.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req2.ip || "";
             const reporterKey = sha256Hex(reporterUid || ip || "anonymous");
-            const safeReason = String(reason).toLowerCase().slice(0, 40).replace(/[^\w\-]+/g, "_");
 
-            const reportId = `${productRef.id}_${safeReason}_${reporterKey}`;
+            // ✅ Dedupe per product + reason + reporter
+            const reportId = `${productRef.id}_${reasonKey}_${reporterKey}`;
             const reportRef = db.collection("productReports").doc(reportId);
 
             const created = await db.runTransaction(async (tx) => {
@@ -3729,7 +3912,7 @@ exports.reportProduct = onRequest({ invoker: "public", secrets: [sendgridApiKey,
                 tx.set(reportRef, {
                     productId: productRef.id,
                     sellerUid: product.uid,
-                    reason: safeReason,
+                    reason: reasonKey,
                     reporterKey,
                     createdAt: nowServerTimestamp(),
                 });
@@ -3738,7 +3921,7 @@ exports.reportProduct = onRequest({ invoker: "public", secrets: [sendgridApiKey,
                     productRef,
                     {
                         reportAgg: {
-                            [safeReason]: {
+                            [reasonKey]: {
                                 uniqueCount: admin.firestore.FieldValue.increment(1),
                                 lastUpdated: nowServerTimestamp(),
                             },
@@ -3747,51 +3930,127 @@ exports.reportProduct = onRequest({ invoker: "public", secrets: [sendgridApiKey,
                     },
                     { merge: true }
                 );
+
                 return true;
             });
 
+            // Load latest count
             const fresh = await productRef.get();
-            const agg = fresh.data()?.reportAgg?.[safeReason]?.uniqueCount || 0;
+            const agg = Number(fresh.data()?.reportAgg?.[reasonKey]?.uniqueCount || 0);
 
-            if (created && agg >= 3 && product.status === PRODUCT_STATUS.ACTIVE) {
-                await productRef.set(
-                    {
-                        status: PRODUCT_STATUS.TAKEN_DOWN,
-                        enforcement: {
-                            status: "takedown_by_reports",
-                            reasons: [`Auto takedown: ${safeReason} reported by 3 users.`],
-                            decidedAt: nowServerTimestamp(),
+            // ✅ Enforce once when threshold reached (>=3) for same allowed reason
+            let enforced = false;
+            let freezeInfo = null;
+
+            if (created && agg >= 3) {
+                const sellerUid = String(fresh.data()?.uid || product.uid || "");
+                const productTitle = String(fresh.data()?.title || product.title || "Untitled");
+
+                // Transaction ensures we don't enforce multiple times
+                const { didEnforce } = await db.runTransaction(async (tx) => {
+                    const pSnap2 = await tx.get(productRef);
+                    if (!pSnap2.exists) return { didEnforce: false };
+                    const p2 = pSnap2.data() || {};
+
+                    const already = String(p2?.enforcement?.autoAction || "") === "reports_auto_takedown"
+                        && String(p2?.enforcement?.reasonKey || "") === String(reasonKey);
+
+                    if (already) return { didEnforce: false };
+                    if (String(p2.status || "") !== PRODUCT_STATUS.ACTIVE) return { didEnforce: false };
+
+                    tx.set(
+                        productRef,
+                        {
+                            status: PRODUCT_STATUS.TAKEN_DOWN,
+                            enforcement: {
+                                autoAction: "reports_auto_takedown",
+                                status: "taken_down_by_reports",
+                                reasonKey,
+                                reasonLabel: REPORT_REASON_LABEL[reasonKey] || reasonKey,
+                                threshold: 3,
+                                decidedAt: nowServerTimestamp(),
+                                note: `Auto takedown: '${reasonKey}' reported by 3 unique reporters.`,
+                            },
+                            updatedAt: nowServerTimestamp(),
                         },
-                        updatedAt: nowServerTimestamp(),
-                    },
-                    { merge: true }
-                );
+                        { merge: true }
+                    );
 
-                const sellerDoc = await db.collection("users").doc(product.uid).get();
-                const sellerEmail = sellerDoc.data()?.email;
-                if (sellerEmail && isEmail(sellerEmail)) {
-                    await sendEmail("product_takedown_reports", {
-                        to: sellerEmail,
-                        subject: "Your product was removed after reports",
-                        title: "Product removed",
-                        preheader: "Your product was automatically taken down.",
-                        bodyHtml: `
-                          <p>Your product <strong>${product.title || "Untitled"}</strong> was removed after multiple reports.</p>
-                          ${kvTable([
-                            ["Reason", `<span style="font-weight:800;">${safeReason}</span>`],
-                            ["Status", `<span style="font-weight:800;">Taken down</span>`],
-                        ])}
-                          <p style="color:#9ca3af;font-size:12px;margin-top:10px;">
-                            If you believe this is a mistake, reply to this email and our team will review.
-                          </p>
-                        `,
-                        uid: product.uid,
+                    return { didEnforce: true };
+                });
+
+                if (didEnforce) {
+                    enforced = true;
+
+                    // Freeze seller for 7 days
+                    freezeInfo = await freezeSellerAccountForReports({
+                        sellerUid,
                         productId: productRef.id,
+                        productTitle,
+                        reasonKey,
                     });
+
+                    // Email seller: improved (English) + buttons only
+                    try {
+                        const sellerDoc = await db.collection("users").doc(sellerUid).get();
+                        const sellerEmail = sellerDoc.data()?.email;
+
+                        if (sellerEmail && isEmail(sellerEmail)) {
+                            const base = getPublicSiteOrigin();
+                            const dashboardUrl = `${base}/dashboard.html`;
+
+                            const reasonLabel = REPORT_REASON_LABEL[reasonKey] || reasonKey;
+                            const untilStr = freezeInfo?.until ? freezeInfo.until.toUTCString() : "in 7 days";
+
+                            await sendEmail("product_takedown_reports", {
+                                to: sellerEmail,
+                                subject: "Product removed & account temporarily frozen (7 days)",
+                                title: "Account temporarily frozen",
+                                preheader: `Your product was removed due to repeated reports (${reasonLabel}).`,
+                                bodyHtml: `
+                                  <p>
+                                    Your product <strong>${productTitle}</strong> has been removed from Monetizelt after receiving
+                                    <strong> independent report</strong> for the same subject.
+                                  </p>
+
+                                  ${kvTable([
+                                    ["Reported category", `<span style="font-weight:900;color:#dc3545;">${reasonLabel}</span>`],
+                                    ["Product status", `<span style="font-weight:800;">Removed from sale</span>`],
+                                    ["Account status", `<span style="font-weight:900;color:#dc3545;">Frozen</span>`],
+                                    ["Freeze duration", `<span style="font-weight:800;">7 days</span>`],
+                                    ["Expected reactivation", `<span style="font-weight:800;">${untilStr}</span>`],
+                                ])}
+
+                                  <p style="margin-top:12px;">
+                                    During this time, your account is temporarily restricted while we make a final decision.
+                                    If the report is confirmed, your account may be permanently banned.
+                                  </p>
+
+                                  ${emailButton({ href: dashboardUrl, label: "Open dashboard", tone: "primary" })}
+
+                                  <p style="color:#6c757d;font-size:12px;margin-top:10px;">
+                                    If you believe this is a mistake, reply to this email with any context or proof. We will review it.
+                                    If everything is fine, access will be restored automatically after 7 days.
+                                  </p>
+                                `,
+                                uid: sellerUid,
+                                productId: productRef.id,
+                            });
+                        }
+                    } catch (e) {
+                        console.error(`[${FN}] product_takedown_reports email failed:`, e?.message);
+                    }
                 }
             }
 
-            res2.status(200).json({ success: true, created, uniqueCountForReason: agg });
+            res2.status(200).json({
+                success: true,
+                created,
+                reason: reasonKey,
+                reasonLabel: REPORT_REASON_LABEL[reasonKey] || reasonKey,
+                uniqueCountForReason: agg,
+                enforced,
+            });
         } catch (e) {
             console.error(FN, e);
             await logSystemError(FN, e);
@@ -3878,8 +4137,8 @@ exports.deleteUserAccount = onRequest({ invoker: "public", secrets: [sendgridApi
                     preheader: "Your account deletion was processed.",
                     bodyHtml: `
                       <p>Your account deletion was processed.</p>
-                      <p style="color:#9ca3af;font-size:12px;">
-                        If you did not request this, please contact support immediately.
+                      <p style="color:#6c757d;font-size:12px;">
+                        If you did not request this, please contact support immediately by replying to this email.
                       </p>
                     `,
                     uid: decoded.uid,
@@ -4052,3 +4311,391 @@ exports.cleanupExpiredUploadSessions = onSchedule(
         }
     }
 );
+
+/* ============================= CLEANUP: UNFREEZE EXPIRED ACCOUNTS ============================= */
+
+exports.unfreezeExpiredAccounts = onSchedule(
+    {
+        schedule: "every 60 minutes",
+        timeZone: "UTC",
+        memory: "256MiB",
+        maxInstances: 1,
+    },
+    async () => {
+        const FN = "unfreezeExpiredAccounts";
+        const now = new Date();
+        const nowTs = admin.firestore.Timestamp.fromDate(now);
+
+        console.log(`[${FN}] Running at ${now.toISOString()}`);
+
+        try {
+            const snap = await db
+                .collection("users")
+                .where("accountStatus", "==", "frozen")
+                .where("freezeUntil", "<=", nowTs)
+                .limit(200)
+                .get();
+
+            if (snap.empty) return;
+
+            const bw = db.bulkWriter();
+
+            for (const doc of snap.docs) {
+                const uid = doc.id;
+
+                bw.set(
+                    doc.ref,
+                    {
+                        accountStatus: "active",
+                        freezeUntil: admin.firestore.FieldValue.delete(),
+                        freeze: admin.firestore.FieldValue.delete(),
+                        updatedAt: nowServerTimestamp(),
+                        unfrozenAt: nowServerTimestamp(),
+                    },
+                    { merge: true }
+                );
+
+                // Best-effort: re-enable Auth
+                try {
+                    await admin.auth().updateUser(uid, { disabled: false });
+                } catch (e) {
+                    console.error(`[${FN}] auth enable failed uid=${uid}:`, e?.message);
+                }
+            }
+
+            await bw.close();
+
+            console.log(`[${FN}] unfrozen=${snap.size}`);
+        } catch (e) {
+            console.error(FN, e);
+            await logSystemError(FN, e);
+        }
+    }
+);
+
+// ============================= SELLER QUARTERLY REPORT (EMAIL) =============================
+
+function quarterRangeUtc(year, quarter) {
+    const y = Number(year);
+    const q = Number(quarter);
+
+    if (!Number.isFinite(y) || y < 2000 || y > 2100) {
+        throw createHttpError(400, "invalid_argument", "Invalid year.");
+    }
+    if (![1, 2, 3, 4].includes(q)) {
+        throw createHttpError(400, "invalid_argument", "Invalid quarter. Use 1, 2, 3, or 4.");
+    }
+
+    const startMonth = (q - 1) * 3; // 0,3,6,9
+    const endMonth = startMonth + 3;
+
+    const start = new Date(Date.UTC(y, startMonth, 1, 0, 0, 0, 0));
+    const end = new Date(Date.UTC(y, endMonth, 1, 0, 0, 0, 0));
+
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const label = `Q${q} ${y} (${monthNames[startMonth]}–${monthNames[endMonth - 1]})`;
+
+    return { year: y, quarter: q, start, end, label };
+}
+
+function toTs(d) {
+    return admin.firestore.Timestamp.fromDate(d);
+}
+
+function money2(n) {
+    const x = Number(n || 0);
+    if (!Number.isFinite(x)) return "0.00";
+    return x.toFixed(2);
+}
+
+function monthKeyUtc(date) {
+    const d = date instanceof Date ? date : new Date(date);
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+    return `${y}-${m}`;
+}
+
+function monthLabelFromKey(key) {
+    const [y, m] = String(key || "").split("-");
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const mi = Math.max(1, Math.min(12, Number(m || 1))) - 1;
+    return `${monthNames[mi]} ${y}`;
+}
+
+function htmlMetricsTable(rows) {
+    const border = "#007bff";
+    const headBg = "#f2f8ff";
+    const text = "#212529";
+    const muted = "#6c757d";
+
+    const thead = `
+      <thead>
+        <tr>
+          ${rows.headers.map(h => `
+            <th style="padding:9px 8px;border:1px solid ${border};background:${headBg};color:${muted};font-size:12px;text-align:left;font-family:Poppins,Segoe UI,Tahoma,Geneva,Verdana,sans-serif;">
+              ${h}
+            </th>
+          `).join("")}
+        </tr>
+      </thead>
+    `;
+
+    const tbody = `
+      <tbody>
+        ${rows.items.map(item => `
+          <tr>
+            ${item.map((cell, idx) => `
+              <td style="padding:9px 8px;border:1px solid ${border};color:${idx === 0 ? muted : text};font-size:12.5px;font-weight:${idx === 0 ? 700 : 800};font-family:Poppins,Segoe UI,Tahoma,Geneva,Verdana,sans-serif;white-space:${idx === 0 ? "nowrap" : "normal"};">
+                ${cell}
+              </td>
+            `).join("")}
+          </tr>
+        `).join("")}
+      </tbody>
+    `;
+
+    return `
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%"
+        style="border-collapse:collapse;border:2px solid ${border};border-radius:12px;overflow:hidden;">
+        ${thead}
+        ${tbody}
+      </table>
+    `;
+}
+
+exports.sendQuarterlyReport = onRequest({ invoker: "public", secrets: [sendgridApiKey, appBaseUrl] }, async (req, res) => {
+    corsMiddleware(req, res, async (req2, res2) => {
+        const FN = "sendQuarterlyReport";
+        try {
+            if (req2.method !== "POST") throw createHttpError(405, "method_not_allowed", "POST required.");
+
+            const decoded = await requireAuth(req2);
+            await ensureUserNotBanned(decoded.uid);
+
+            const { quarter, year } = req2.body || {};
+            const y = year || new Date().getUTCFullYear();
+            const { start, end, label } = quarterRangeUtc(y, quarter);
+
+            // Seller email
+            const userSnap = await db.collection("users").doc(decoded.uid).get();
+            const to = userSnap.data()?.email || decoded.email || null;
+            if (!to || !isEmail(to)) {
+                throw createHttpError(400, "failed_precondition", "Your account email is missing or invalid.");
+            }
+
+            const startTs = toTs(start);
+            const endTs = toTs(end);
+
+            // -------------------- SALES / EARNINGS (from transactions) --------------------
+            // We use the existing index pattern: userId + createdAt ordering.
+            // Then filter type === "sale" in code to avoid creating a new composite index.
+            const txSnap = await db
+                .collection("transactions")
+                .where("userId", "==", decoded.uid)
+                .orderBy("createdAt", "asc")
+                .startAt(startTs)
+                .endBefore(endTs)
+                .limit(5000)
+                .get();
+
+            let salesCount = 0;
+            let earningsNet = 0;
+            let gross = 0;
+            let stripeFees = 0;
+            let platformFees = 0;
+
+            const monthAgg = new Map(); // key -> { sales, earnings, gross, stripe, platform }
+            const orderIds = new Set();
+
+            for (const d of txSnap.docs) {
+                const t = d.data() || {};
+                if (String(t.type || "") !== "sale") continue;
+
+                salesCount += 1;
+
+                const a = Number(t.amount || 0); // sellerAmount
+                const g = Number(t.grossAmount || 0);
+                const sf = Number(t.stripeFee || 0);
+                const pf = Number(t.platformFee || 0);
+
+                earningsNet += Number.isFinite(a) ? a : 0;
+                gross += Number.isFinite(g) ? g : 0;
+                stripeFees += Number.isFinite(sf) ? sf : 0;
+                platformFees += Number.isFinite(pf) ? pf : 0;
+
+                const ca = t.createdAt?.toDate?.() || null;
+                const mk = ca ? monthKeyUtc(ca) : null;
+
+                if (mk) {
+                    const cur = monthAgg.get(mk) || { sales: 0, earnings: 0, gross: 0, stripe: 0, platform: 0, views: null, processed: 0 };
+                    cur.sales += 1;
+                    cur.earnings += Number.isFinite(a) ? a : 0;
+                    cur.gross += Number.isFinite(g) ? g : 0;
+                    cur.stripe += Number.isFinite(sf) ? sf : 0;
+                    cur.platform += Number.isFinite(pf) ? pf : 0;
+                    monthAgg.set(mk, cur);
+                }
+
+                if (t.orderId) orderIds.add(String(t.orderId));
+            }
+
+            const ordersCount = salesCount; // completed purchases
+
+            // -------------------- PROCESSED (best-effort via orders by ID) --------------------
+            // Avoid new indexes: fetch orders by doc ID from the sale transactions.
+            let processedCount = 0;
+
+            if (orderIds.size > 0) {
+                const ids = Array.from(orderIds);
+                for (let i = 0; i < ids.length; i += 400) {
+                    const chunk = ids.slice(i, i + 400);
+                    const refs = chunk.map((id) => db.collection("orders").doc(id));
+                    const snaps = await db.getAll(...refs);
+
+                    for (const s of snaps) {
+                        if (!s.exists) continue;
+                        const o = s.data() || {};
+
+                        // processedAt is set when access happens (first time)
+                        const pa = o.processedAt?.toDate?.() || null;
+                        if (pa && pa >= start && pa < end) {
+                            processedCount += 1;
+
+                            const mk = monthKeyUtc(pa);
+                            const cur = monthAgg.get(mk) || { sales: 0, earnings: 0, gross: 0, stripe: 0, platform: 0, views: null, processed: 0 };
+                            cur.processed += 1;
+                            monthAgg.set(mk, cur);
+                            continue;
+                        }
+
+                        // fallback: if status is processed AND createdAt is in range
+                        const ca = o.createdAt?.toDate?.() || null;
+                        if (String(o.status || "") === "processed" && ca && ca >= start && ca < end) {
+                            processedCount += 1;
+
+                            const mk = monthKeyUtc(ca);
+                            const cur = monthAgg.get(mk) || { sales: 0, earnings: 0, gross: 0, stripe: 0, platform: 0, views: null, processed: 0 };
+                            cur.processed += 1;
+                            monthAgg.set(mk, cur);
+                        }
+                    }
+                }
+            }
+
+            // -------------------- VIEWS (best-effort; may require a composite index) --------------------
+            let viewsCount = null; // null => unavailable
+            try {
+                const viewsSnap = await db
+                    .collection("productViews")
+                    .where("sellerUid", "==", decoded.uid)
+                    .where("createdAt", ">=", startTs)
+                    .where("createdAt", "<", endTs)
+                    .limit(5000)
+                    .get();
+
+                viewsCount = viewsSnap.size;
+
+                for (const d of viewsSnap.docs) {
+                    const v = d.data() || {};
+                    const ca = v.createdAt?.toDate?.() || null;
+                    if (!ca) continue;
+                    const mk = monthKeyUtc(ca);
+                    const cur = monthAgg.get(mk) || { sales: 0, earnings: 0, gross: 0, stripe: 0, platform: 0, views: 0, processed: 0 };
+                    cur.views = Number(cur.views || 0) + 1;
+                    monthAgg.set(mk, cur);
+                }
+            } catch (e) {
+                // If missing index, still send the email with Views = N/A
+                console.error(`[${FN}] views query failed (likely missing index):`, e?.message);
+                viewsCount = null;
+            }
+
+            // Build month rows (3 months)
+            const keys = [];
+            {
+                const d0 = new Date(start.getTime());
+                for (let i = 0; i < 3; i++) {
+                    keys.push(monthKeyUtc(d0));
+                    d0.setUTCMonth(d0.getUTCMonth() + 1);
+                }
+            }
+
+            const monthRows = keys.map((k) => {
+                const m = monthAgg.get(k) || { sales: 0, earnings: 0, views: viewsCount === null ? null : 0, processed: 0 };
+                const viewsCell = (m.views === null || m.views === undefined) ? "N/A" : String(m.views);
+                return [
+                    monthLabelFromKey(k),
+                    String(m.sales || 0),
+                    viewsCell,
+                    String(m.processed || 0),
+                    `${money2(m.earnings || 0)} USD`
+                ];
+            });
+
+            const totalsTable = kvTable([
+                ["Period", `<span style="font-weight:900;color:#007bff;">${label}</span>`],
+                ["Sales", `<span style="font-weight:900;">${salesCount}</span>`],
+                ["Product views", viewsCount === null ? `<span style="font-weight:900;color:#6c757d;">N/A</span>` : `<span style="font-weight:900;">${viewsCount}</span>`],
+                ["Orders", `<span style="font-weight:900;">${ordersCount}</span>`],
+                ["Processed", `<span style="font-weight:900;">${processedCount}</span>`],
+                ["Gross revenue", `<span style="font-weight:900;">${money2(gross)} USD</span>`],
+                ["Stripe fees", `<span style="font-weight:900;color:#6c757d;">${money2(stripeFees)} USD</span>`],
+                ["Platform fees", `<span style="font-weight:900;color:#6c757d;">${money2(platformFees)} USD</span>`],
+                ["Net earnings", `<span style="font-weight:900;color:#28a745;">${money2(earningsNet)} USD</span>`],
+            ]);
+
+            const monthlyTable = htmlMetricsTable({
+                headers: ["Month", "Sales", "Views", "Processed", "Net earnings"],
+                items: monthRows
+            });
+
+            const base = getPublicSiteOrigin();
+            const dashboardUrl = `${base}/dashboard.html`;
+
+            await sendEmail("seller_quarterly_report", {
+                to,
+                subject: `Your quarterly report — ${label}`,
+                title: `Quarterly report — ${label}`,
+                preheader: `Sales: ${salesCount} • Net: ${money2(earningsNet)} USD`,
+                bodyHtml: `
+                    <p>Here is your quarterly performance report. Keep pushing — consistency wins.</p>
+
+                    <div style="margin:12px 0;">
+                      ${totalsTable}
+                    </div>
+
+                    <div style="margin:12px 0;">
+                      <div style="font-weight:900;color:#007bff;margin:0 0 8px 0;">Monthly breakdown</div>
+                      ${monthlyTable}
+                    </div>
+
+                    ${emailButton({ href: dashboardUrl, label: "Open dashboard", tone: "primary" })}
+
+                `,
+                uid: decoded.uid,
+                meta: {
+                    quarter: Number(quarter),
+                    year: Number(y),
+                    start: start.toISOString(),
+                    end: end.toISOString(),
+                    salesCount,
+                    ordersCount,
+                    processedCount,
+                    viewsCount,
+                    earningsNet: Number(earningsNet.toFixed(2)),
+                }
+            });
+
+            res2.status(200).json({
+                success: true,
+                sent: true,
+                period: { label, start: start.toISOString(), end: end.toISOString() },
+                totals: { salesCount, ordersCount, processedCount, viewsCount, gross, stripeFees, platformFees, earningsNet }
+            });
+        } catch (e) {
+            console.error(FN, e);
+            await logSystemError(FN, e, { body: req2.body });
+            res2.status(e.httpStatus || 500).json({ success: false, error: e.message || "Internal error", code: e.code || "internal" });
+        }
+    });
+});
