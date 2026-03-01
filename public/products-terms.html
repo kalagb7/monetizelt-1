@@ -1,0 +1,3040 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>Monetizelt — Dashboard</title>
+
+    <link rel="icon"
+        href="https://firebasestorage.googleapis.com/v0/b/monetizelt-1.firebasestorage.app/o/Monetizelt.jpg?alt=media&token=c942c3a7-0a4b-42f7-82bc-5cfde360e06e">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <style>
+        :root {
+            --primary: #007BFF;
+            --primary-dark: #0056b3;
+            --primary-muted: #5ca3dc;
+            --danger: #F44336;
+            --success: #4CAF50;
+            --bg: #f5f5f5;
+            --text: #333;
+            --muted: #666;
+            --panel: #ffffff;
+            --panel-soft: #f6fbff;
+            --border: #007BFF;
+            --modal-radius: 23px;
+        }
+
+        body {
+            font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg);
+            color: var(--text);
+        }
+
+        header {
+            background-color: #ffffff;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5em;
+            font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            font-weight: 700;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            padding: 3px 10px;
+            border-radius: 13px;
+            letter-spacing: 0.2px;
+        }
+
+        .slogan {
+            text-align: center;
+            margin: 8px auto 5px auto;
+            font-size: 1.05em;
+            color: var(--primary);
+            padding: 10px;
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            background-color: #e9f5ff;
+            max-width: 398px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 31px;
+            height: 31px;
+            border: 1px solid var(--primary);
+            border-radius: 11px;
+            background-color: white;
+            color: var(--primary);
+            margin-left: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+        }
+
+        .icon:hover {
+            background-color: #e9f5ff;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: var(--primary);
+            width: 100%;
+            margin: 0;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            padding: 5px 0;
+            overflow-x: auto;
+            white-space: nowrap;
+            margin: 0 0 1.5px 0;
+            max-width: 100%;
+            gap: 10px;
+        }
+
+        .button-container a {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .button-container a i {
+            margin-right: 5px;
+        }
+
+        .button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 8px 15px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            white-space: nowrap;
+            text-align: center;
+            min-width: 70px;
+        }
+
+        .button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .button.disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .dashboard {
+            max-width: 800px;
+            margin: auto;
+            padding: 5px 10px;
+        }
+
+        .status-container {
+            background: white;
+            padding: 6px 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-top: 3px solid var(--primary);
+            border-left: 1px solid var(--primary);
+            border-right: 1px solid var(--primary);
+            border-bottom: 1px solid var(--primary);
+            margin: 0 0 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 18px;
+            position: relative;
+        }
+
+        .status-container .rotating-gear {
+            font-size: 18px;
+            color: var(--primary);
+            animation: rotate 2s linear infinite;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .status-container .rotating-gear:focus {
+            outline: none;
+        }
+
+        .status-container .gear-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.7em;
+            color: var(--primary);
+            font-weight: 600;
+            pointer-events: none;
+            white-space: nowrap;
+            opacity: 0.9;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 0;
+        }
+
+        .card {
+            background: white;
+            padding: 8px 10px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            text-decoration: none;
+            color: inherit;
+            border: 1px solid var(--primary);
+            transition: background 0.3s, transform 0.2s;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .small-card {
+            height: 50px;
+        }
+
+        .card.disabled-card {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .card:not(.disabled-card):hover {
+                transform: translateY(-2px);
+                background: #e9f5ff;
+            }
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            .card:not(.disabled-card):active {
+                transform: scale(0.98);
+                background: #e9f5ff;
+            }
+        }
+
+        .title {
+            color: #666;
+            font-size: 0.7rem;
+            margin-bottom: 3px;
+            font-family: "Poppins", sans-serif;
+        }
+
+        .value {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 2px;
+        }
+
+        .value-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .trend-indicator {
+            margin-top: 2px;
+            margin-left: 6px;
+            font-size: 0.75rem;
+        }
+
+        .trend-up {
+            color: var(--success);
+        }
+
+        .trend-down {
+            color: var(--danger);
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 0.8s infinite;
+            border-radius: 4px;
+        }
+
+        @keyframes skeleton-loading {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .skeleton-title {
+            height: 12px;
+            width: 60%;
+            margin: 0 auto 8px auto;
+        }
+
+        .skeleton-value {
+            height: 16px;
+            width: 40%;
+            margin: 0 auto;
+        }
+
+        .history {
+            border-top: 3px solid var(--primary);
+            grid-column: 1/-1;
+            min-height: 120px;
+            max-height: 320px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 8px;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 9px;
+            margin: 6px 0;
+            background-color: white;
+            border: 1px solid var(--primary-muted);
+            transition: background-color 0.3s;
+            font-size: 0.85em;
+            gap: 10px;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .transaction-item:hover {
+                background-color: #f0f8ff;
+            }
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            .transaction-item:active {
+                background-color: #f0f8ff;
+            }
+        }
+
+        .transaction-item.skeleton {
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 0.8s infinite;
+            height: 35px;
+        }
+
+        .transaction-details {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            gap: 8px;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        .transaction-title {
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 0.9em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 1;
+            min-width: 0;
+        }
+
+        .transaction-title.payout-type {
+            color: var(--success);
+        }
+
+        .transaction-title:hover {
+            text-decoration: underline;
+        }
+
+        .transaction-dot {
+            color: var(--primary-muted);
+            font-size: 0.6em;
+            display: inline-block;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+
+        .transaction-date {
+            color: #888;
+            font-size: 0.75em;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .transaction-price {
+            color: var(--success);
+            font-weight: bold;
+            font-size: 0.9em;
+            white-space: nowrap;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .transaction-price.payout-amount {
+            color: var(--danger);
+        }
+
+        .no-transactions {
+            font-size: 0.8em;
+            color: #888;
+            text-align: center;
+            padding: 5px;
+        }
+
+        .payment-status {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 0.7em;
+            padding: 2px 6px;
+            border-radius: 10px;
+            color: white;
+            z-index: 1;
+        }
+
+        .payment-status.not-active {
+            background-color: var(--danger);
+        }
+
+        .payment-status.active {
+            background-color: var(--success);
+        }
+
+        .payment-status.skeleton {
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 0.8s infinite;
+            color: transparent;
+            width: 60px;
+            height: 18px;
+        }
+
+        .payment-warning {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+            text-align: center;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -25px;
+        }
+
+        .quarter-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1002;
+            background: rgba(0, 0, 0, 0.06);
+            backdrop-filter: blur(7px);
+            -webkit-backdrop-filter: blur(7px);
+            opacity: 0;
+            transition: opacity 0.18s ease;
+        }
+
+        .quarter-overlay.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .quarter-menu {
+            position: absolute;
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 14px;
+            border-radius: 999px;
+            transform: translateY(-8px) scale(0.92);
+            opacity: 0;
+            transition: transform 0.18s ease, opacity 0.18s ease;
+            pointer-events: none;
+        }
+
+        .quarter-overlay.show .quarter-menu {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .quarter-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 999px;
+            border: 2px solid var(--primary);
+            background: linear-gradient(135deg, #ffffff 0%, #e9f5ff 100%);
+            color: var(--primary);
+            font-weight: 900;
+            font-size: 1.3em;
+            font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.25);
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+            overflow: visible;
+        }
+
+        .quarter-btn::before {
+            position: absolute;
+            font-size: 2.8em;
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 0;
+            filter: brightness(1.1) contrast(1.05);
+        }
+
+        .quarter-btn[data-quarter="1"]::before {
+            content: '🌙';
+        }
+
+        .quarter-btn[data-quarter="2"]::before {
+            content: '⭐';
+        }
+
+        .quarter-btn[data-quarter="3"]::before {
+            content: '🌸';
+        }
+
+        .quarter-btn[data-quarter="4"]::before {
+            content: '☀️';
+        }
+
+        .quarter-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .quarter-btn:hover {
+            transform: scale(1.15) rotate(8deg);
+            box-shadow: 0 10px 28px rgba(0, 123, 255, 0.4);
+            background: linear-gradient(135deg, #e9f5ff 0%, #d0ebff 100%);
+            border-color: var(--primary-dark);
+        }
+
+        .quarter-btn:active {
+            transform: scale(1.08) rotate(0deg);
+            box-shadow: 0 5px 16px rgba(0, 123, 255, 0.3);
+        }
+
+        .quarter-btn.loading {
+            cursor: not-allowed;
+            opacity: 0.72;
+            background: linear-gradient(135deg, #e0e0e0 0%, #f0f0f0 100%);
+            border-color: #999999;
+            color: #666;
+            animation: pulse-loading 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-loading {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.72;
+            }
+
+            50% {
+                transform: scale(1.05);
+                opacity: 0.85;
+            }
+        }
+
+        .quarter-btn.success {
+            background: linear-gradient(135deg, #4CAF50 0%, #2e7d32 100%);
+            border-color: #2e7d32;
+            color: white;
+            opacity: 1;
+            animation: success-pop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes success-pop {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.25) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        .modal,
+        .confirm-modal,
+        .create-product-modal,
+        .links-modal,
+        .payout-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.show,
+        .confirm-modal.show,
+        .create-product-modal.show,
+        .links-modal.show,
+        .payout-modal.show {
+            opacity: 1;
+        }
+
+        .confirm-modal {
+            z-index: 1001;
+        }
+
+        .modal-panel {
+            background-color: var(--panel-soft);
+            border-radius: var(--modal-radius);
+            width: 92%;
+            padding: 18px 16px 16px 16px;
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
+            border: 1.7px solid var(--border);
+            position: relative;
+            text-align: center;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .modal.show .modal-panel,
+        .confirm-modal.show .modal-panel,
+        .create-product-modal.show .modal-panel,
+        .links-modal.show .modal-panel,
+        .payout-modal.show .modal-panel {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        .modal-panel.modal-small {
+            max-width: 300px;
+        }
+
+        .modal-panel.modal-medium {
+            max-width: 340px;
+        }
+
+        .modal-panel.modal-large {
+            max-width: 400px;
+        }
+
+        .modal-panel {
+            padding-top: 44px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            border: 1.5px solid var(--danger);
+            background: #fff;
+            color: var(--danger);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s ease, background-color 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background-color: #fff2f2;
+            transform: translateX(-50%) scale(1.03);
+        }
+
+        .modal-close i {
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .modal-title {
+            font-size: 1.05em;
+            font-weight: 800;
+            margin-bottom: 12px;
+            color: #333;
+        }
+
+        .modal-title.blue {
+            color: var(--primary);
+            font-size: 0.95em;
+        }
+
+        .subtle-hr {
+            height: 1px;
+            background: #dbeeff;
+            border: none;
+            margin: 6px 0 10px 0;
+        }
+
+        .delete-button {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 15px;
+            font-size: 0.95em;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        }
+
+        .delete-button:hover {
+            background-color: #ff3333;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .confirm-delete {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 12px;
+            cursor: pointer;
+            flex: 1;
+            font-weight: 800;
+            font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        }
+
+        .cancel-delete {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 12px;
+            cursor: pointer;
+            flex: 1;
+            font-weight: 700;
+            font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        }
+
+        .cancel-delete:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .form-group {
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 2px;
+            font-weight: 800;
+            color: #555;
+            font-size: 0.72em;
+        }
+
+        .form-control,
+        .form-select,
+        textarea {
+            width: 100%;
+            padding: 5px 7px;
+            border: 1px solid var(--primary);
+            border-radius: 10px;
+            font-size: 16px !important;
+            box-sizing: border-box;
+            appearance: none;
+            -webkit-appearance: none;
+            font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: #fff;
+        }
+
+        textarea {
+            min-height: 60px;
+            max-height: 120px;
+            resize: vertical;
+            line-height: 1.35;
+        }
+
+        .character-count {
+            font-size: 0.65em;
+            color: #888;
+            text-align: right;
+            margin-top: 2px;
+        }
+
+        .error-text {
+            color: var(--danger);
+            font-size: 0.7em;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .product-modal-title {
+            font-size: 0.95em;
+            font-weight: 900;
+            margin-bottom: 8px;
+            color: var(--primary);
+            text-align: center;
+        }
+
+        .upload-row {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+        }
+
+        .upload-half {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-upload-box {
+            border: 2px dashed var(--primary);
+            border-radius: 10px;
+            padding: 8px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.12s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: #fff;
+            min-height: 70px;
+        }
+
+        .file-upload-box:hover {
+            background-color: #e9f5ff;
+        }
+
+        .file-upload-input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+            font-size: 0;
+        }
+
+        .upload-label {
+            margin-top: 4px;
+            font-size: 0.7em;
+            font-weight: 800;
+            color: #555;
+        }
+
+        .upload-confirm {
+            margin-top: 4px;
+            display: none;
+            color: var(--success);
+            font-size: 0.85em;
+        }
+
+        .file-upload-box i:not(.upload-confirm i) {
+            font-size: 14px;
+        }
+
+        .files-count {
+            margin-top: 4px;
+            font-size: 0.7em;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .additional-files-container {
+            margin-top: 10px;
+        }
+
+        .additional-files-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .additional-file-box {
+            border: 2px dashed var(--primary);
+            border-radius: 10px;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: #fff;
+            min-height: 60px;
+        }
+
+        .additional-file-box:hover {
+            background-color: #e9f5ff;
+        }
+
+        .additional-file-box .upload-label {
+            font-size: 0.65em;
+        }
+
+        .additional-file-box i {
+            font-size: 12px;
+        }
+
+        .add-more-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 10px;
+            border: 2px solid var(--primary);
+            background: #fff;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px auto 0;
+            transition: all 0.2s ease;
+        }
+
+        .add-more-btn:hover {
+            background: #e9f5ff;
+            transform: scale(1.05);
+        }
+
+        .add-more-btn i {
+            font-size: 16px;
+        }
+
+        .price-breakdown {
+            display: none;
+            margin-top: 6px;
+            border: 1px solid #dbeeff;
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 8px;
+            font-size: 0.72em;
+            color: #444;
+        }
+
+        .price-breakdown .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding: 2px 0;
+        }
+
+        .price-breakdown .row .k {
+            color: #666;
+            font-weight: 700;
+        }
+
+        .price-breakdown .row .v {
+            font-weight: 900;
+            color: #222;
+            white-space: nowrap;
+        }
+
+        .price-breakdown .row.earn .v {
+            color: var(--success);
+        }
+
+        .create-product-button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 8px;
+            font-size: 0.9em;
+            font-weight: 900;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: background-color 0.2s ease, filter 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        }
+
+        .create-product-button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .create-product-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .create-product-button.progress {
+            background: var(--primary);
+        }
+
+        .create-product-button.progress::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: var(--p, 0%);
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            z-index: 0;
+        }
+
+        .create-product-button.progress::after {
+            content: '';
+            position: absolute;
+            left: var(--p, 0%);
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 1;
+            animation: glow 1s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+
+            0%,
+            100% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .create-product-button .btn-text {
+            position: relative;
+            z-index: 2;
+        }
+
+        .progress-star {
+            position: absolute;
+            color: #ffd700;
+            font-size: 12px;
+            animation: float-star 1.5s ease-in-out forwards;
+            z-index: 3;
+            pointer-events: none;
+            opacity: 1;
+        }
+
+        @keyframes float-star {
+            0% {
+                transform: translateY(0) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: translateY(-15px) rotate(180deg) scale(1.3);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: translateY(-30px) rotate(360deg) scale(0.5);
+                opacity: 0;
+            }
+        }
+
+        .terms-area {
+            margin-top: 8px;
+            text-align: left;
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px solid var(--primary);
+            background: #ffffff;
+        }
+
+        .terms-row {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            margin: 5px 0;
+            font-size: 0.7em;
+            color: #555;
+            line-height: 1.3;
+        }
+
+        .terms-row input {
+            margin-top: 2px;
+            flex: 0 0 auto;
+        }
+
+        .terms-row a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 800;
+        }
+
+        .products-list {
+            margin-top: 8px;
+        }
+
+        .product-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 8px;
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            margin-bottom: 6px;
+            background-color: #ffffff;
+        }
+
+        .product-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .product-index-pill {
+            width: 26px;
+            height: 24px;
+            border-radius: 8px;
+            border: 1px solid #dbeeff;
+            background: #f2f8ff;
+            color: var(--primary);
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75em;
+            flex: 0 0 auto;
+        }
+
+        .product-title {
+            color: var(--primary);
+            font-weight: 900;
+            text-decoration: none;
+            display: inline-block;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.82em;
+        }
+
+        .product-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 0 0 auto;
+        }
+
+        .icon-action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            border: 1px solid #b7dbff;
+            background: #ffffff;
+            color: #007bff;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease, transform 0.12s ease;
+        }
+
+        .icon-action-btn i {
+            font-size: 15px;
+        }
+
+        .icon-action-btn:hover {
+            background: #e9f5ff;
+            transform: translateY(-1px);
+        }
+
+        .icon-action-btn.danger {
+            border-color: #ffb4b4;
+            color: var(--danger);
+        }
+
+        .icon-action-btn.danger:hover {
+            background: #fff2f2;
+        }
+
+        .payout-note {
+            font-size: 0.8em;
+            color: #555;
+            line-height: 1.4;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .cooldown-timer {
+            font-size: 0.75em;
+            color: #ff6b6b;
+            margin-top: 6px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1005;
+        }
+
+        .toast {
+            background-color: #333;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-top: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.3s ease, fadeOut 0.5s ease 2.5s forwards;
+            max-width: 320px;
+        }
+
+        .toast.success {
+            background-color: var(--success);
+        }
+
+        .toast.error {
+            background-color: var(--danger);
+        }
+
+        .toast.info {
+            background-color: #2196F3;
+        }
+
+        .toast-icon {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+                display: none;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .upload-row {
+                flex-direction: row;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            h1 {
+                font-size: 1.35em;
+                padding: 3px 8px;
+            }
+
+            .icon {
+                width: 28px;
+                height: 28px;
+            }
+
+            .button {
+                padding: 6px 10px;
+                min-width: 60px;
+            }
+
+            .quarter-btn {
+                width: 48px;
+                height: 48px;
+                font-size: 1.2em;
+            }
+
+            .quarter-btn::before {
+                font-size: 2.5em;
+            }
+
+            .quarter-menu {
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1 translate="no">Monetizelt</h1>
+        <div class="icon-container">
+            <a class="icon" id="linksIcon" href="javascript:void(0);" aria-label="Your products">
+                <i class="fas fa-link" style="font-size: 23px;"></i>
+            </a>
+            <a class="icon" id="profileIcon" href="javascript:void(0);" aria-label="Account options">
+                <i class="fas fa-user" style="font-size: 23px;"></i>
+            </a>
+        </div>
+    </header>
+
+    <div class="divider"></div>
+    <div class="slogan">Your market, your rules! <br> Create, share, cash in!</div>
+
+    <div class="button-container" style="position: relative;">
+        <a class="button disabled" id="generateBtn" href="javascript:void(0);"><i class="fas fa-plus"></i> Create</a>
+        <a class="button" href="faq.html"><i class="fas fa-question-circle"></i> FAQ</a>
+        <a class="button" href="terms.html"><i class="fas fa-file-contract"></i> Terms</a>
+        <a class="button" href="privacy.html"><i class="fas fa-file-contract"></i> Privacy</a>
+        <div id="paymentWarning" class="payment-warning">Update your payment method to start creating products.</div>
+    </div>
+
+    <div class="dashboard">
+        <div class="status-container">
+            <i class="fas fa-cog rotating-gear" id="reportGear" role="button" tabindex="0"
+                aria-label="Quarterly report"></i>
+        </div>
+
+        <div class="grid">
+            <div class="card small-card" id="linksCard">
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton skeleton-value"></div>
+            </div>
+
+            <div class="card small-card" id="viewsCard">
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton skeleton-value"></div>
+            </div>
+
+            <div class="card small-card" id="ordersCard">
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton skeleton-value"></div>
+            </div>
+
+            <div class="card small-card" id="processedCard">
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton skeleton-value"></div>
+            </div>
+
+            <div class="card small-card" id="incomeCard">
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton skeleton-value"></div>
+            </div>
+
+            <a class="card small-card" id="payoutCard" href="javascript:void(0);" aria-label="PayPal settings">
+                <span class="payment-status skeleton" id="payoutStatus">Loading</span>
+                <div class="title">PayPal</div>
+                <i class="fab fa-paypal" style="font-size: 1.2em; color: #007BFF;"></i>
+            </a>
+
+            <div class="card history">
+                <div class="title">Transactions</div>
+                <div id="transactionList">
+                    <div class="transaction-item skeleton"></div>
+                    <div class="transaction-item skeleton"></div>
+                    <div class="transaction-item skeleton"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="quarterOverlay" class="quarter-overlay" aria-hidden="true">
+        <div id="quarterMenu" class="quarter-menu" role="menu" aria-label="Quarterly report">
+            <button class="quarter-btn" type="button" data-quarter="1" aria-label="Quarter 1"><span>1</span></button>
+            <button class="quarter-btn" type="button" data-quarter="2" aria-label="Quarter 2"><span>2</span></button>
+            <button class="quarter-btn" type="button" data-quarter="3" aria-label="Quarter 3"><span>3</span></button>
+            <button class="quarter-btn" type="button" data-quarter="4" aria-label="Quarter 4"><span>4</span></button>
+        </div>
+    </div>
+
+    <div id="deleteModal" class="modal" role="dialog" aria-modal="true" aria-label="Account options">
+        <div class="modal-panel modal-small">
+            <button class="modal-close" type="button" data-close="deleteModal" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-title">Account options</div>
+            <hr class="subtle-hr" />
+            <button id="deleteAccountBtn" class="delete-button">Delete account</button>
+        </div>
+    </div>
+
+    <div id="confirmModal" class="confirm-modal" role="dialog" aria-modal="true" aria-label="Confirm account deletion">
+        <div class="modal-panel modal-small">
+            <button class="modal-close" type="button" data-close="confirmModal" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-title">Confirm account deletion</div>
+            <div style="margin-bottom: 12px; color:#555; font-size:0.85em; text-align:left;">
+                This action cannot be undone.
+            </div>
+            <input type="email" id="emailInput" class="form-control" placeholder="Your email">
+            <input type="password" id="passwordInput" class="form-control" placeholder="Your password"
+                style="margin-top:8px;">
+            <div class="confirm-buttons">
+                <button id="confirmDeleteBtn" class="confirm-delete">Delete</button>
+                <button id="cancelDeleteBtn" class="cancel-delete">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="createProductModal" class="create-product-modal" role="dialog" aria-modal="true"
+        aria-label="Create new product">
+        <div class="modal-panel modal-large">
+            <button class="modal-close" type="button" data-close="createProductModal" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <div class="product-modal-title">Create new product</div>
+
+            <div class="form-group">
+                <label class="form-label" for="productTitle">Title</label>
+                <input type="text" id="productTitle" class="form-control" placeholder="Enter a title">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="productType">Type</label>
+                <select id="productType" class="form-select">
+                    <option value="">Select type</option>
+                    <option value="video">Video</option>
+                    <option value="music">Audio</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="productDescription">Description</label>
+                <textarea id="productDescription" class="form-control" placeholder="Describe your content..."
+                    maxlength="1000"></textarea>
+                <div class="character-count"><span id="descriptionCharCount">0</span>/1000</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="productPrice">Price (USD)</label>
+                <input type="number" id="productPrice" class="form-control" placeholder="Minimum 1" min="1" step="0.01">
+                <div id="priceBreakdown" class="price-breakdown">
+                    <div class="row">
+                        <span class="k">Your price</span>
+                        <span class="v" id="pbYourPrice">$0.00</span>
+                    </div>
+                    <div class="row">
+                        <span class="k">Platform fees (12%)</span>
+                        <span class="v" id="pbPlatformFee">$0.00</span>
+                    </div>
+                    <div class="row">
+                        <span class="k">Transaction fees (est.)</span>
+                        <span class="v" id="pbStripeFee">$0.00</span>
+                    </div>
+                    <div class="row earn">
+                        <span class="k">Estimated earnings</span>
+                        <span class="v" id="pbEarnings">$0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="upload-row">
+                    <div class="upload-half">
+                        <div class="file-upload-box" id="coverBox" role="button" aria-label="Upload cover image">
+                            <i class="fas fa-image" style="color:var(--primary);"></i>
+                            <div class="upload-label">Cover image</div>
+                            <div class="upload-confirm" id="coverConfirm">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <input type="file" id="coverFile" class="file-upload-input" accept="image/*">
+                        </div>
+                    </div>
+
+                    <div class="upload-half">
+                        <div class="file-upload-box" id="contentBox" role="button"
+                            aria-label="Upload main content file">
+                            <i id="contentTypeIcon" class="fas fa-file" style="color:var(--primary);"></i>
+                            <div class="upload-label" id="contentTypeLabel">Main file</div>
+                            <div class="upload-confirm" id="contentConfirm">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <input type="file" id="contentFiles" class="file-upload-input" disabled>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="additionalFilesContainer" class="additional-files-container" style="display:none;">
+                <div id="additionalFilesGrid" class="additional-files-grid"></div>
+                <button type="button" id="addMoreBtn" class="add-more-btn" style="display:none;">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+
+            <button id="createProductBtn" class="create-product-button">
+                <span class="btn-text">Create product</span>
+            </button>
+
+            <div class="terms-area">
+                <div class="terms-row">
+                    <input type="checkbox" id="policyConfirm">
+                    <label for="policyConfirm">
+                        I confirm I own the rights (or have permission) to sell this content, and it contains no
+                        violent or sexual content.
+                    </label>
+                </div>
+
+                <div class="terms-row">
+                    <input type="checkbox" id="termsAccept">
+                    <label for="termsAccept">
+                        I accept the <a href="products-terms.html" target="_blank" rel="noopener">terms</a> of product
+                        creation.
+                    </label>
+                </div>
+
+                <div id="termsError" class="error-text" style="display:none;">
+                    Please confirm the checkboxes.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="linksModal" class="links-modal" role="dialog" aria-modal="true" aria-label="Your products">
+        <div class="modal-panel modal-medium">
+            <button class="modal-close" type="button" data-close="linksModal" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <div class="modal-title blue">Your products</div>
+            <hr class="subtle-hr" />
+
+            <div id="linksList" class="products-list">
+                <div style="text-align:center;color:#888;">No products yet</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmDeleteProductModal" class="confirm-modal" role="dialog" aria-modal="true"
+        aria-label="Confirm product deletion">
+        <div class="modal-panel modal-small">
+            <button class="modal-close" type="button" data-close="confirmDeleteProductModal" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <div class="modal-title">Confirm product deletion</div>
+            <div style="margin-bottom:12px;color:#555;font-size:0.85em; text-align:left;">
+                If the product has orders, it will be archived (buyers keep access). Otherwise it will be deleted.
+            </div>
+            <div class="confirm-buttons">
+                <button id="cancelDeleteProductBtn" class="cancel-delete">Cancel</button>
+                <button id="confirmDeleteProductBtn" class="confirm-delete">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="payoutModal" class="payout-modal" role="dialog" aria-modal="true" aria-label="PayPal settings">
+        <div class="modal-panel modal-small">
+            <button class="modal-close" type="button" data-close="payoutModal" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <div class="modal-title blue">PayPal Setup</div>
+            <div class="payout-note">
+                Please check and register your PayPal email address to receive your payments every Friday
+                if your balance reaches a minimum of $10.
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="paypalEmail">PayPal email</label>
+                <input type="email" id="paypalEmail" class="form-control" placeholder="your@email.com">
+                <div id="paypalEmailError" class="error-text">Please enter a valid email address</div>
+            </div>
+
+            <button id="savePayoutBtn" class="create-product-button">Save</button>
+
+            <div id="cooldownTimer" class="cooldown-timer" style="display:none;"></div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+        import {
+            getAuth,
+            onAuthStateChanged,
+            EmailAuthProvider,
+            reauthenticateWithCredential,
+            deleteUser
+        } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDrCCbetOZdczDANtjrRWGxrJ20FxSRFv4",
+            authDomain: "monetizelt-1.firebaseapp.com",
+            projectId: "monetizelt-1",
+            storageBucket: "monetizelt-1.firebasestorage.app",
+            messagingSenderId: "785088686494",
+            appId: "1:785088686494:web:de12121775ed2e57bd4e8f",
+            measurementId: "G-YP5ZPNEM6G"
+        };
+
+        const API_ROOT = (() => {
+            const custom = window.__API_BASE_URL__;
+            if (custom && String(custom).trim()) return String(custom).trim().replace(/\/+$/, "");
+            return `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net`;
+        })();
+
+        const PUBLIC_PRODUCT_ORIGIN = "https://monetizelt.com";
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        let payoutActive = false;
+        let currentLinks = [];
+        let pendingDeleteProductId = null;
+        let pendingDeleteRowEl = null;
+        let prevSummary = null;
+
+        let coverFile = null;
+        let contentFiles = [];
+        let additionalFiles = [];
+
+        let isCreatingProduct = false;
+        let createFlow = null;
+
+        let paypalCooldownEnd = null;
+        let paypalCooldownInterval = null;
+        let userRegistrationTime = null;
+
+        const PAYPAL_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
+
+        const SIZE_LIMITS = {
+            video: 3 * 1024 * 1024 * 1024,
+            music: 1 * 1024 * 1024 * 1024
+        };
+
+        const FILE_LIMITS = {
+            video: 10,
+            music: 20
+        };
+
+        const toastQueue = [];
+        let isShowingToast = false;
+
+        const MIN_PRODUCT_PRICE_USD = 1;
+
+        function showToast(message, type = 'info') {
+            toastQueue.push({ message, type });
+            if (!isShowingToast) processToastQueue();
+        }
+
+        function processToastQueue() {
+            if (toastQueue.length === 0) { isShowingToast = false; return; }
+            isShowingToast = true;
+
+            const { message, type } = toastQueue.shift();
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            let icon = '';
+            if (type === 'success') icon = '<i class="fas fa-check-circle toast-icon"></i>';
+            else if (type === 'error') icon = '<i class="fas fa-exclamation-circle toast-icon"></i>';
+            else icon = '<i class="fas fa-info-circle toast-icon"></i>';
+
+            toast.innerHTML = `${icon}<div>${message}</div>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                if (container.contains(toast)) container.removeChild(toast);
+                processToastQueue();
+            }, 3200);
+        }
+
+        function formatCurrency(n) {
+            const x = Number(n || 0);
+            return x.toFixed(2);
+        }
+
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.remove("show");
+                setTimeout(() => {
+                    el.style.display = "none";
+                }, 300);
+            }
+        }
+
+        function openModal(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.display = "flex";
+                setTimeout(() => {
+                    el.classList.add("show");
+                }, 10);
+            }
+        }
+
+        function setButtonLoading(btnId, loading) {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+            btn.disabled = !!loading;
+        }
+
+        function setCreateBtnProgress(percent) {
+            const btn = document.getElementById("createProductBtn");
+            if (!btn) return;
+            const p = Math.max(0, Math.min(100, Number(percent || 0)));
+
+            if (p <= 0) {
+                btn.classList.remove("progress");
+                btn.style.removeProperty("--p");
+                btn.querySelectorAll('.progress-star').forEach(star => star.remove());
+            } else {
+                btn.classList.add("progress");
+                btn.style.setProperty("--p", `${p}%`);
+
+                if (Math.random() > 0.5) {
+                    const star = document.createElement('i');
+                    star.className = 'fas fa-star progress-star';
+                    star.style.left = `${Math.random() * 80 + 10}%`;
+                    star.style.top = `${Math.random() * 60 + 20}%`;
+                    star.style.animationDelay = `${Math.random() * 0.3}s`;
+                    btn.appendChild(star);
+                    setTimeout(() => star.remove(), 1500);
+                }
+            }
+        }
+
+        function isAbortError(e) {
+            return e?.name === "AbortError" || String(e?.message || "").toLowerCase().includes("aborted");
+        }
+
+        function generateClientRequestId() {
+            if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+            const rand = () => Math.floor(Math.random() * 0xFFFFFFFF).toString(16).padStart(8, "0");
+            return `crid_${Date.now().toString(16)}_${rand()}_${rand()}`;
+        }
+
+        function normalizeProductLink(productIdOrLink, fallbackProductId = "") {
+            let productId = String(fallbackProductId || "").trim();
+
+            const raw = String(productIdOrLink || "").trim();
+            if (raw) {
+                try {
+                    const u = new URL(raw, PUBLIC_PRODUCT_ORIGIN);
+                    const pid = u.searchParams.get("productId");
+                    if (pid) productId = pid;
+                } catch {
+                    if (!productId && raw.length <= 80) productId = raw;
+                }
+            }
+
+            productId = String(productId || "").trim();
+            if (!productId) return `${PUBLIC_PRODUCT_ORIGIN}/product.html`;
+
+            return `${PUBLIC_PRODUCT_ORIGIN}/product.html?productId=${encodeURIComponent(productId)}`;
+        }
+
+        async function getValidToken(forceRefresh = false) {
+            const user = auth.currentUser;
+            if (!user) throw new Error("Not authenticated.");
+            return await user.getIdToken(forceRefresh);
+        }
+
+        async function readJsonOrText(response) {
+            const text = await response.text().catch(() => "");
+            if (!text) return null;
+            try { return JSON.parse(text); } catch { return { _raw: text }; }
+        }
+
+        function buildApiUrl(endpoint) {
+            return `${API_ROOT.replace(/\/+$/, "")}/${String(endpoint).replace(/^\/+/, "")}`;
+        }
+
+        async function apiRequest(endpoint, method = 'GET', body = null, opts = {}, _retried = false) {
+            const token = await getValidToken(false);
+
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            };
+
+            const hasBody = body !== null && body !== undefined;
+
+            const url = buildApiUrl(endpoint);
+            const options = {
+                method,
+                headers,
+                mode: "cors",
+                credentials: "omit",
+                cache: "no-store",
+                signal: opts?.signal,
+                keepalive: !!opts?.keepalive
+            };
+
+            if (hasBody) {
+                headers['Content-Type'] = 'application/json';
+                options.body = JSON.stringify(body);
+            }
+
+            let response;
+            try {
+                response = await fetch(url, options);
+            } catch (err) {
+                if (isAbortError(err)) throw err;
+                console.error("apiRequest fetch failed:", { url, method, err });
+                throw new Error(`Network/CORS failure calling ${url}. Check Cloud Functions CORS.`);
+            }
+
+            if (response.status === 401 && !_retried) {
+                const fresh = await getValidToken(true);
+                options.headers.Authorization = `Bearer ${fresh}`;
+                let retryResp;
+                try {
+                    retryResp = await fetch(url, options);
+                } catch (err) {
+                    if (isAbortError(err)) throw err;
+                    console.error("apiRequest retry fetch failed:", { url, method, err });
+                    throw new Error(`Network/CORS failure (retry) calling ${url}.`);
+                }
+                if (!retryResp.ok) {
+                    const data = await readJsonOrText(retryResp);
+                    throw new Error(data?.error || data?._raw || `Request failed (${retryResp.status})`);
+                }
+                return (await readJsonOrText(retryResp)) || {};
+            }
+
+            if (!response.ok) {
+                const data = await readJsonOrText(response);
+                throw new Error(data?.error || data?._raw || `Request failed (${response.status})`);
+            }
+
+            return (await readJsonOrText(response)) || {};
+        }
+
+        function updateCardWithData(cardId, titleText, value, prevValue, suffix = "") {
+            const card = document.getElementById(cardId);
+            if (!card) return;
+
+            const v = Number(value || 0);
+            const displayValue = (cardId === "incomeCard") ? `$${formatCurrency(v)}` : `${v}${suffix}`;
+
+            card.innerHTML = `
+                <div class="title">${titleText}</div>
+                <div class="value-wrapper">
+                    <div class="value">${displayValue}</div>
+                    <span class="trend-indicator" id="${cardId}Indicator"></span>
+                </div>
+            `;
+
+            const ind = document.getElementById(`${cardId}Indicator`);
+            if (!ind) return;
+
+            if (prevValue === null || prevValue === undefined) return;
+
+            if (v > prevValue) {
+                ind.className = "trend-indicator trend-up";
+                ind.innerHTML = '<i class="fas fa-arrow-up"></i>';
+            } else if (v < prevValue) {
+                ind.className = "trend-indicator trend-down";
+                ind.innerHTML = '<i class="fas fa-arrow-down"></i>';
+            }
+        }
+
+        function updatePayoutUI(active) {
+            payoutActive = !!active;
+            const status = document.getElementById("payoutStatus");
+            const btn = document.getElementById("generateBtn");
+            const warn = document.getElementById("paymentWarning");
+
+            status.classList.remove("skeleton");
+
+            if (active) {
+                status.textContent = "Active";
+                status.className = "payment-status active";
+                btn.classList.remove("disabled");
+                warn.style.display = "none";
+            } else {
+                status.textContent = "Not Active";
+                status.className = "payment-status not-active";
+                btn.classList.add("disabled");
+                warn.style.display = "block";
+            }
+        }
+
+        function isThursday() {
+            const now = new Date();
+            return now.getDay() === 4;
+        }
+
+        function canEditPaypalEmail() {
+            if (!paypalCooldownEnd) return true;
+            if (Date.now() >= paypalCooldownEnd) return true;
+            return isThursday();
+        }
+
+        function updatePayoutCardClickability() {
+            const card = document.getElementById("payoutCard");
+            if (!card) return;
+
+            if (canEditPaypalEmail()) {
+                card.classList.remove("disabled-card");
+                card.style.pointerEvents = "auto";
+            } else {
+                card.classList.add("disabled-card");
+                card.style.pointerEvents = "none";
+            }
+        }
+
+        function loadPaypalCooldownFromStorage() {
+            try {
+                const stored = localStorage.getItem('paypalCooldownEnd');
+                if (stored) {
+                    const timestamp = parseInt(stored, 10);
+                    if (!isNaN(timestamp)) {
+                        paypalCooldownEnd = timestamp;
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to load PayPal cooldown from localStorage:", e);
+            }
+        }
+
+        function savePaypalCooldownToStorage() {
+            try {
+                if (paypalCooldownEnd) {
+                    localStorage.setItem('paypalCooldownEnd', String(paypalCooldownEnd));
+                } else {
+                    localStorage.removeItem('paypalCooldownEnd');
+                }
+            } catch (e) {
+                console.error("Failed to save PayPal cooldown to localStorage:", e);
+            }
+        }
+
+        function startPaypalCooldownTimer() {
+            const saveBtn = document.getElementById("savePayoutBtn");
+            const timerDiv = document.getElementById("cooldownTimer");
+
+            if (!saveBtn || !timerDiv) return;
+
+            if (paypalCooldownInterval) {
+                clearInterval(paypalCooldownInterval);
+                paypalCooldownInterval = null;
+            }
+
+            function updateTimer() {
+                if (canEditPaypalEmail()) {
+                    paypalCooldownEnd = null;
+                    savePaypalCooldownToStorage();
+                    saveBtn.disabled = false;
+                    timerDiv.style.display = "none";
+                    updatePayoutCardClickability();
+                    if (paypalCooldownInterval) {
+                        clearInterval(paypalCooldownInterval);
+                        paypalCooldownInterval = null;
+                    }
+                    return;
+                }
+
+                if (paypalCooldownEnd && Date.now() < paypalCooldownEnd) {
+                    const remaining = Math.max(0, paypalCooldownEnd - Date.now());
+                    const days = Math.floor(remaining / (24 * 60 * 60 * 1000));
+                    const hours = Math.floor((remaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+                    const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+
+                    timerDiv.textContent = `Update available on Thursday or in ${days}d ${hours}h ${minutes}m`;
+                    timerDiv.style.display = "block";
+                    saveBtn.disabled = true;
+                }
+
+                updatePayoutCardClickability();
+            }
+
+            updateTimer();
+            paypalCooldownInterval = setInterval(updateTimer, 60000);
+        }
+
+        async function loadPayoutSettings() {
+            const data = await apiRequest("getPayoutSettings");
+            document.getElementById("paypalEmail").value = data.paypalEmail || "";
+            updatePayoutUI(!!data.paypalEmail);
+        }
+
+        async function loadDashboardSummary() {
+            const data = await apiRequest("getDashboardSummary");
+            const s = data.summary || {};
+
+            updateCardWithData(
+                "linksCard",
+                "Active products",
+                s.productsActiveCount || 0,
+                prevSummary?.productsActiveCount
+            );
+
+            updateCardWithData("viewsCard", "Views", s.viewsCount || 0, prevSummary?.viewsCount);
+            updateCardWithData("ordersCard", "Orders", s.ordersCount || 0, prevSummary?.ordersCount);
+            updateCardWithData("processedCard", "Processed", s.processedCount || 0, prevSummary?.processedCount);
+            updateCardWithData("incomeCard", "Earnings", s.incomeAvailable || 0, prevSummary?.incomeAvailable);
+
+            prevSummary = s;
+            updatePayoutUI(!!s.paypalEmail);
+        }
+
+        async function loadTransactions() {
+            const data = await apiRequest("getTransactionHistory");
+            const list = document.getElementById("transactionList");
+            list.innerHTML = "";
+
+            const txs = data.transactions || [];
+            if (txs.length === 0) {
+                list.innerHTML = '<div class="no-transactions">No transactions</div>';
+                return;
+            }
+
+            const sliced = txs.slice(0, 5);
+            for (const t of sliced) {
+                const date = t.date ? new Date(t.date) : (t.createdAt ? new Date(t.createdAt) : new Date());
+                const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+
+                const productTitle = t.productTitle || t.type || 'Untitled';
+                const productId = t.productId || '';
+                const productLink = normalizeProductLink('', productId);
+
+                const isPayout = (t.type && t.type.toLowerCase() === 'payout');
+
+                const item = document.createElement("div");
+                item.className = "transaction-item";
+
+                if (isPayout) {
+                    item.innerHTML = `
+                        <div class="transaction-details">
+                            <span class="transaction-title payout-type">Payout</span>
+                            <span class="transaction-dot">●</span>
+                            <div class="transaction-date">${formattedDate}</div>
+                        </div>
+                        <div class="transaction-price payout-amount">-$${formatCurrency(t.amount || 0)}</div>
+                    `;
+                } else {
+                    item.innerHTML = `
+                        <div class="transaction-details">
+                            <a href="${productLink}" class="transaction-title" target="_blank" rel="noopener">${productTitle}</a>
+                            <span class="transaction-dot">●</span>
+                            <div class="transaction-date">${formattedDate}</div>
+                        </div>
+                        <div class="transaction-price">$${formatCurrency(t.amount || 0)}</div>
+                    `;
+                }
+
+                list.appendChild(item);
+            }
+        }
+
+        async function loadLinks() {
+            const data = await apiRequest("getLinks");
+            currentLinks = (data.links || []).map(p => ({
+                ...p,
+                shareableLink: normalizeProductLink(p.shareableLink, p.id),
+                productUrl: normalizeProductLink(p.productUrl, p.id)
+            }));
+            return currentLinks;
+        }
+
+        function renderLinksModal(links) {
+            const wrap = document.getElementById("linksList");
+            if (!links || links.length === 0) {
+                wrap.innerHTML = '<div style="text-align:center;color:#888;">No products yet</div>';
+                return;
+            }
+
+            wrap.innerHTML = "";
+            links.forEach((p, idx) => {
+                const row = document.createElement("div");
+                row.className = "product-row";
+                row.dataset.productId = String(p.id || "");
+
+                const title = p.title || "Untitled";
+                const shareableLink = normalizeProductLink(p.shareableLink, p.id);
+
+                row.innerHTML = `
+                    <div class="product-left">
+                        <div class="product-index-pill">${idx + 1})</div>
+                        <a class="product-title" href="${shareableLink}" target="_blank" rel="noopener">${title}</a>
+                    </div>
+
+                    <div class="product-actions">
+                        <button class="icon-action-btn" type="button" data-action="copy" data-link="${shareableLink}" aria-label="Copy link">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                        <button class="icon-action-btn danger" type="button" data-action="delete" data-id="${p.id}" aria-label="Delete product">
+                            <i class="fas fa-broom"></i>
+                        </button>
+                        <button class="icon-action-btn" type="button" data-action="share" data-link="${shareableLink}" data-title="${title}" aria-label="Share link">
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                `;
+
+                wrap.appendChild(row);
+            });
+
+            wrap.querySelectorAll("button").forEach(btn => {
+                btn.addEventListener("click", async () => {
+                    const action = btn.getAttribute("data-action");
+                    if (action === "copy") {
+                        const link = btn.getAttribute("data-link");
+                        await navigator.clipboard.writeText(link);
+                        showToast("Link copied!", "success");
+                    }
+                    if (action === "share") {
+                        const link = btn.getAttribute("data-link");
+                        const title = btn.getAttribute("data-title") || "Product";
+                        try {
+                            if (navigator.share) {
+                                await navigator.share({ title, url: link });
+                                showToast("Share sheet opened.", "success");
+                            } else {
+                                await navigator.clipboard.writeText(link);
+                                showToast("Share link copied!", "success");
+                            }
+                        } catch {
+                        }
+                    }
+                    if (action === "delete") {
+                        pendingDeleteProductId = btn.getAttribute("data-id");
+                        pendingDeleteRowEl = btn.closest(".product-row") || null;
+                        openModal("confirmDeleteProductModal");
+                    }
+                });
+            });
+        }
+
+        function openLinksModal() {
+            openModal("linksModal");
+            document.getElementById("linksList").innerHTML = '<div style="text-align:center;color:#888;">Loading...</div>';
+            loadLinks()
+                .then(renderLinksModal)
+                .catch(e => {
+                    console.error(e);
+                    document.getElementById("linksList").innerHTML = '<div style="text-align:center;color:#F44336;">Error loading products</div>';
+                });
+        }
+
+        function openPayoutModal() {
+            if (!canEditPaypalEmail()) {
+                showToast("PayPal email can only be updated on Thursdays or after the cooldown period.", "info");
+                return;
+            }
+
+            openModal("payoutModal");
+            document.getElementById("paypalEmailError").style.display = "none";
+
+            if (!canEditPaypalEmail()) {
+                startPaypalCooldownTimer();
+            } else {
+                document.getElementById("savePayoutBtn").disabled = false;
+                document.getElementById("cooldownTimer").style.display = "none";
+            }
+        }
+
+        async function savePayoutSettings() {
+            try {
+                const email = document.getElementById("paypalEmail").value.trim();
+
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    document.getElementById("paypalEmailError").style.display = "block";
+                    return;
+                }
+
+                setButtonLoading("savePayoutBtn", true);
+                await apiRequest("updatePayoutSettings", "POST", { paypalEmail: email });
+
+                paypalCooldownEnd = Date.now() + PAYPAL_COOLDOWN_MS;
+                savePaypalCooldownToStorage();
+                startPaypalCooldownTimer();
+
+                showToast("PayPal settings saved", "success");
+
+                closeModal("payoutModal");
+                await loadDashboardSummary();
+            } catch (e) {
+                console.error(e);
+                showToast(e.message || "Failed to save PayPal settings", "error");
+            } finally {
+                setButtonLoading("savePayoutBtn", false);
+            }
+        }
+
+        function setContentAcceptForType(type) {
+            const filesInput = document.getElementById("contentFiles");
+            const icon = document.getElementById("contentTypeIcon");
+            const label = document.getElementById("contentTypeLabel");
+
+            document.getElementById("contentConfirm").style.display = "none";
+            filesInput.value = "";
+            contentFiles = [];
+
+            if (!type) {
+                filesInput.disabled = true;
+                filesInput.accept = "";
+                icon.className = "fas fa-file";
+                label.textContent = "Main file";
+                return;
+            }
+
+            filesInput.disabled = false;
+            filesInput.removeAttribute("multiple");
+            filesInput.removeAttribute("webkitdirectory");
+
+            if (type === "video") {
+                filesInput.accept = ".mp4,.mov,.webm,.mkv,video/*";
+                icon.className = "fas fa-video";
+                label.textContent = "Main video";
+            } else if (type === "music") {
+                filesInput.accept = ".mp3,.wav,.ogg,.flac,audio/*";
+                icon.className = "fas fa-music";
+                label.textContent = "Main track";
+            } else {
+                filesInput.accept = "";
+                icon.className = "fas fa-file";
+                label.textContent = "Main file";
+            }
+        }
+
+        function updatePriceBreakdown() {
+            const el = document.getElementById("productPrice");
+            const box = document.getElementById("priceBreakdown");
+
+            const price = Number(el.value);
+            if (!Number.isFinite(price) || price <= 0) {
+                box.style.display = "none";
+                return;
+            }
+
+            const stripeFeeEst = price * 0.029 + 0.30;
+            const netAfterStripe = Math.max(0, price - stripeFeeEst);
+            const platformFee = netAfterStripe * 0.12;
+            const earnings = Math.max(0, price - stripeFeeEst - platformFee);
+
+            document.getElementById("pbYourPrice").textContent = `$${formatCurrency(price)}`;
+            document.getElementById("pbStripeFee").textContent = `$${formatCurrency(stripeFeeEst)}`;
+            document.getElementById("pbPlatformFee").textContent = `$${formatCurrency(platformFee)}`;
+            document.getElementById("pbEarnings").textContent = `$${formatCurrency(earnings)}`;
+
+            box.style.display = "block";
+        }
+
+        function updateAdditionalFilesUI() {
+            const type = document.getElementById("productType").value;
+            const container = document.getElementById("additionalFilesContainer");
+            const grid = document.getElementById("additionalFilesGrid");
+            const addBtn = document.getElementById("addMoreBtn");
+
+            if (!type || contentFiles.length === 0) {
+                container.style.display = "none";
+                return;
+            }
+
+            const maxFiles = FILE_LIMITS[type] || 0;
+            const totalFiles = 1 + additionalFiles.length;
+
+            container.style.display = "block";
+            grid.innerHTML = "";
+
+            additionalFiles.forEach((file, idx) => {
+                const box = document.createElement("div");
+                box.className = "additional-file-box";
+                box.innerHTML = `
+                    <i class="${type === 'video' ? 'fas fa-video' : 'fas fa-music'}" style="color:var(--primary);"></i>
+                    <div class="upload-label">${type === 'video' ? 'Video' : 'Track'} ${idx + 2}</div>
+                    ${file ? '<div class="upload-confirm" style="display:block;"><i class="fas fa-check-circle"></i></div>' : ''}
+                `;
+
+                const input = document.createElement("input");
+                input.type = "file";
+                input.className = "file-upload-input";
+                input.accept = type === "video" ? ".mp4,.mov,.webm,.mkv,video/*" : ".mp3,.wav,.ogg,.flac,audio/*";
+                input.addEventListener("change", (e) => {
+                    const f = e.target.files?.[0];
+                    if (f) {
+                        additionalFiles[idx] = f;
+                        updateAdditionalFilesUI();
+                    }
+                });
+
+                box.appendChild(input);
+                grid.appendChild(box);
+            });
+
+            if (totalFiles < maxFiles) {
+                addBtn.style.display = "flex";
+            } else {
+                addBtn.style.display = "none";
+            }
+        }
+
+        function addAdditionalFileSlot() {
+            const type = document.getElementById("productType").value;
+            if (!type) return;
+
+            const maxFiles = FILE_LIMITS[type] || 0;
+            const totalFiles = 1 + additionalFiles.length;
+
+            if (totalFiles >= maxFiles) {
+                showToast(`Maximum ${maxFiles} files allowed for ${type}.`, "info");
+                return;
+            }
+
+            additionalFiles.push(null);
+            updateAdditionalFilesUI();
+        }
+
+        function openProductModal() {
+            isCreatingProduct = false;
+            createFlow = null;
+
+            coverFile = null;
+            contentFiles = [];
+            additionalFiles = [];
+
+            document.getElementById("productTitle").value = "";
+            document.getElementById("productType").value = "";
+            document.getElementById("productDescription").value = "";
+            document.getElementById("productPrice").value = "";
+
+            document.getElementById("coverFile").value = "";
+            document.getElementById("contentFiles").value = "";
+            document.getElementById("contentFiles").disabled = true;
+            document.getElementById("contentFiles").accept = "";
+
+            document.getElementById("coverConfirm").style.display = "none";
+            document.getElementById("contentConfirm").style.display = "none";
+
+            document.getElementById("descriptionCharCount").textContent = "0";
+            document.getElementById("priceBreakdown").style.display = "none";
+
+            document.getElementById("policyConfirm").checked = false;
+            document.getElementById("termsAccept").checked = false;
+            document.getElementById("termsError").style.display = "none";
+
+            document.getElementById("additionalFilesContainer").style.display = "none";
+            document.getElementById("additionalFilesGrid").innerHTML = "";
+            document.getElementById("addMoreBtn").style.display = "none";
+
+            setCreateBtnProgress(0);
+            setButtonLoading("createProductBtn", false);
+
+            setContentAcceptForType("");
+
+            openModal("createProductModal");
+        }
+
+        function validateFileRules(type, mainFiles, additionalFilesArray) {
+            const extsVideo = new Set(["mp4", "mov", "webm", "mkv"]);
+            const extsMusic = new Set(["mp3", "wav", "ogg", "flac"]);
+
+            const allFiles = [...mainFiles, ...additionalFilesArray.filter(f => f !== null)];
+
+            if (allFiles.length < 1) throw new Error("Please select your content file(s).");
+
+            let totalSize = 0;
+            for (const f of allFiles) {
+                const ext = (f.name.split(".").pop() || "").toLowerCase();
+
+                if (type === "video") {
+                    if (!extsVideo.has(ext)) {
+                        throw new Error(`Invalid video file: ${f.name}. Allowed: .mp4, .mov, .webm, .mkv`);
+                    }
+                }
+
+                if (type === "music") {
+                    if (!extsMusic.has(ext)) {
+                        throw new Error(`Invalid audio file: ${f.name}. Allowed: .mp3, .wav, .ogg, .flac`);
+                    }
+                }
+
+                totalSize += f.size;
+            }
+
+            if (type === "video" && totalSize > SIZE_LIMITS.video) {
+                throw new Error("Total video files size too large. Maximum: 3GB.");
+            }
+
+            if (type === "music" && totalSize > SIZE_LIMITS.music) {
+                throw new Error("Total audio files size too large. Maximum: 1GB.");
+            }
+        }
+
+        async function uploadChunk({ productId, sessionId, kind, index, chunkIndex, totalChunks, blob, signal }) {
+            const token = await getValidToken(false);
+
+            const url = buildApiUrl("uploadProductChunk") +
+                `?productId=${encodeURIComponent(productId)}` +
+                `&sessionId=${encodeURIComponent(sessionId)}` +
+                `&kind=${encodeURIComponent(kind)}` +
+                `&index=${encodeURIComponent(String(index))}` +
+                `&chunkIndex=${encodeURIComponent(String(chunkIndex))}` +
+                `&totalChunks=${encodeURIComponent(String(totalChunks))}`;
+
+            const resp = await fetch(url, {
+                method: "POST",
+                mode: "cors",
+                credentials: "omit",
+                cache: "no-store",
+                signal,
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/octet-stream"
+                },
+                body: blob
+            });
+
+            if (!resp.ok) {
+                const t = await resp.text().catch(() => "");
+                throw new Error(`Chunk upload failed (${resp.status}): ${t}`);
+            }
+
+            const data = await readJsonOrText(resp);
+            if (data && data.success === false) throw new Error(data.error || "Chunk upload failed");
+        }
+
+        async function uploadFileInChunks({ productId, sessionId, file, kind, index, chunkSizeBytes, onChunkUploaded, signal }) {
+            const totalChunks = Math.max(1, Math.ceil(file.size / chunkSizeBytes));
+            for (let i = 0; i < totalChunks; i++) {
+                const start = i * chunkSizeBytes;
+                const end = Math.min(file.size, start + chunkSizeBytes);
+                const blob = file.slice(start, end);
+
+                await uploadChunk({
+                    productId,
+                    sessionId,
+                    kind,
+                    index,
+                    chunkIndex: i + 1,
+                    totalChunks,
+                    blob,
+                    signal
+                });
+
+                if (typeof onChunkUploaded === "function") onChunkUploaded();
+            }
+        }
+
+        async function cancelProductCreationBestEffort() {
+            if (!createFlow || !createFlow.clientRequestId) return;
+
+            const payload = {
+                clientRequestId: createFlow.clientRequestId,
+                productId: createFlow.productId || "",
+                sessionId: createFlow.sessionId || ""
+            };
+
+            try {
+                await apiRequest("cancelProductCreation", "POST", payload, { signal: undefined });
+            } catch (e) {
+                console.warn("cancelProductCreation failed:", e?.message || e);
+            }
+        }
+
+        async function cancelCreateFlow(reason = "user_cancel") {
+            if (!isCreatingProduct) return;
+
+            isCreatingProduct = false;
+
+            if (createFlow) {
+                createFlow.canceled = true;
+                try { createFlow.abortController?.abort(); } catch { }
+            }
+
+            cancelProductCreationBestEffort();
+
+            setButtonLoading("createProductBtn", false);
+            setCreateBtnProgress(0);
+
+            showToast("Product creation canceled.", "info");
+        }
+
+        async function submitProduct() {
+            const termsError = document.getElementById("termsError");
+            termsError.style.display = "none";
+
+            try {
+                const user = auth.currentUser;
+                if (!user) throw new Error("Not authenticated.");
+
+                const title = document.getElementById("productTitle").value.trim();
+                const type = document.getElementById("productType").value;
+                const description = document.getElementById("productDescription").value.trim();
+                const price = Number(document.getElementById("productPrice").value);
+
+                const policyOk = document.getElementById("policyConfirm").checked;
+                const termsOk = document.getElementById("termsAccept").checked;
+
+                if (!policyOk || !termsOk) {
+                    termsError.style.display = "block";
+                    showToast("Please accept the confirmations before creating a product.", "error");
+                    return;
+                }
+
+                if (!payoutActive) throw new Error("Update your payment method (PayPal email) to start creating products.");
+                if (!title) throw new Error("Title is required.");
+                if (!type) throw new Error("Type is required.");
+                if (!description || description.length < 10) throw new Error("Description must be at least 10 characters.");
+                if (!Number.isFinite(price) || price < MIN_PRODUCT_PRICE_USD) throw new Error(`Minimum price is ${MIN_PRODUCT_PRICE_USD.toFixed(2)} USD.`);
+                if (!coverFile) throw new Error("Cover image is required.");
+                if (coverFile.size > 5 * 1024 * 1024) throw new Error("Cover image max size is 5MB.");
+
+                const additionalFiltered = additionalFiles.filter(f => f !== null);
+                validateFileRules(type, contentFiles, additionalFiltered);
+
+                const category = type;
+                const subtype = (contentFiles.length + additionalFiltered.length) > 1
+                    ? (type === "video" ? "series" : "album")
+                    : "single";
+
+                const coverMeta = {
+                    originalName: coverFile.name,
+                    contentType: coverFile.type || "application/octet-stream",
+                    sizeBytes: coverFile.size
+                };
+
+                const allContentFiles = [...contentFiles, ...additionalFiltered];
+                const assetsMeta = allContentFiles.map(f => ({
+                    originalName: f.name,
+                    contentType: f.type || "application/octet-stream",
+                    sizeBytes: f.size
+                }));
+
+                const clientRequestId = generateClientRequestId();
+                const abortController = new AbortController();
+
+                createFlow = {
+                    clientRequestId,
+                    abortController,
+                    productId: null,
+                    sessionId: null,
+                    canceled: false
+                };
+
+                isCreatingProduct = true;
+
+                setButtonLoading("createProductBtn", true);
+                setCreateBtnProgress(3);
+
+                const draft = await apiRequest("createProductDraft", "POST", {
+                    title, description, price, category, subtype,
+                    coverMeta,
+                    assetsMeta,
+                    clientRequestId
+                }, { signal: abortController.signal });
+
+                const productId = draft.productId;
+                const sessionId = draft?.upload?.sessionId;
+                const chunkSizeBytes = Number(draft?.upload?.chunkSizeBytes || 0);
+
+                createFlow.productId = productId || null;
+                createFlow.sessionId = sessionId || null;
+
+                if (!productId || !sessionId || !chunkSizeBytes) {
+                    throw new Error("Upload session missing from backend response.");
+                }
+
+                const coverChunks = Math.max(1, Math.ceil(coverFile.size / chunkSizeBytes));
+                const assetsChunks = allContentFiles.reduce((sum, f) => sum + Math.max(1, Math.ceil(f.size / chunkSizeBytes)), 0);
+                const totalChunks = coverChunks + assetsChunks;
+
+                let uploaded = 0;
+                const tick = () => {
+                    uploaded += 1;
+                    const pct = Math.round((uploaded / totalChunks) * 100);
+                    setCreateBtnProgress(Math.min(96, Math.max(3, pct)));
+                };
+
+                await uploadFileInChunks({
+                    productId,
+                    sessionId,
+                    file: coverFile,
+                    kind: "cover",
+                    index: 0,
+                    chunkSizeBytes,
+                    onChunkUploaded: tick,
+                    signal: abortController.signal
+                });
+
+                for (let i = 0; i < allContentFiles.length; i++) {
+                    await uploadFileInChunks({
+                        productId,
+                        sessionId,
+                        file: allContentFiles[i],
+                        kind: "asset",
+                        index: i + 1,
+                        chunkSizeBytes,
+                        onChunkUploaded: tick,
+                        signal: abortController.signal
+                    });
+                }
+
+                setCreateBtnProgress(98);
+                await apiRequest("finalizeProductUploads", "POST", { productId, sessionId }, { signal: abortController.signal });
+                setCreateBtnProgress(100);
+
+                isCreatingProduct = false;
+                createFlow = null;
+
+                closeModal("createProductModal");
+                setButtonLoading("createProductBtn", false);
+                setCreateBtnProgress(0);
+
+                showToast("Product created successfully.", "success");
+
+                await loadDashboardSummary();
+                await loadLinks();
+            } catch (e) {
+                console.error(e);
+
+                if (isAbortError(e)) {
+                    await cancelProductCreationBestEffort();
+                    return;
+                }
+
+                await cancelProductCreationBestEffort();
+
+                isCreatingProduct = false;
+                createFlow = null;
+
+                setButtonLoading("createProductBtn", false);
+                setCreateBtnProgress(0);
+
+                showToast(e.message || "Failed to create product", "error");
+            }
+        }
+
+        async function confirmDeleteProduct() {
+            if (!pendingDeleteProductId) return;
+
+            const deletedId = String(pendingDeleteProductId);
+
+            const removedRow = pendingDeleteRowEl;
+            const parent = removedRow?.parentElement || null;
+            const nextSibling = removedRow?.nextSibling || null;
+
+            try {
+                closeModal("confirmDeleteProductModal");
+
+                if (removedRow && parent) parent.removeChild(removedRow);
+
+                currentLinks = (currentLinks || []).filter(p => String(p.id) !== deletedId);
+
+                if (prevSummary && Number(prevSummary.productsActiveCount || 0) > 0) {
+                    const optimistic = { ...prevSummary, productsActiveCount: Number(prevSummary.productsActiveCount || 0) - 1 };
+                    updateCardWithData("linksCard", "Active products", optimistic.productsActiveCount, prevSummary.productsActiveCount);
+                    prevSummary = optimistic;
+                }
+
+                showToast("Deleting product...", "info");
+
+                await apiRequest("deleteProduct", "POST", { productId: deletedId });
+
+                pendingDeleteProductId = null;
+                pendingDeleteRowEl = null;
+
+                showToast("Product removed.", "success");
+
+                await loadDashboardSummary();
+
+                const linksModal = document.getElementById("linksModal");
+                if (linksModal?.classList?.contains("show")) {
+                    renderLinksModal(currentLinks);
+                }
+            } catch (e) {
+                console.error(e);
+
+                if (removedRow && parent) {
+                    if (nextSibling && nextSibling.parentElement === parent) parent.insertBefore(removedRow, nextSibling);
+                    else parent.appendChild(removedRow);
+                }
+
+                showToast(e.message || "Delete failed", "error");
+            }
+        }
+
+        async function deleteAccount(email, password) {
+            const user = auth.currentUser;
+            if (!user) throw new Error("Not authenticated.");
+
+            const credential = EmailAuthProvider.credential(email, password);
+            await reauthenticateWithCredential(user, credential);
+
+            await apiRequest("deleteUserAccount", "POST", {});
+            await deleteUser(user);
+        }
+
+        function isQuarterMenuOpen() {
+            return document.getElementById("quarterOverlay")?.classList?.contains("show");
+        }
+
+        function positionQuarterMenu() {
+            const overlay = document.getElementById("quarterOverlay");
+            const menu = document.getElementById("quarterMenu");
+            const gear = document.getElementById("reportGear");
+            if (!overlay || !menu || !gear) return;
+            if (!overlay.classList.contains("show")) return;
+
+            const r = gear.getBoundingClientRect();
+            const mw = menu.offsetWidth || 240;
+            const mh = menu.offsetHeight || 70;
+
+            const left = Math.min(window.innerWidth - mw - 12, Math.max(12, r.left + r.width / 2 - mw / 2));
+            const top = Math.min(window.innerHeight - mh - 12, Math.max(12, r.bottom + 8));
+
+            menu.style.left = `${left}px`;
+            menu.style.top = `${top}px`;
+        }
+
+        function openQuarterMenu() {
+            const overlay = document.getElementById("quarterOverlay");
+            if (!overlay) return;
+
+            overlay.classList.add("show");
+            overlay.setAttribute("aria-hidden", "false");
+
+            document.querySelectorAll(".quarter-btn").forEach(b => {
+                b.disabled = false;
+                b.classList.remove("loading", "success");
+                const q = b.getAttribute("data-quarter");
+                b.innerHTML = `<span>${q}</span>`;
+            });
+
+            requestAnimationFrame(() => {
+                positionQuarterMenu();
+            });
+        }
+
+        function closeQuarterMenu() {
+            const overlay = document.getElementById("quarterOverlay");
+            if (!overlay) return;
+            overlay.classList.remove("show");
+            overlay.setAttribute("aria-hidden", "true");
+        }
+
+        function toggleQuarterMenu() {
+            if (isQuarterMenuOpen()) closeQuarterMenu();
+            else openQuarterMenu();
+        }
+
+        async function sendQuarterlyReport(quarter, btnEl) {
+            const q = Number(quarter);
+            if (![1, 2, 3, 4].includes(q)) return;
+
+            if (!btnEl) return;
+            if (btnEl.classList.contains("loading") || btnEl.classList.contains("success")) return;
+
+            try {
+                btnEl.classList.add("loading");
+                btnEl.disabled = true;
+
+                const year = new Date().getUTCFullYear();
+
+                await apiRequest("sendQuarterlyReport", "POST", { quarter: q, year });
+
+                btnEl.classList.remove("loading");
+                btnEl.classList.add("success");
+                btnEl.innerHTML = '<span><i class="fas fa-check"></i></span>';
+
+                showToast("Quarterly report sent by email.", "success");
+
+                setTimeout(() => {
+                    closeQuarterMenu();
+                }, 700);
+            } catch (e) {
+                console.error(e);
+                btnEl.classList.remove("loading");
+                btnEl.disabled = false;
+                btnEl.innerHTML = `<span>${String(q)}</span>`;
+                showToast(e.message || "Failed to send report email.", "error");
+            }
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "index.html";
+                return;
+            }
+
+            const metadata = user.metadata;
+            if (metadata && metadata.creationTime) {
+                userRegistrationTime = new Date(metadata.creationTime).getTime();
+            }
+
+            loadPaypalCooldownFromStorage();
+            startPaypalCooldownTimer();
+
+            const dataPromises = [
+                loadPayoutSettings().catch(() => updatePayoutUI(false)),
+                loadDashboardSummary().catch(() => { }),
+                loadLinks().catch(() => []),
+                loadTransactions().catch(() => { })
+            ];
+
+            await Promise.all(dataPromises);
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll("[data-close]").forEach(btn => {
+                btn.addEventListener("click", async () => {
+                    const id = btn.getAttribute("data-close");
+
+                    if (id === "createProductModal" && isCreatingProduct) {
+                        await cancelCreateFlow("modal_close");
+                    }
+
+                    closeModal(id);
+                });
+            });
+
+            document.getElementById("linksIcon").addEventListener("click", openLinksModal);
+
+            document.getElementById("profileIcon").addEventListener("click", () => openModal("deleteModal"));
+
+            document.getElementById("deleteAccountBtn").addEventListener("click", () => {
+                closeModal("deleteModal");
+                openModal("confirmModal");
+                if (auth.currentUser?.email) document.getElementById("emailInput").value = auth.currentUser.email;
+            });
+
+            document.getElementById("cancelDeleteBtn").addEventListener("click", () => closeModal("confirmModal"));
+
+            document.getElementById("confirmDeleteBtn").addEventListener("click", async () => {
+                const email = document.getElementById("emailInput").value.trim();
+                const pass = document.getElementById("passwordInput").value.trim();
+                if (!email || !pass) { showToast("Email and password required.", "error"); return; }
+
+                try {
+                    closeModal("confirmModal");
+                    showToast("Deleting account...", "info");
+                    await deleteAccount(email, pass);
+                    showToast("Account deleted.", "success");
+                    window.location.href = "index.html";
+                } catch (e) {
+                    console.error(e);
+                    showToast(e.message || "Delete failed", "error");
+                }
+            });
+
+            document.getElementById("payoutCard").addEventListener("click", openPayoutModal);
+            document.getElementById("savePayoutBtn").addEventListener("click", savePayoutSettings);
+
+            document.getElementById("generateBtn").addEventListener("click", () => {
+                if (!payoutActive) {
+                    showToast("Update your payment method to start creating products.", "error");
+                    openPayoutModal();
+                    return;
+                }
+                openProductModal();
+            });
+
+            document.getElementById("createProductBtn").addEventListener("click", submitProduct);
+
+            document.getElementById("productDescription").addEventListener("input", (e) => {
+                document.getElementById("descriptionCharCount").textContent = String(e.target.value.length);
+            });
+
+            document.getElementById("productPrice").addEventListener("input", updatePriceBreakdown);
+
+            document.getElementById("productType").addEventListener("change", (e) => {
+                const type = e.target.value;
+                setContentAcceptForType(type);
+                additionalFiles = [];
+                updateAdditionalFilesUI();
+            });
+
+            document.getElementById("coverFile").addEventListener("change", (e) => {
+                const f = e.target.files?.[0];
+                if (!f) return;
+                if (!f.type.startsWith("image/")) { showToast("Cover must be an image.", "error"); return; }
+                coverFile = f;
+                document.getElementById("coverConfirm").style.display = "block";
+            });
+
+            document.getElementById("contentFiles").addEventListener("change", (e) => {
+                const type = document.getElementById("productType").value;
+                const f = e.target.files?.[0];
+                if (!f) return;
+
+                contentFiles = [f];
+                document.getElementById("contentConfirm").style.display = "block";
+
+                try {
+                    validateFileRules(type, contentFiles, []);
+                    updateAdditionalFilesUI();
+                } catch (err) {
+                    contentFiles = [];
+                    document.getElementById("contentConfirm").style.display = "none";
+                    e.target.value = "";
+                    showToast(err.message || "Invalid file.", "error");
+                }
+            });
+
+            document.getElementById("addMoreBtn").addEventListener("click", addAdditionalFileSlot);
+
+            document.getElementById("cancelDeleteProductBtn").addEventListener("click", () => {
+                pendingDeleteProductId = null;
+                pendingDeleteRowEl = null;
+                closeModal("confirmDeleteProductModal");
+            });
+
+            document.getElementById("confirmDeleteProductBtn").addEventListener("click", confirmDeleteProduct);
+
+            const gear = document.getElementById("reportGear");
+            if (gear) {
+                gear.addEventListener("click", toggleQuarterMenu);
+                gear.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggleQuarterMenu();
+                    }
+                });
+            }
+
+            const overlay = document.getElementById("quarterOverlay");
+            const menu = document.getElementById("quarterMenu");
+            if (overlay && menu) {
+                overlay.addEventListener("click", (e) => {
+                    if (e.target === overlay) closeQuarterMenu();
+                });
+
+                menu.querySelectorAll(".quarter-btn").forEach((btn) => {
+                    btn.addEventListener("click", () => {
+                        const q = btn.getAttribute("data-quarter");
+                        sendQuarterlyReport(q, btn);
+                    });
+                });
+
+                window.addEventListener("resize", () => {
+                    if (isQuarterMenuOpen()) positionQuarterMenu();
+                }, { passive: true });
+
+                window.addEventListener("scroll", () => {
+                    if (isQuarterMenuOpen()) positionQuarterMenu();
+                }, { passive: true });
+            }
+
+            window.addEventListener("click", async (event) => {
+                const ids = ["deleteModal", "confirmModal", "createProductModal", "linksModal", "payoutModal", "confirmDeleteProductModal"];
+                for (const id of ids) {
+                    const el = document.getElementById(id);
+                    if (event.target === el) {
+                        if (id === "createProductModal" && isCreatingProduct) {
+                            await cancelCreateFlow("backdrop_click");
+                        }
+                        closeModal(id);
+                    }
+                }
+            });
+
+            window.addEventListener("keydown", async (e) => {
+                if (e.key !== "Escape") return;
+
+                if (isQuarterMenuOpen()) {
+                    closeQuarterMenu();
+                    return;
+                }
+
+                const ids = ["confirmDeleteProductModal", "payoutModal", "linksModal", "createProductModal", "confirmModal", "deleteModal"];
+                for (const id of ids) {
+                    const el = document.getElementById(id);
+                    if (el && el.classList.contains("show")) {
+                        if (id === "createProductModal" && isCreatingProduct) {
+                            await cancelCreateFlow("escape");
+                        }
+                        closeModal(id);
+                        break;
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

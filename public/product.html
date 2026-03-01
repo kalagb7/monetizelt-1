@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
     <link rel="icon"
-        href="https://firebasestorage.googleapis.com/v0/b/monetizelt-b235d.firebasestorage.app/o/1000009017_resized.jpg?alt=media&token=d69084a3-b285-44e4-81a5-f05971314175" />
+        href="https://firebasestorage.googleapis.com/v0/b/monetizelt-1.firebasestorage.app/o/Monetizelt.jpg?alt=media&token=c942c3a7-0a4b-42f7-82bc-5cfde360e06e" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
     <style>
@@ -212,8 +212,6 @@
             align-items: center;
             justify-content: center;
             background-color: #ffffff;
-            color: #888;
-            font-size: 14px;
             min-height: 250px;
         }
 
@@ -222,7 +220,7 @@
             height: auto;
             display: block;
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.2s ease;
             background: #ffffff;
             border-radius: 14px;
         }
@@ -231,7 +229,6 @@
             opacity: 1;
         }
 
-        /* Icône de type de produit (vidéo/musique) - maintenant en haut à droite */
         .product-type-icon {
             position: absolute;
             top: 10px;
@@ -364,14 +361,6 @@
             max-height: none;
             display: -webkit-box;
             -webkit-box-orient: vertical;
-        }
-
-        .description p:not(.skeleton-loading) {
-            min-height: auto;
-        }
-
-        .description p.skeleton-loading {
-            min-height: 60px;
         }
 
         .purchase-button-container {
@@ -713,12 +702,6 @@
             min-height: 18px;
         }
 
-        .seller-pill .value.skeleton-loading {
-            height: 18px;
-            width: 100%;
-            border-radius: 6px;
-        }
-
         .seller-actions {
             display: flex;
             gap: 8px;
@@ -915,6 +898,22 @@
 
         .purchase-success h3 {
             margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .purchase-success p {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .purchase-success .email-note {
+            font-size: 0.9em;
+            color: #1b5e20;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #c8e6c9;
+            border-radius: 8px;
+            border: 1px solid #81c784;
         }
 
         .purchase-error {
@@ -935,42 +934,22 @@
         }
 
         .skeleton-loading {
-            background: linear-gradient(90deg, #e0ebff 0%, #cfe0ff 50%, #e0ebff 100%);
+            background: linear-gradient(110deg, #d4e4ff 8%, #a8caff 18%, #d4e4ff 33%);
             background-size: 200% 100%;
-            animation: loading 1.2s ease-in-out infinite;
+            animation: skeletonWave 1s linear infinite;
             border-radius: 8px;
-            position: relative;
-            overflow: hidden;
+            color: transparent !important;
+            user-select: none;
+            pointer-events: none;
         }
 
-        .skeleton-loading::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
-            animation: shimmer 1.5s infinite;
-        }
-
-        @keyframes loading {
+        @keyframes skeletonWave {
             0% {
-                background-position: 200% 0;
+                background-position: 100% 0;
             }
 
             100% {
-                background-position: -200% 0;
-            }
-        }
-
-        @keyframes shimmer {
-            0% {
-                transform: translateX(-100%);
-            }
-
-            100% {
-                transform: translateX(100%);
+                background-position: -100% 0;
             }
         }
 
@@ -1099,7 +1078,6 @@
                     <div class="cover-image-container">
                         <div class="placeholder skeleton-loading" id="image-placeholder"></div>
                         <img src="" alt="Cover" class="cover-image" id="cover-image" />
-                        <!-- Icône de type de produit (vidéo/musique) maintenant en haut à droite -->
                         <div class="product-type-icon" id="product-type-icon" title="Product type">
                             <i class="fas fa-question" style="font-size: 16px;"></i>
                         </div>
@@ -1109,22 +1087,25 @@
         </div>
 
         <div class="product-info" id="product-info">
-            <h2 class="product-title skeleton-loading" id="product-title"></h2>
-            <div class="seller-line skeleton-loading" id="seller-line"></div>
-            <div class="product-price skeleton-loading" id="product-price"></div>
+            <h2 class="product-title skeleton-loading" id="product-title">Loading title</h2>
+            <div class="seller-line skeleton-loading" id="seller-line">Loading seller</div>
+            <div class="product-price skeleton-loading" id="product-price">Loading price</div>
         </div>
 
         <div class="description" id="descriptionBox">
             <h3>Description</h3>
-            <p id="product-description" class="skeleton-loading"></p>
+            <p id="product-description" class="skeleton-loading">Loading description</p>
         </div>
 
         <div class="purchase-success" id="purchaseSuccess">
-            <h3><i class="fas fa-check-circle"></i> Payment successful</h3>
+            <h3><i class="fas fa-check-circle"></i> Payment successful!</h3>
             <p>
-                Thanks for your purchase. You will receive an email with access instructions shortly.
-                If you don't see it, please check your spam folder.
+                Your purchase has been completed successfully.
             </p>
+            <div class="email-note">
+                <i class="fas fa-envelope"></i>
+                <strong>Check your email</strong> (including spam/junk folder) for access instructions to your product.
+            </div>
         </div>
 
         <div class="purchase-error" id="purchaseError">
@@ -1146,7 +1127,8 @@
                 </button>
 
                 <h3 id="emailModalTitle">「 Quick registration 」</h3>
-                <p>This email will be the access key to the product.</p>
+                <p>This email will be the access key to the product. If payment is confirmed, you will receive an email.
+                    If not, please check your spam folder.</p>
 
                 <form id="emailForm" novalidate>
                     <input type="email" class="email-input" id="emailInput" placeholder="Your email address"
@@ -1183,7 +1165,7 @@
                     <i class="fas fa-user"></i>
                     <div class="text-content">
                         <div class="label">Name</div>
-                        <div class="value skeleton-loading" id="sellerModalName"></div>
+                        <div class="value skeleton-loading" id="sellerModalName">Loading</div>
                     </div>
                 </div>
 
@@ -1191,13 +1173,13 @@
                     <i class="fas fa-envelope"></i>
                     <div class="text-content">
                         <div class="label">Email</div>
-                        <div class="value skeleton-loading" id="sellerModalEmail"></div>
+                        <div class="value skeleton-loading" id="sellerModalEmail">Loading</div>
                     </div>
                 </div>
 
                 <div class="seller-actions">
                     <button class="seller-btn" id="copySellerEmailBtn" type="button" disabled>Copy email</button>
-                    <button class="seller-btn primary" id="mailSellerBtn" type="button" disabled>Email</button>
+                    <button class="seller-btn primary" id="mailSellerBtn" type="button" disabled>Send email</button>
                 </div>
             </div>
 
@@ -1211,33 +1193,29 @@
 
                 <div class="report-list" id="reportList">
                     <label class="report-option">
-                        <input type="radio" name="reportReason" value="violent_content" />
-                        <span class="txt">Violence / hate content</span>
+                        <input type="radio" name="reportReason" value="violence" />
+                        <span class="txt">Violence</span>
                     </label>
 
                     <label class="report-option">
                         <input type="radio" name="reportReason" value="copyright" />
-                        <span class="txt">Copyright / stolen content</span>
+                        <span class="txt">Copyright</span>
                     </label>
 
                     <label class="report-option">
-                        <input type="radio" name="reportReason" value="adult_content" />
-                        <span class="txt">Adult / inappropriate content</span>
+                        <input type="radio" name="reportReason" value="adult" />
+                        <span class="txt">Adult +</span>
                     </label>
 
                     <label class="report-option">
                         <input type="radio" name="reportReason" value="scam" />
-                        <span class="txt">Scam / phishing</span>
-                    </label>
-
-                    <label class="report-option">
-                        <input type="radio" name="reportReason" value="other" />
-                        <span class="txt">Other</span>
+                        <span class="txt">Scam</span>
                     </label>
                 </div>
 
                 <div class="report-extra">
-                    <textarea class="report-textarea" id="reportDetails" placeholder="Details (optional)"></textarea>
+                    <textarea class="report-textarea" id="reportDetails"
+                        placeholder="Additional details (optional)"></textarea>
                 </div>
 
                 <div class="report-actions">
@@ -1335,35 +1313,120 @@
             let sellerInfoCache = null;
             let lastPaymentTriggerAt = 0;
 
-            function getDeviceFingerprint() {
-                const fingerprint = {
-                    userAgent: navigator.userAgent,
-                    language: navigator.language,
-                    languages: navigator.languages ? [...navigator.languages] : [],
-                    platform: navigator.platform,
-                    screenResolution: `${screen.width}x${screen.height}`,
-                    colorDepth: screen.colorDepth,
-                    pixelRatio: window.devicePixelRatio,
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    timezoneOffset: new Date().getTimezoneOffset(),
-                    touchSupport: 'ontouchstart' in window,
-                    cookieEnabled: navigator.cookieEnabled,
-                    doNotTrack: navigator.doNotTrack,
-                    hardwareConcurrency: navigator.hardwareConcurrency,
-                    deviceMemory: navigator.deviceMemory,
-                    timestamp: Date.now()
-                };
+            function getCookie(name) {
+                const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.$?*|{}()[\]\\/+^]/g, '\\$&') + '=([^;]*)'));
+                return m ? decodeURIComponent(m[1]) : '';
+            }
+            function setCookie(name, value, days = 400) {
+                const expires = new Date(Date.now() + days * 864e5).toUTCString();
+                const secure = (location.protocol === 'https:') ? '; Secure' : '';
+                document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; Expires=${expires}; Path=/; SameSite=Lax${secure}`;
+            }
+
+            async function idbGet(dbName, storeName, key) {
+                return new Promise((resolve, reject) => {
+                    try {
+                        const req = indexedDB.open(dbName, 1);
+                        req.onerror = () => reject(req.error);
+                        req.onupgradeneeded = (e) => {
+                            const db = e.target.result;
+                            if (!db.objectStoreNames.contains(storeName)) db.createObjectStore(storeName);
+                        };
+                        req.onsuccess = () => {
+                            const db = req.result;
+                            const tx = db.transaction([storeName], 'readonly');
+                            const store = tx.objectStore(storeName);
+                            const gr = store.get(key);
+                            gr.onsuccess = () => resolve(gr.result || null);
+                            gr.onerror = () => reject(gr.error);
+                        };
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            }
+
+            async function idbSet(dbName, storeName, key, value) {
+                return new Promise((resolve, reject) => {
+                    try {
+                        const req = indexedDB.open(dbName, 1);
+                        req.onerror = () => reject(req.error);
+                        req.onupgradeneeded = (e) => {
+                            const db = e.target.result;
+                            if (!db.objectStoreNames.contains(storeName)) db.createObjectStore(storeName);
+                        };
+                        req.onsuccess = () => {
+                            const db = req.result;
+                            const tx = db.transaction([storeName], 'readwrite');
+                            const store = tx.objectStore(storeName);
+                            store.put(value, key);
+                            tx.oncomplete = () => resolve(true);
+                            tx.onerror = () => reject(tx.error);
+                        };
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            }
+
+            function randomId() {
+                try {
+                    const b = new Uint8Array(16);
+                    crypto.getRandomValues(b);
+                    return Array.from(b).map(x => x.toString(16).padStart(2, '0')).join('');
+                } catch {
+                    return String(Date.now()) + "_" + Math.random().toString(16).slice(2);
+                }
+            }
+
+            async function getOrCreateDeviceFingerprint() {
+                const KEY = 'monetizelt_device_fp_v2';
+                const LEGACY_KEY = 'monetizelt_device_fp';
+                const DB_NAME = 'MonetizeltLocal';
+                const STORE = 'kv';
 
                 try {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    ctx.textBaseline = 'top';
-                    ctx.font = '14px Arial';
-                    ctx.fillText('Device fingerprint', 2, 2);
-                    fingerprint.canvasHash = canvas.toDataURL().slice(-50);
-                } catch (e) { }
+                    const v2 = localStorage.getItem(KEY);
+                    if (v2) return v2;
+                } catch { }
 
-                return fingerprint;
+                try {
+                    const legacy = localStorage.getItem(LEGACY_KEY);
+                    if (legacy) {
+                        try { localStorage.setItem(KEY, legacy); } catch { }
+                        try { await idbSet(DB_NAME, STORE, KEY, legacy); } catch { }
+                        setCookie(KEY, legacy);
+                        return legacy;
+                    }
+                } catch { }
+
+                const c = getCookie(KEY);
+                if (c) {
+                    try { localStorage.setItem(KEY, c); } catch { }
+                    try { await idbSet(DB_NAME, STORE, KEY, c); } catch { }
+                    return c;
+                }
+
+                try {
+                    const v = await idbGet(DB_NAME, STORE, KEY);
+                    if (v) {
+                        try { localStorage.setItem(KEY, v); } catch { }
+                        setCookie(KEY, v);
+                        return v;
+                    }
+                } catch { }
+
+                const v = "mz_" + randomId();
+                try { localStorage.setItem(KEY, v); } catch { }
+                try { sessionStorage.setItem(KEY, v); } catch { }
+                try { await idbSet(DB_NAME, STORE, KEY, v); } catch { }
+                setCookie(KEY, v);
+
+                try {
+                    if (!localStorage.getItem(LEGACY_KEY)) localStorage.setItem(LEGACY_KEY, v);
+                } catch { }
+
+                return v;
             }
 
             function toast(msg) {
@@ -1417,10 +1480,7 @@
                 purchaseButtonContainer.style.display = 'none';
                 purchaseSuccess.style.display = 'block';
                 clearPaymentParams();
-
-                setTimeout(() => {
-                    window.location.href = 'my-content.html';
-                }, 2000);
+                getOrCreateDeviceFingerprint().catch(() => { });
             }
 
             function openModal(modalEl) {
@@ -1475,17 +1535,19 @@
             }
 
             async function loadSellerInfo(sellerId) {
-                if (sellerInfoCache) {
-                    return sellerInfoCache;
-                }
+                if (sellerInfoCache) return sellerInfoCache;
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000);
 
                 try {
-                    const response = await fetch(`${getSellerInfoUrl}?sellerId=${encodeURIComponent(sellerId)}`);
+                    const response = await fetch(`${getSellerInfoUrl}?sellerId=${encodeURIComponent(sellerId)}`, {
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
                     const data = await response.json();
 
-                    if (!response.ok) {
-                        throw new Error(data?.error || `HTTP ${response.status}`);
-                    }
+                    if (!response.ok) throw new Error(data?.error || `HTTP ${response.status}`);
 
                     if (data.success && data.seller) {
                         sellerInfoCache = data.seller;
@@ -1494,6 +1556,7 @@
 
                     throw new Error('Seller info not available');
                 } catch (error) {
+                    clearTimeout(timeoutId);
                     console.error('Error loading seller info:', error);
                     return null;
                 }
@@ -1554,9 +1617,9 @@
                 isProcessingPayment = false;
                 lastPaymentTriggerAt = 0;
 
-                setTimeout(() => {
+                requestAnimationFrame(() => {
                     try { emailInput.focus({ preventScroll: true }); } catch { emailInput.focus(); }
-                }, 50);
+                });
             });
 
             reportButton.addEventListener('click', function () {
@@ -1581,7 +1644,6 @@
             submitReportBtn.addEventListener('click', function () {
                 const pid = safeGetProductId();
                 const selected = document.querySelector('input[name="reportReason"]:checked');
-                const details = (reportDetails.value || '').trim();
 
                 if (!pid) {
                     reportResult.textContent = "Missing product. Please reload the page.";
@@ -1597,9 +1659,7 @@
                     return;
                 }
 
-                const reason = details
-                    ? `${selected.value}:${details}`.slice(0, 200)
-                    : selected.value;
+                const reason = selected.value;
 
                 submitReportBtn.disabled = true;
                 submitReportBtn.classList.add('loading');
@@ -1640,7 +1700,7 @@
 
             copySellerEmailBtn.addEventListener('click', async () => {
                 const email = sellerModalEmail.textContent.trim();
-                if (!email || email === "—") return;
+                if (!email || email === "—" || email === "Loading") return;
                 try {
                     await navigator.clipboard.writeText(email);
                     toast("Seller email copied!");
@@ -1651,7 +1711,7 @@
 
             mailSellerBtn.addEventListener('click', () => {
                 const email = sellerModalEmail.textContent.trim();
-                if (!email || email === "—") return;
+                if (!email || email === "—" || email === "Loading") return;
                 window.location.href = `mailto:${encodeURIComponent(email)}`;
             });
 
@@ -1666,8 +1726,14 @@
                 return;
             }
 
-            fetch(`${getProductDetailsUrl}?productId=${encodeURIComponent(productId)}`)
+            const fetchController = new AbortController();
+            const fetchTimeoutId = setTimeout(() => fetchController.abort(), 5000);
+
+            fetch(`${getProductDetailsUrl}?productId=${encodeURIComponent(productId)}`, {
+                signal: fetchController.signal
+            })
                 .then(async (res) => {
+                    clearTimeout(fetchTimeoutId);
                     const data = await res.json().catch(() => ({}));
                     if (!res.ok) {
                         const msg = data?.error || `Request failed (HTTP ${res.status}).`;
@@ -1675,37 +1741,31 @@
                     }
                     return data;
                 })
-                .then(async (data) => {
-                    if (!data || !data.success || !data.product) {
-                        throw new Error(data?.error || "Product not available.");
-                    }
+                .then((data) => {
+                    if (!data || !data.success || !data.product) throw new Error(data?.error || "Product not available.");
 
                     const product = data.product;
 
                     if (!product.sellable) {
-                        showNotFound(
-                            "This product is not available. It may have been removed, taken down, or is no longer for sale."
-                        );
+                        showNotFound("This product is not available. It may have been removed, taken down, or is no longer for sale.");
                         return;
                     }
 
                     currentProduct = product;
                     try { sessionStorage.setItem('monetizelt_product', JSON.stringify(product)); } catch { }
 
-                    // Afficher l'icône de type de produit
                     updateProductTypeIcon(product.category);
 
                     if (product.coverUrl) {
-                        preloadImage(product.coverUrl)
-                            .then(() => {
-                                coverImage.src = product.coverUrl;
-                                coverImage.classList.add('loaded');
-                                imagePlaceholder.style.display = 'none';
-                            })
-                            .catch(() => {
-                                imagePlaceholder.classList.remove('skeleton-loading');
-                                imagePlaceholder.textContent = "Image unavailable";
-                            });
+                        coverImage.src = product.coverUrl;
+                        coverImage.onload = () => {
+                            coverImage.classList.add('loaded');
+                            imagePlaceholder.style.display = 'none';
+                        };
+                        coverImage.onerror = () => {
+                            imagePlaceholder.classList.remove('skeleton-loading');
+                            imagePlaceholder.textContent = "Image unavailable";
+                        };
                     } else {
                         imagePlaceholder.classList.remove('skeleton-loading');
                         imagePlaceholder.textContent = "No image";
@@ -1723,12 +1783,12 @@
 
                     const sellerNameLink = document.getElementById('sellerNameLink');
                     if (sellerNameLink) {
-                        sellerNameLink.addEventListener('click', async () => {
+                        sellerNameLink.addEventListener('click', () => {
                             openModal(sellerModal);
 
-                            sellerModalName.textContent = '';
+                            sellerModalName.textContent = 'Loading';
                             sellerModalName.classList.add('skeleton-loading');
-                            sellerModalEmail.textContent = '';
+                            sellerModalEmail.textContent = 'Loading';
                             sellerModalEmail.classList.add('skeleton-loading');
                             copySellerEmailBtn.disabled = true;
                             mailSellerBtn.disabled = true;
@@ -1742,33 +1802,33 @@
                                 return;
                             }
 
-                            const sellerInfo = await loadSellerInfo(sellerId);
+                            loadSellerInfo(sellerId).then(sellerInfo => {
+                                if (sellerInfo) {
+                                    const isBusiness = sellerInfo.accountType === 'business';
+                                    const displayName = isBusiness
+                                        ? (sellerInfo.businessName || sellerInfo.fullName || 'Business')
+                                        : (sellerInfo.fullName || 'Individual');
+                                    const displayEmail = sellerInfo.email || '—';
 
-                            if (sellerInfo) {
-                                const isBusiness = sellerInfo.accountType === 'business';
-                                const displayName = isBusiness
-                                    ? (sellerInfo.businessName || sellerInfo.fullName || 'Business')
-                                    : (sellerInfo.fullName || 'Individual');
-                                const displayEmail = sellerInfo.email || '—';
+                                    sellerModalName.textContent = displayName;
+                                    sellerModalEmail.textContent = displayEmail;
 
-                                sellerModalName.textContent = displayName;
-                                sellerModalEmail.textContent = displayEmail;
+                                    const hasEmail = displayEmail !== '—';
+                                    copySellerEmailBtn.disabled = !hasEmail;
+                                    mailSellerBtn.disabled = !hasEmail;
+                                } else {
+                                    const sellerEmail = product?.sellerProfile?.contactEmail || "";
+                                    sellerModalName.textContent = sellerFullName || "Seller";
+                                    sellerModalEmail.textContent = sellerEmail || "—";
 
-                                const hasEmail = displayEmail !== '—';
-                                copySellerEmailBtn.disabled = !hasEmail;
-                                mailSellerBtn.disabled = !hasEmail;
-                            } else {
-                                const sellerEmail = product?.sellerProfile?.contactEmail || "";
-                                sellerModalName.textContent = sellerFullName || "Seller";
-                                sellerModalEmail.textContent = sellerEmail || "—";
+                                    const hasEmail = !!sellerEmail;
+                                    copySellerEmailBtn.disabled = !hasEmail;
+                                    mailSellerBtn.disabled = !hasEmail;
+                                }
 
-                                const hasEmail = !!sellerEmail;
-                                copySellerEmailBtn.disabled = !hasEmail;
-                                mailSellerBtn.disabled = !hasEmail;
-                            }
-
-                            sellerModalName.classList.remove('skeleton-loading');
-                            sellerModalEmail.classList.remove('skeleton-loading');
+                                sellerModalName.classList.remove('skeleton-loading');
+                                sellerModalEmail.classList.remove('skeleton-loading');
+                            });
                         });
                     }
 
@@ -1800,13 +1860,12 @@
                     } catch { }
                 })
                 .catch((err) => {
+                    clearTimeout(fetchTimeoutId);
                     console.error("Product load error:", err);
-                    showNotFound(
-                        "We can't find this product. It may have been removed, taken down, expired, or the link is incorrect."
-                    );
+                    showNotFound("We can't find this product. It may have been removed, taken down, expired, or the link is incorrect.");
                 });
 
-            function startPaymentFlow() {
+            async function startPaymentFlow() {
                 if (isProcessingPayment) return;
 
                 const email = emailInput.value.trim();
@@ -1830,7 +1889,12 @@
                 emailResult.style.display = 'none';
                 paymentLoading.style.display = 'block';
 
-                const deviceFingerprint = getDeviceFingerprint();
+                let deviceFingerprint = "";
+                try {
+                    deviceFingerprint = await getOrCreateDeviceFingerprint();
+                } catch {
+                    deviceFingerprint = "";
+                }
 
                 fetch(collectBuyerEmailUrl, {
                     method: 'POST',
@@ -1848,9 +1912,7 @@
                         return data;
                     })
                     .then((data) => {
-                        if (!data.success || !data.sessionId) {
-                            throw new Error(data?.error || "Failed to collect email.");
-                        }
+                        if (!data.success || !data.sessionId) throw new Error(data?.error || "Failed to collect email.");
 
                         const appSessionId = data.sessionId;
                         const baseReturn = `${window.location.origin}${window.location.pathname}`;
@@ -1899,16 +1961,16 @@
 
                 const now = Date.now();
                 if (isProcessingPayment) return;
-                if (now - lastPaymentTriggerAt < 800) return;
+                if (now - lastPaymentTriggerAt < 500) return;
                 lastPaymentTriggerAt = now;
 
                 try {
                     if (document.activeElement === emailInput) emailInput.blur();
                 } catch { }
 
-                setTimeout(() => {
-                    startPaymentFlow();
-                }, 0);
+                requestAnimationFrame(() => {
+                    startPaymentFlow().catch(() => { });
+                });
             }
 
             emailForm.addEventListener('submit', triggerPayment);

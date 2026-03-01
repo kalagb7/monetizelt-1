@@ -7,7 +7,7 @@
     <title>Monetizelt — Dashboard</title>
 
     <link rel="icon"
-        href="https://firebasestorage.googleapis.com/v0/b/monetizelt-1.firebasestorage.app/o/brand%2Favatar.png?alt=media">
+        href="https://firebasestorage.googleapis.com/v0/b/monetizelt-1.firebasestorage.app/o/Monetizelt.jpg?alt=media&token=c942c3a7-0a4b-42f7-82bc-5cfde360e06e">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,6 +19,7 @@
         :root {
             --primary: #007BFF;
             --primary-dark: #0056b3;
+            --primary-muted: #5ca3dc;
             --danger: #F44336;
             --success: #4CAF50;
             --bg: #f5f5f5;
@@ -64,13 +65,17 @@
 
         .slogan {
             text-align: center;
-            margin: 10px 0 5px 0;
+            margin: 8px auto 5px auto;
             font-size: 1.05em;
             color: var(--primary);
             padding: 10px;
             border: 1px solid var(--primary);
-            border-radius: 20px;
+            border-radius: 12px;
             background-color: #e9f5ff;
+            max-width: 398px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .icon-container {
@@ -108,10 +113,10 @@
         .button-container {
             display: flex;
             justify-content: center;
-            padding: 4px 0;
+            padding: 5px 0;
             overflow-x: auto;
             white-space: nowrap;
-            margin: 0 0 10px 0;
+            margin: 0 0 1.5px 0;
             max-width: 100%;
             gap: 10px;
         }
@@ -166,17 +171,38 @@
             border-left: 1px solid var(--primary);
             border-right: 1px solid var(--primary);
             border-bottom: 1px solid var(--primary);
-            margin: 0 0 10px 0;
+            margin: 0 0 8px 0;
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 18px;
+            position: relative;
         }
 
         .status-container .rotating-gear {
             font-size: 18px;
             color: var(--primary);
             animation: rotate 2s linear infinite;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .status-container .rotating-gear:focus {
+            outline: none;
+        }
+
+        .status-container .gear-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.7em;
+            color: var(--primary);
+            font-weight: 600;
+            pointer-events: none;
+            white-space: nowrap;
+            opacity: 0.9;
         }
 
         @keyframes rotate {
@@ -216,15 +242,21 @@
             height: 50px;
         }
 
+        .card.disabled-card {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
         @media (hover: hover) and (pointer: fine) {
-            .card:hover {
+            .card:not(.disabled-card):hover {
                 transform: translateY(-2px);
                 background: #e9f5ff;
             }
         }
 
         @media (hover: none) and (pointer: coarse) {
-            .card:active {
+            .card:not(.disabled-card):active {
                 transform: scale(0.98);
                 background: #e9f5ff;
             }
@@ -267,7 +299,7 @@
         .skeleton {
             background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
             background-size: 200% 100%;
-            animation: skeleton-loading 1.5s infinite;
+            animation: skeleton-loading 0.8s infinite;
             border-radius: 4px;
         }
 
@@ -296,22 +328,25 @@
         .history {
             border-top: 3px solid var(--primary);
             grid-column: 1/-1;
-            max-height: 220px;
+            min-height: 120px;
+            max-height: 320px;
             overflow-y: auto;
+            overflow-x: hidden;
+            padding: 8px;
         }
 
         .transaction-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 10px;
+            padding: 10px 12px;
             border-radius: 9px;
-            margin: 5px 0;
+            margin: 6px 0;
             background-color: white;
-            border: 1px solid var(--primary);
+            border: 1px solid var(--primary-muted);
             transition: background-color 0.3s;
             font-size: 0.85em;
-            gap: 8px;
+            gap: 10px;
         }
 
         @media (hover: hover) and (pointer: fine) {
@@ -329,7 +364,7 @@
         .transaction-item.skeleton {
             background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
             background-size: 200% 100%;
-            animation: skeleton-loading 1.5s infinite;
+            animation: skeleton-loading 0.8s infinite;
             height: 35px;
         }
 
@@ -337,18 +372,25 @@
             display: flex;
             align-items: center;
             flex: 1;
-            gap: 6px;
+            gap: 8px;
             overflow: hidden;
+            min-width: 0;
         }
 
         .transaction-title {
             color: var(--primary);
             font-weight: 600;
             text-decoration: none;
-            font-size: 0.85em;
+            font-size: 0.9em;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            flex-shrink: 1;
+            min-width: 0;
+        }
+
+        .transaction-title.payout-type {
+            color: var(--success);
         }
 
         .transaction-title:hover {
@@ -356,16 +398,18 @@
         }
 
         .transaction-dot {
-            color: var(--primary);
+            color: var(--primary-muted);
             font-size: 0.6em;
             display: inline-block;
             vertical-align: middle;
+            flex-shrink: 0;
         }
 
         .transaction-date {
             color: #888;
             font-size: 0.75em;
             white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .transaction-price {
@@ -374,6 +418,11 @@
             font-size: 0.9em;
             white-space: nowrap;
             margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .transaction-price.payout-amount {
+            color: var(--danger);
         }
 
         .no-transactions {
@@ -405,7 +454,7 @@
         .payment-status.skeleton {
             background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
             background-size: 200% 100%;
-            animation: skeleton-loading 1.5s infinite;
+            animation: skeleton-loading 0.8s infinite;
             color: transparent;
             width: 60px;
             height: 18px;
@@ -417,9 +466,156 @@
             margin-top: 5px;
             display: none;
             text-align: center;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -25px;
         }
 
-        /* ===================== MODALS ===================== */
+        .quarter-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1002;
+            background: rgba(0, 0, 0, 0.06);
+            backdrop-filter: blur(7px);
+            -webkit-backdrop-filter: blur(7px);
+            opacity: 0;
+            transition: opacity 0.18s ease;
+        }
+
+        .quarter-overlay.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .quarter-menu {
+            position: absolute;
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 14px;
+            border-radius: 999px;
+            transform: translateY(-8px) scale(0.92);
+            opacity: 0;
+            transition: transform 0.18s ease, opacity 0.18s ease;
+            pointer-events: none;
+        }
+
+        .quarter-overlay.show .quarter-menu {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .quarter-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 999px;
+            border: 2px solid var(--primary);
+            background: linear-gradient(135deg, #ffffff 0%, #e9f5ff 100%);
+            color: var(--primary);
+            font-weight: 900;
+            font-size: 1.3em;
+            font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.25);
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+            overflow: visible;
+        }
+
+        .quarter-btn::before {
+            position: absolute;
+            font-size: 2.8em;
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 0;
+            filter: brightness(1.1) contrast(1.05);
+        }
+
+        .quarter-btn[data-quarter="1"]::before {
+            content: '🌙';
+        }
+
+        .quarter-btn[data-quarter="2"]::before {
+            content: '⭐';
+        }
+
+        .quarter-btn[data-quarter="3"]::before {
+            content: '🌸';
+        }
+
+        .quarter-btn[data-quarter="4"]::before {
+            content: '☀️';
+        }
+
+        .quarter-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .quarter-btn:hover {
+            transform: scale(1.15) rotate(8deg);
+            box-shadow: 0 10px 28px rgba(0, 123, 255, 0.4);
+            background: linear-gradient(135deg, #e9f5ff 0%, #d0ebff 100%);
+            border-color: var(--primary-dark);
+        }
+
+        .quarter-btn:active {
+            transform: scale(1.08) rotate(0deg);
+            box-shadow: 0 5px 16px rgba(0, 123, 255, 0.3);
+        }
+
+        .quarter-btn.loading {
+            cursor: not-allowed;
+            opacity: 0.72;
+            background: linear-gradient(135deg, #e0e0e0 0%, #f0f0f0 100%);
+            border-color: #999999;
+            color: #666;
+            animation: pulse-loading 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-loading {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.72;
+            }
+
+            50% {
+                transform: scale(1.05);
+                opacity: 0.85;
+            }
+        }
+
+        .quarter-btn.success {
+            background: linear-gradient(135deg, #4CAF50 0%, #2e7d32 100%);
+            border-color: #2e7d32;
+            color: white;
+            opacity: 1;
+            animation: success-pop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes success-pop {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.25) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
 
         .modal,
         .confirm-modal,
@@ -591,8 +787,6 @@
             background-color: var(--primary-dark);
         }
 
-        /* ===================== FORMS ===================== */
-
         .form-group {
             margin-bottom: 8px;
             text-align: left;
@@ -641,8 +835,6 @@
             margin-top: 4px;
             display: none;
         }
-
-        /* ===================== CREATE PRODUCT ===================== */
 
         .product-modal-title {
             font-size: 0.95em;
@@ -709,6 +901,76 @@
         }
 
         .file-upload-box i:not(.upload-confirm i) {
+            font-size: 14px;
+        }
+
+        .files-count {
+            margin-top: 4px;
+            font-size: 0.7em;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .additional-files-container {
+            margin-top: 10px;
+        }
+
+        .additional-files-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .additional-file-box {
+            border: 2px dashed var(--primary);
+            border-radius: 10px;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: #fff;
+            min-height: 60px;
+        }
+
+        .additional-file-box:hover {
+            background-color: #e9f5ff;
+        }
+
+        .additional-file-box .upload-label {
+            font-size: 0.65em;
+        }
+
+        .additional-file-box i {
+            font-size: 12px;
+        }
+
+        .add-more-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 10px;
+            border: 2px solid var(--primary);
+            background: #fff;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px auto 0;
+            transition: all 0.2s ease;
+        }
+
+        .add-more-btn:hover {
+            background: #e9f5ff;
+            transform: scale(1.05);
+        }
+
+        .add-more-btn i {
             font-size: 16px;
         }
 
@@ -775,7 +1037,6 @@
             cursor: not-allowed;
         }
 
-        /* Progress fill + stars */
         .create-product-button.progress {
             background: var(--primary);
         }
@@ -881,8 +1142,6 @@
             font-weight: 800;
         }
 
-        /* ===================== PRODUCTS MODAL ===================== */
-
         .products-list {
             margin-top: 8px;
         }
@@ -973,8 +1232,6 @@
             background: #fff2f2;
         }
 
-        /* ===================== PAYPAL MODAL ===================== */
-
         .payout-note {
             font-size: 0.8em;
             color: #555;
@@ -990,8 +1247,6 @@
             text-align: center;
             font-weight: 600;
         }
-
-        /* ===================== TOAST ===================== */
 
         .toast-container {
             position: fixed;
@@ -1078,6 +1333,20 @@
                 padding: 6px 10px;
                 min-width: 60px;
             }
+
+            .quarter-btn {
+                width: 48px;
+                height: 48px;
+                font-size: 1.2em;
+            }
+
+            .quarter-btn::before {
+                font-size: 2.5em;
+            }
+
+            .quarter-menu {
+                gap: 12px;
+            }
         }
     </style>
 </head>
@@ -1098,18 +1367,18 @@
     <div class="divider"></div>
     <div class="slogan">Your market, your rules! <br> Create, share, cash in!</div>
 
-    <div class="button-container">
+    <div class="button-container" style="position: relative;">
         <a class="button disabled" id="generateBtn" href="javascript:void(0);"><i class="fas fa-plus"></i> Create</a>
         <a class="button" href="faq.html"><i class="fas fa-question-circle"></i> FAQ</a>
         <a class="button" href="terms.html"><i class="fas fa-file-contract"></i> Terms</a>
         <a class="button" href="privacy.html"><i class="fas fa-file-contract"></i> Privacy</a>
+        <div id="paymentWarning" class="payment-warning">Update your payment method to start creating products.</div>
     </div>
-
-    <div id="paymentWarning" class="payment-warning">Update your payment method to start creating products.</div>
 
     <div class="dashboard">
         <div class="status-container">
-            <i class="fas fa-cog rotating-gear"></i>
+            <i class="fas fa-cog rotating-gear" id="reportGear" role="button" tabindex="0"
+                aria-label="Quarterly report"></i>
         </div>
 
         <div class="grid">
@@ -1155,7 +1424,15 @@
         </div>
     </div>
 
-    <!-- Account options -->
+    <div id="quarterOverlay" class="quarter-overlay" aria-hidden="true">
+        <div id="quarterMenu" class="quarter-menu" role="menu" aria-label="Quarterly report">
+            <button class="quarter-btn" type="button" data-quarter="1" aria-label="Quarter 1"><span>1</span></button>
+            <button class="quarter-btn" type="button" data-quarter="2" aria-label="Quarter 2"><span>2</span></button>
+            <button class="quarter-btn" type="button" data-quarter="3" aria-label="Quarter 3"><span>3</span></button>
+            <button class="quarter-btn" type="button" data-quarter="4" aria-label="Quarter 4"><span>4</span></button>
+        </div>
+    </div>
+
     <div id="deleteModal" class="modal" role="dialog" aria-modal="true" aria-label="Account options">
         <div class="modal-panel modal-small">
             <button class="modal-close" type="button" data-close="deleteModal" aria-label="Close">
@@ -1167,7 +1444,6 @@
         </div>
     </div>
 
-    <!-- Confirm account deletion -->
     <div id="confirmModal" class="confirm-modal" role="dialog" aria-modal="true" aria-label="Confirm account deletion">
         <div class="modal-panel modal-small">
             <button class="modal-close" type="button" data-close="confirmModal" aria-label="Close">
@@ -1187,15 +1463,14 @@
         </div>
     </div>
 
-    <!-- Create product -->
     <div id="createProductModal" class="create-product-modal" role="dialog" aria-modal="true"
-        aria-label="Create product">
+        aria-label="Create new product">
         <div class="modal-panel modal-large">
             <button class="modal-close" type="button" data-close="createProductModal" aria-label="Close">
                 <i class="fas fa-times"></i>
             </button>
 
-            <div class="product-modal-title">Create product</div>
+            <div class="product-modal-title">Create new product</div>
 
             <div class="form-group">
                 <label class="form-label" for="productTitle">Title</label>
@@ -1207,7 +1482,7 @@
                 <select id="productType" class="form-select">
                     <option value="">Select type</option>
                     <option value="video">Video</option>
-                    <option value="music">Music</option>
+                    <option value="music">Audio</option>
                 </select>
             </div>
 
@@ -1220,8 +1495,7 @@
 
             <div class="form-group">
                 <label class="form-label" for="productPrice">Price (USD)</label>
-                <input type="number" id="productPrice" class="form-control" placeholder="Minimum 1.00" min="1.00"
-                    step="0.01">
+                <input type="number" id="productPrice" class="form-control" placeholder="Minimum 1" min="1" step="0.01">
                 <div id="priceBreakdown" class="price-breakdown">
                     <div class="row">
                         <span class="k">Your price</span>
@@ -1256,9 +1530,10 @@
                     </div>
 
                     <div class="upload-half">
-                        <div class="file-upload-box" id="contentBox" role="button" aria-label="Upload content file">
+                        <div class="file-upload-box" id="contentBox" role="button"
+                            aria-label="Upload main content file">
                             <i id="contentTypeIcon" class="fas fa-file" style="color:var(--primary);"></i>
-                            <div class="upload-label" id="contentTypeLabel">Content file</div>
+                            <div class="upload-label" id="contentTypeLabel">Main file</div>
                             <div class="upload-confirm" id="contentConfirm">
                                 <i class="fas fa-check-circle"></i>
                             </div>
@@ -1266,6 +1541,13 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div id="additionalFilesContainer" class="additional-files-container" style="display:none;">
+                <div id="additionalFilesGrid" class="additional-files-grid"></div>
+                <button type="button" id="addMoreBtn" class="add-more-btn" style="display:none;">
+                    <i class="fas fa-plus"></i>
+                </button>
             </div>
 
             <button id="createProductBtn" class="create-product-button">
@@ -1296,7 +1578,6 @@
         </div>
     </div>
 
-    <!-- Products modal -->
     <div id="linksModal" class="links-modal" role="dialog" aria-modal="true" aria-label="Your products">
         <div class="modal-panel modal-medium">
             <button class="modal-close" type="button" data-close="linksModal" aria-label="Close">
@@ -1312,7 +1593,6 @@
         </div>
     </div>
 
-    <!-- Confirm product deletion -->
     <div id="confirmDeleteProductModal" class="confirm-modal" role="dialog" aria-modal="true"
         aria-label="Confirm product deletion">
         <div class="modal-panel modal-small">
@@ -1331,7 +1611,6 @@
         </div>
     </div>
 
-    <!-- PayPal modal -->
     <div id="payoutModal" class="payout-modal" role="dialog" aria-modal="true" aria-label="PayPal settings">
         <div class="modal-panel modal-small">
             <button class="modal-close" type="button" data-close="payoutModal" aria-label="Close">
@@ -1397,23 +1676,31 @@
 
         let coverFile = null;
         let contentFiles = [];
+        let additionalFiles = [];
 
         let isCreatingProduct = false;
         let createFlow = null;
 
-        // PayPal cooldown state
         let paypalCooldownEnd = null;
         let paypalCooldownInterval = null;
+        let userRegistrationTime = null;
 
-        const PAYPAL_COOLDOWN_MS = 15 * 60 * 1000; // 15 minutes
+        const PAYPAL_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
 
         const SIZE_LIMITS = {
             video: 3 * 1024 * 1024 * 1024,
             music: 1 * 1024 * 1024 * 1024
         };
 
+        const FILE_LIMITS = {
+            video: 10,
+            music: 20
+        };
+
         const toastQueue = [];
         let isShowingToast = false;
+
+        const MIN_PRODUCT_PRICE_USD = 1;
 
         function showToast(message, type = 'info') {
             toastQueue.push({ message, type });
@@ -1487,7 +1774,6 @@
                 btn.classList.add("progress");
                 btn.style.setProperty("--p", `${p}%`);
 
-                // Spawn stars more frequently for visibility
                 if (Math.random() > 0.5) {
                     const star = document.createElement('i');
                     star.className = 'fas fa-star progress-star';
@@ -1612,7 +1898,7 @@
             if (!card) return;
 
             const v = Number(value || 0);
-            const displayValue = (cardId === "incomeCard") ? `${formatCurrency(v)}$` : `${v}${suffix}`;
+            const displayValue = (cardId === "incomeCard") ? `$${formatCurrency(v)}` : `${v}${suffix}`;
 
             card.innerHTML = `
                 <div class="title">${titleText}</div>
@@ -1657,14 +1943,37 @@
             }
         }
 
+        function isThursday() {
+            const now = new Date();
+            return now.getDay() === 4;
+        }
+
+        function canEditPaypalEmail() {
+            if (!paypalCooldownEnd) return true;
+            if (Date.now() >= paypalCooldownEnd) return true;
+            return isThursday();
+        }
+
+        function updatePayoutCardClickability() {
+            const card = document.getElementById("payoutCard");
+            if (!card) return;
+
+            if (canEditPaypalEmail()) {
+                card.classList.remove("disabled-card");
+                card.style.pointerEvents = "auto";
+            } else {
+                card.classList.add("disabled-card");
+                card.style.pointerEvents = "none";
+            }
+        }
+
         function loadPaypalCooldownFromStorage() {
             try {
                 const stored = localStorage.getItem('paypalCooldownEnd');
                 if (stored) {
                     const timestamp = parseInt(stored, 10);
-                    if (!isNaN(timestamp) && timestamp > Date.now()) {
+                    if (!isNaN(timestamp)) {
                         paypalCooldownEnd = timestamp;
-                        startPaypalCooldownTimer();
                     }
                 }
             } catch (e) {
@@ -1690,19 +1999,18 @@
 
             if (!saveBtn || !timerDiv) return;
 
-            // Clear any existing interval
             if (paypalCooldownInterval) {
                 clearInterval(paypalCooldownInterval);
                 paypalCooldownInterval = null;
             }
 
             function updateTimer() {
-                if (!paypalCooldownEnd || Date.now() >= paypalCooldownEnd) {
-                    // Cooldown expired
+                if (canEditPaypalEmail()) {
                     paypalCooldownEnd = null;
                     savePaypalCooldownToStorage();
                     saveBtn.disabled = false;
                     timerDiv.style.display = "none";
+                    updatePayoutCardClickability();
                     if (paypalCooldownInterval) {
                         clearInterval(paypalCooldownInterval);
                         paypalCooldownInterval = null;
@@ -1710,17 +2018,22 @@
                     return;
                 }
 
-                const remaining = Math.max(0, paypalCooldownEnd - Date.now());
-                const minutes = Math.floor(remaining / 60000);
-                const seconds = Math.floor((remaining % 60000) / 1000);
+                if (paypalCooldownEnd && Date.now() < paypalCooldownEnd) {
+                    const remaining = Math.max(0, paypalCooldownEnd - Date.now());
+                    const days = Math.floor(remaining / (24 * 60 * 60 * 1000));
+                    const hours = Math.floor((remaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+                    const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
 
-                timerDiv.textContent = `Update available in ${minutes}m ${seconds}s`;
-                timerDiv.style.display = "block";
-                saveBtn.disabled = true;
+                    timerDiv.textContent = `Update available on Thursday or in ${days}d ${hours}h ${minutes}m`;
+                    timerDiv.style.display = "block";
+                    saveBtn.disabled = true;
+                }
+
+                updatePayoutCardClickability();
             }
 
             updateTimer();
-            paypalCooldownInterval = setInterval(updateTimer, 1000);
+            paypalCooldownInterval = setInterval(updateTimer, 60000);
         }
 
         async function loadPayoutSettings() {
@@ -1749,10 +2062,6 @@
             updatePayoutUI(!!s.paypalEmail);
         }
 
-        function findProductIdForTransaction(t) {
-            return String(t?.productId || "").trim() || null;
-        }
-
         async function loadTransactions() {
             const data = await apiRequest("getTransactionHistory");
             const list = document.getElementById("transactionList");
@@ -1764,26 +2073,40 @@
                 return;
             }
 
-            const sliced = txs.slice(0, 7);
+            const sliced = txs.slice(0, 5);
             for (const t of sliced) {
                 const date = t.date ? new Date(t.date) : (t.createdAt ? new Date(t.createdAt) : new Date());
                 const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
 
-                const productTitle = t.productTitle || 'Untitled';
-                const productId = findProductIdForTransaction(t);
-                const productLink = normalizeProductLink(t.productLink, productId || "");
+                const productTitle = t.productTitle || t.type || 'Untitled';
+                const productId = t.productId || '';
+                const productLink = normalizeProductLink('', productId);
+
+                const isPayout = (t.type && t.type.toLowerCase() === 'payout');
 
                 const item = document.createElement("div");
                 item.className = "transaction-item";
 
-                item.innerHTML = `
-                    <div class="transaction-details">
-                        <a href="${productLink}" class="transaction-title" target="_blank" rel="noopener">${productTitle}</a>
-                        <span class="transaction-dot">●</span>
-                        <div class="transaction-date">${formattedDate}</div>
-                    </div>
-                    <div class="transaction-price">$${formatCurrency(t.amount || 0)}</div>
-                `;
+                if (isPayout) {
+                    item.innerHTML = `
+                        <div class="transaction-details">
+                            <span class="transaction-title payout-type">Payout</span>
+                            <span class="transaction-dot">●</span>
+                            <div class="transaction-date">${formattedDate}</div>
+                        </div>
+                        <div class="transaction-price payout-amount">-$${formatCurrency(t.amount || 0)}</div>
+                    `;
+                } else {
+                    item.innerHTML = `
+                        <div class="transaction-details">
+                            <a href="${productLink}" class="transaction-title" target="_blank" rel="noopener">${productTitle}</a>
+                            <span class="transaction-dot">●</span>
+                            <div class="transaction-date">${formattedDate}</div>
+                        </div>
+                        <div class="transaction-price">$${formatCurrency(t.amount || 0)}</div>
+                    `;
+                }
+
                 list.appendChild(item);
             }
         }
@@ -1856,7 +2179,6 @@
                                 showToast("Share link copied!", "success");
                             }
                         } catch {
-                            // user canceled share
                         }
                     }
                     if (action === "delete") {
@@ -1880,11 +2202,15 @@
         }
 
         function openPayoutModal() {
+            if (!canEditPaypalEmail()) {
+                showToast("PayPal email can only be updated on Thursdays or after the cooldown period.", "info");
+                return;
+            }
+
             openModal("payoutModal");
             document.getElementById("paypalEmailError").style.display = "none";
 
-            // Check if cooldown is active and update UI
-            if (paypalCooldownEnd && Date.now() < paypalCooldownEnd) {
+            if (!canEditPaypalEmail()) {
                 startPaypalCooldownTimer();
             } else {
                 document.getElementById("savePayoutBtn").disabled = false;
@@ -1904,13 +2230,13 @@
                 setButtonLoading("savePayoutBtn", true);
                 await apiRequest("updatePayoutSettings", "POST", { paypalEmail: email });
 
-                // Start 15-minute cooldown
                 paypalCooldownEnd = Date.now() + PAYPAL_COOLDOWN_MS;
                 savePaypalCooldownToStorage();
                 startPaypalCooldownTimer();
 
                 showToast("PayPal settings saved", "success");
 
+                closeModal("payoutModal");
                 await loadDashboardSummary();
             } catch (e) {
                 console.error(e);
@@ -1933,24 +2259,26 @@
                 filesInput.disabled = true;
                 filesInput.accept = "";
                 icon.className = "fas fa-file";
-                label.textContent = "Content file";
+                label.textContent = "Main file";
                 return;
             }
 
             filesInput.disabled = false;
+            filesInput.removeAttribute("multiple");
+            filesInput.removeAttribute("webkitdirectory");
 
             if (type === "video") {
                 filesInput.accept = ".mp4,.mov,.webm,.mkv,video/*";
                 icon.className = "fas fa-video";
-                label.textContent = "Video file";
+                label.textContent = "Main video";
             } else if (type === "music") {
                 filesInput.accept = ".mp3,.wav,.ogg,.flac,audio/*";
                 icon.className = "fas fa-music";
-                label.textContent = "Music file";
+                label.textContent = "Main track";
             } else {
                 filesInput.accept = "";
                 icon.className = "fas fa-file";
-                label.textContent = "Content file";
+                label.textContent = "Main file";
             }
         }
 
@@ -1977,12 +2305,78 @@
             box.style.display = "block";
         }
 
+        function updateAdditionalFilesUI() {
+            const type = document.getElementById("productType").value;
+            const container = document.getElementById("additionalFilesContainer");
+            const grid = document.getElementById("additionalFilesGrid");
+            const addBtn = document.getElementById("addMoreBtn");
+
+            if (!type || contentFiles.length === 0) {
+                container.style.display = "none";
+                return;
+            }
+
+            const maxFiles = FILE_LIMITS[type] || 0;
+            const totalFiles = 1 + additionalFiles.length;
+
+            container.style.display = "block";
+            grid.innerHTML = "";
+
+            additionalFiles.forEach((file, idx) => {
+                const box = document.createElement("div");
+                box.className = "additional-file-box";
+                box.innerHTML = `
+                    <i class="${type === 'video' ? 'fas fa-video' : 'fas fa-music'}" style="color:var(--primary);"></i>
+                    <div class="upload-label">${type === 'video' ? 'Video' : 'Track'} ${idx + 2}</div>
+                    ${file ? '<div class="upload-confirm" style="display:block;"><i class="fas fa-check-circle"></i></div>' : ''}
+                `;
+
+                const input = document.createElement("input");
+                input.type = "file";
+                input.className = "file-upload-input";
+                input.accept = type === "video" ? ".mp4,.mov,.webm,.mkv,video/*" : ".mp3,.wav,.ogg,.flac,audio/*";
+                input.addEventListener("change", (e) => {
+                    const f = e.target.files?.[0];
+                    if (f) {
+                        additionalFiles[idx] = f;
+                        updateAdditionalFilesUI();
+                    }
+                });
+
+                box.appendChild(input);
+                grid.appendChild(box);
+            });
+
+            if (totalFiles < maxFiles) {
+                addBtn.style.display = "flex";
+            } else {
+                addBtn.style.display = "none";
+            }
+        }
+
+        function addAdditionalFileSlot() {
+            const type = document.getElementById("productType").value;
+            if (!type) return;
+
+            const maxFiles = FILE_LIMITS[type] || 0;
+            const totalFiles = 1 + additionalFiles.length;
+
+            if (totalFiles >= maxFiles) {
+                showToast(`Maximum ${maxFiles} files allowed for ${type}.`, "info");
+                return;
+            }
+
+            additionalFiles.push(null);
+            updateAdditionalFilesUI();
+        }
+
         function openProductModal() {
             isCreatingProduct = false;
             createFlow = null;
 
             coverFile = null;
             contentFiles = [];
+            additionalFiles = [];
 
             document.getElementById("productTitle").value = "";
             document.getElementById("productType").value = "";
@@ -2004,6 +2398,10 @@
             document.getElementById("termsAccept").checked = false;
             document.getElementById("termsError").style.display = "none";
 
+            document.getElementById("additionalFilesContainer").style.display = "none";
+            document.getElementById("additionalFilesGrid").innerHTML = "";
+            document.getElementById("addMoreBtn").style.display = "none";
+
             setCreateBtnProgress(0);
             setButtonLoading("createProductBtn", false);
 
@@ -2012,32 +2410,39 @@
             openModal("createProductModal");
         }
 
-        function validateFileRules(type, files) {
+        function validateFileRules(type, mainFiles, additionalFilesArray) {
             const extsVideo = new Set(["mp4", "mov", "webm", "mkv"]);
             const extsMusic = new Set(["mp3", "wav", "ogg", "flac"]);
 
-            if (!files || files.length < 1) throw new Error("Please select your content file.");
-            if (files.length !== 1) throw new Error("Please select exactly 1 content file.");
+            const allFiles = [...mainFiles, ...additionalFilesArray.filter(f => f !== null)];
 
-            const f = files[0];
-            const ext = (f.name.split(".").pop() || "").toLowerCase();
+            if (allFiles.length < 1) throw new Error("Please select your content file(s).");
 
-            if (type === "video") {
-                if (!extsVideo.has(ext)) {
-                    throw new Error("Invalid video file. Allowed: .mp4, .mov, .webm, .mkv");
+            let totalSize = 0;
+            for (const f of allFiles) {
+                const ext = (f.name.split(".").pop() || "").toLowerCase();
+
+                if (type === "video") {
+                    if (!extsVideo.has(ext)) {
+                        throw new Error(`Invalid video file: ${f.name}. Allowed: .mp4, .mov, .webm, .mkv`);
+                    }
                 }
-                if (f.size > SIZE_LIMITS.video) {
-                    throw new Error("Video file too large. Maximum size: 3GB.");
+
+                if (type === "music") {
+                    if (!extsMusic.has(ext)) {
+                        throw new Error(`Invalid audio file: ${f.name}. Allowed: .mp3, .wav, .ogg, .flac`);
+                    }
                 }
+
+                totalSize += f.size;
             }
 
-            if (type === "music") {
-                if (!extsMusic.has(ext)) {
-                    throw new Error("Invalid audio file. Allowed: .mp3, .wav, .ogg, .flac");
-                }
-                if (f.size > SIZE_LIMITS.music) {
-                    throw new Error("Audio file too large. Maximum size: 1GB.");
-                }
+            if (type === "video" && totalSize > SIZE_LIMITS.video) {
+                throw new Error("Total video files size too large. Maximum: 3GB.");
+            }
+
+            if (type === "music" && totalSize > SIZE_LIMITS.music) {
+                throw new Error("Total audio files size too large. Maximum: 1GB.");
             }
         }
 
@@ -2156,14 +2561,17 @@
                 if (!title) throw new Error("Title is required.");
                 if (!type) throw new Error("Type is required.");
                 if (!description || description.length < 10) throw new Error("Description must be at least 10 characters.");
-                if (!Number.isFinite(price) || price < 1.00) throw new Error("Minimum price is 1.00 USD.");
+                if (!Number.isFinite(price) || price < MIN_PRODUCT_PRICE_USD) throw new Error(`Minimum price is ${MIN_PRODUCT_PRICE_USD.toFixed(2)} USD.`);
                 if (!coverFile) throw new Error("Cover image is required.");
                 if (coverFile.size > 5 * 1024 * 1024) throw new Error("Cover image max size is 5MB.");
 
-                validateFileRules(type, contentFiles);
+                const additionalFiltered = additionalFiles.filter(f => f !== null);
+                validateFileRules(type, contentFiles, additionalFiltered);
 
                 const category = type;
-                const subtype = "single";
+                const subtype = (contentFiles.length + additionalFiltered.length) > 1
+                    ? (type === "video" ? "series" : "album")
+                    : "single";
 
                 const coverMeta = {
                     originalName: coverFile.name,
@@ -2171,7 +2579,8 @@
                     sizeBytes: coverFile.size
                 };
 
-                const assetsMeta = contentFiles.map(f => ({
+                const allContentFiles = [...contentFiles, ...additionalFiltered];
+                const assetsMeta = allContentFiles.map(f => ({
                     originalName: f.name,
                     contentType: f.type || "application/octet-stream",
                     sizeBytes: f.size
@@ -2212,7 +2621,7 @@
                 }
 
                 const coverChunks = Math.max(1, Math.ceil(coverFile.size / chunkSizeBytes));
-                const assetsChunks = contentFiles.reduce((sum, f) => sum + Math.max(1, Math.ceil(f.size / chunkSizeBytes)), 0);
+                const assetsChunks = allContentFiles.reduce((sum, f) => sum + Math.max(1, Math.ceil(f.size / chunkSizeBytes)), 0);
                 const totalChunks = coverChunks + assetsChunks;
 
                 let uploaded = 0;
@@ -2233,11 +2642,11 @@
                     signal: abortController.signal
                 });
 
-                for (let i = 0; i < contentFiles.length; i++) {
+                for (let i = 0; i < allContentFiles.length; i++) {
                     await uploadFileInChunks({
                         productId,
                         sessionId,
-                        file: contentFiles[i],
+                        file: allContentFiles[i],
                         kind: "asset",
                         index: i + 1,
                         chunkSizeBytes,
@@ -2310,7 +2719,7 @@
                 pendingDeleteProductId = null;
                 pendingDeleteRowEl = null;
 
-                showToast("Product removed..", "success");
+                showToast("Product removed.", "success");
 
                 await loadDashboardSummary();
 
@@ -2341,28 +2750,114 @@
             await deleteUser(user);
         }
 
+        function isQuarterMenuOpen() {
+            return document.getElementById("quarterOverlay")?.classList?.contains("show");
+        }
+
+        function positionQuarterMenu() {
+            const overlay = document.getElementById("quarterOverlay");
+            const menu = document.getElementById("quarterMenu");
+            const gear = document.getElementById("reportGear");
+            if (!overlay || !menu || !gear) return;
+            if (!overlay.classList.contains("show")) return;
+
+            const r = gear.getBoundingClientRect();
+            const mw = menu.offsetWidth || 240;
+            const mh = menu.offsetHeight || 70;
+
+            const left = Math.min(window.innerWidth - mw - 12, Math.max(12, r.left + r.width / 2 - mw / 2));
+            const top = Math.min(window.innerHeight - mh - 12, Math.max(12, r.bottom + 8));
+
+            menu.style.left = `${left}px`;
+            menu.style.top = `${top}px`;
+        }
+
+        function openQuarterMenu() {
+            const overlay = document.getElementById("quarterOverlay");
+            if (!overlay) return;
+
+            overlay.classList.add("show");
+            overlay.setAttribute("aria-hidden", "false");
+
+            document.querySelectorAll(".quarter-btn").forEach(b => {
+                b.disabled = false;
+                b.classList.remove("loading", "success");
+                const q = b.getAttribute("data-quarter");
+                b.innerHTML = `<span>${q}</span>`;
+            });
+
+            requestAnimationFrame(() => {
+                positionQuarterMenu();
+            });
+        }
+
+        function closeQuarterMenu() {
+            const overlay = document.getElementById("quarterOverlay");
+            if (!overlay) return;
+            overlay.classList.remove("show");
+            overlay.setAttribute("aria-hidden", "true");
+        }
+
+        function toggleQuarterMenu() {
+            if (isQuarterMenuOpen()) closeQuarterMenu();
+            else openQuarterMenu();
+        }
+
+        async function sendQuarterlyReport(quarter, btnEl) {
+            const q = Number(quarter);
+            if (![1, 2, 3, 4].includes(q)) return;
+
+            if (!btnEl) return;
+            if (btnEl.classList.contains("loading") || btnEl.classList.contains("success")) return;
+
+            try {
+                btnEl.classList.add("loading");
+                btnEl.disabled = true;
+
+                const year = new Date().getUTCFullYear();
+
+                await apiRequest("sendQuarterlyReport", "POST", { quarter: q, year });
+
+                btnEl.classList.remove("loading");
+                btnEl.classList.add("success");
+                btnEl.innerHTML = '<span><i class="fas fa-check"></i></span>';
+
+                showToast("Quarterly report sent by email.", "success");
+
+                setTimeout(() => {
+                    closeQuarterMenu();
+                }, 700);
+            } catch (e) {
+                console.error(e);
+                btnEl.classList.remove("loading");
+                btnEl.disabled = false;
+                btnEl.innerHTML = `<span>${String(q)}</span>`;
+                showToast(e.message || "Failed to send report email.", "error");
+            }
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = "index.html";
                 return;
             }
 
-            // Load PayPal cooldown state from localStorage
-            loadPaypalCooldownFromStorage();
-
-            try {
-                await loadPayoutSettings().catch(() => updatePayoutUI(false));
-
-                await Promise.all([
-                    loadDashboardSummary(),
-                    loadLinks().catch(() => [])
-                ]);
-
-                await loadTransactions();
-            } catch (e) {
-                console.error(e);
-                showToast("Failed to load dashboard.", "error");
+            const metadata = user.metadata;
+            if (metadata && metadata.creationTime) {
+                userRegistrationTime = new Date(metadata.creationTime).getTime();
             }
+
+            loadPaypalCooldownFromStorage();
+            startPaypalCooldownTimer();
+
+            const dataPromises = [
+                loadPayoutSettings().catch(() => updatePayoutUI(false)),
+                loadDashboardSummary().catch(() => { }),
+                loadLinks().catch(() => []),
+                loadTransactions().catch(() => { })
+            ];
+
+            await Promise.all(dataPromises);
         });
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -2430,6 +2925,8 @@
             document.getElementById("productType").addEventListener("change", (e) => {
                 const type = e.target.value;
                 setContentAcceptForType(type);
+                additionalFiles = [];
+                updateAdditionalFilesUI();
             });
 
             document.getElementById("coverFile").addEventListener("change", (e) => {
@@ -2442,14 +2939,15 @@
 
             document.getElementById("contentFiles").addEventListener("change", (e) => {
                 const type = document.getElementById("productType").value;
-                const files = Array.from(e.target.files || []);
-                if (!files.length) return;
+                const f = e.target.files?.[0];
+                if (!f) return;
 
-                contentFiles = files.slice(0, 1);
+                contentFiles = [f];
                 document.getElementById("contentConfirm").style.display = "block";
 
                 try {
-                    validateFileRules(type, contentFiles);
+                    validateFileRules(type, contentFiles, []);
+                    updateAdditionalFilesUI();
                 } catch (err) {
                     contentFiles = [];
                     document.getElementById("contentConfirm").style.display = "none";
@@ -2458,6 +2956,8 @@
                 }
             });
 
+            document.getElementById("addMoreBtn").addEventListener("click", addAdditionalFileSlot);
+
             document.getElementById("cancelDeleteProductBtn").addEventListener("click", () => {
                 pendingDeleteProductId = null;
                 pendingDeleteRowEl = null;
@@ -2465,6 +2965,40 @@
             });
 
             document.getElementById("confirmDeleteProductBtn").addEventListener("click", confirmDeleteProduct);
+
+            const gear = document.getElementById("reportGear");
+            if (gear) {
+                gear.addEventListener("click", toggleQuarterMenu);
+                gear.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggleQuarterMenu();
+                    }
+                });
+            }
+
+            const overlay = document.getElementById("quarterOverlay");
+            const menu = document.getElementById("quarterMenu");
+            if (overlay && menu) {
+                overlay.addEventListener("click", (e) => {
+                    if (e.target === overlay) closeQuarterMenu();
+                });
+
+                menu.querySelectorAll(".quarter-btn").forEach((btn) => {
+                    btn.addEventListener("click", () => {
+                        const q = btn.getAttribute("data-quarter");
+                        sendQuarterlyReport(q, btn);
+                    });
+                });
+
+                window.addEventListener("resize", () => {
+                    if (isQuarterMenuOpen()) positionQuarterMenu();
+                }, { passive: true });
+
+                window.addEventListener("scroll", () => {
+                    if (isQuarterMenuOpen()) positionQuarterMenu();
+                }, { passive: true });
+            }
 
             window.addEventListener("click", async (event) => {
                 const ids = ["deleteModal", "confirmModal", "createProductModal", "linksModal", "payoutModal", "confirmDeleteProductModal"];
@@ -2481,6 +3015,12 @@
 
             window.addEventListener("keydown", async (e) => {
                 if (e.key !== "Escape") return;
+
+                if (isQuarterMenuOpen()) {
+                    closeQuarterMenu();
+                    return;
+                }
+
                 const ids = ["confirmDeleteProductModal", "payoutModal", "linksModal", "createProductModal", "confirmModal", "deleteModal"];
                 for (const id of ids) {
                     const el = document.getElementById(id);
