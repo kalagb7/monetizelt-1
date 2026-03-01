@@ -3547,9 +3547,13 @@ exports.stripeWebhook = onRequest(
                                 Keep this code safe. You'll need it to access your purchase.
                             </p>
                         </div>
-                        <p style="font-size:14px;color:#6c757d;margin:24px 0 0;">
-                            If you have any issues, please contact support.
-                        </p>
+<p style="font-size:14px;color:#6c757d;margin:24px 0 0;">
+    If you have any issues, please contact 
+    <a href="mailto:contact@monetizelt.com" 
+       style="color:#007bff;text-decoration:none;font-weight:600;">
+       contact@monetizelt.com
+    </a>.
+</p>
                     `,
                     productId: productRef.id,
                     meta: { orderId: orderRef.id },
