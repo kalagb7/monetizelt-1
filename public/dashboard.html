@@ -329,10 +329,31 @@
             border-top: 3px solid var(--primary);
             grid-column: 1/-1;
             min-height: 120px;
-            max-height: 320px;
-            overflow-y: auto;
-            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
             padding: 8px;
+        }
+
+        .history .title {
+            flex-shrink: 0;
+            margin-bottom: 6px;
+        }
+
+        .transaction-list-wrapper {
+            flex: 1;
+            overflow: hidden;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
+
+        .transaction-list-limited {
+            max-height: none;
+        }
+
+        .transaction-list-wrapper.expanded {
+            overflow-y: auto;
+            max-height: 400px;
         }
 
         .transaction-item {
@@ -432,6 +453,31 @@
             padding: 5px;
         }
 
+        /* Updated: 10x10px button */
+        .show-more-btn {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            border: 1px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 8px auto 0;
+            transition: all 0.2s ease;
+        }
+
+        .show-more-btn:hover {
+            background: #e9f5ff;
+            transform: scale(1.1);
+        }
+
+        .show-more-btn i {
+            font-size: 6px;
+        }
+
         .payment-status {
             position: absolute;
             top: 2px;
@@ -513,7 +559,7 @@
             width: 52px;
             height: 52px;
             border-radius: 999px;
-            border: 2px solid var(--primary);
+            border: 1px solid var(--primary);
             background: linear-gradient(135deg, #ffffff 0%, #e9f5ff 100%);
             color: var(--primary);
             font-weight: 900;
@@ -532,32 +578,33 @@
 
         .quarter-btn::before {
             position: absolute;
-            font-size: 2.8em;
-            opacity: 0.35;
+            font-size: 2em;
+            opacity: 1;
             pointer-events: none;
             z-index: 0;
             filter: brightness(1.1) contrast(1.05);
         }
 
         .quarter-btn[data-quarter="1"]::before {
-            content: '🌙';
+            content: '🌱';
         }
 
         .quarter-btn[data-quarter="2"]::before {
-            content: '⭐';
+            content: '☀️';
         }
 
         .quarter-btn[data-quarter="3"]::before {
-            content: '🌸';
+            content: '⭐';
         }
 
         .quarter-btn[data-quarter="4"]::before {
-            content: '☀️';
+            content: '🌙';
         }
 
         .quarter-btn span {
             position: relative;
             z-index: 1;
+            opacity: 0;
         }
 
         .quarter-btn:hover {
@@ -1085,29 +1132,24 @@
             z-index: 2;
         }
 
-        .progress-star {
+        /* Updated: Small 10px emojis spawning every 3 seconds */
+        .progress-emoji {
             position: absolute;
-            color: #ffd700;
-            font-size: 12px;
-            animation: float-star 1.5s ease-in-out forwards;
+            font-size: 10px;
+            animation: float-emoji 1.2s ease-out forwards;
             z-index: 3;
             pointer-events: none;
             opacity: 1;
         }
 
-        @keyframes float-star {
+        @keyframes float-emoji {
             0% {
-                transform: translateY(0) rotate(0deg) scale(1);
+                transform: translate(0, 0) rotate(0deg) scale(1);
                 opacity: 1;
             }
 
-            50% {
-                transform: translateY(-15px) rotate(180deg) scale(1.3);
-                opacity: 0.8;
-            }
-
             100% {
-                transform: translateY(-30px) rotate(360deg) scale(0.5);
+                transform: translate(var(--tx), var(--ty)) rotate(360deg) scale(0.3);
                 opacity: 0;
             }
         }
@@ -1341,7 +1383,7 @@
             }
 
             .quarter-btn::before {
-                font-size: 2.5em;
+                font-size: 1.8em;
             }
 
             .quarter-menu {
@@ -1415,11 +1457,14 @@
 
             <div class="card history">
                 <div class="title">Transactions</div>
-                <div id="transactionList">
+                <div class="transaction-list-wrapper" id="transactionList">
                     <div class="transaction-item skeleton"></div>
                     <div class="transaction-item skeleton"></div>
                     <div class="transaction-item skeleton"></div>
                 </div>
+                <button type="button" id="showMoreTransactions" class="show-more-btn" style="display: none;">
+                    <i class="fas fa-plus"></i>
+                </button>
             </div>
         </div>
     </div>
@@ -1685,6 +1730,10 @@
         let paypalCooldownInterval = null;
         let userRegistrationTime = null;
 
+        let allTransactions = [];
+        let showingAllTransactions = false;
+        const MAX_TRANSACTIONS_DISPLAY = 5;
+
         const PAYPAL_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
 
         const SIZE_LIMITS = {
@@ -1701,6 +1750,9 @@
         let isShowingToast = false;
 
         const MIN_PRODUCT_PRICE_USD = 1;
+
+        // Updated: Spawn every 3 seconds instead of 200ms
+        let emojiSpawnInterval = null;
 
         function showToast(message, type = 'info') {
             toastQueue.push({ message, type });
@@ -1761,6 +1813,62 @@
             btn.disabled = !!loading;
         }
 
+        // Updated: Small 10px emojis floating in all directions
+        function spawnProgressEmoji() {
+            const btn = document.getElementById("createProductBtn");
+            if (!btn || !btn.classList.contains("progress")) return;
+
+            const emojis = ['⭐', '🌙'];
+            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+
+            const span = document.createElement('span');
+            span.className = 'progress-emoji';
+            span.textContent = emoji;
+
+            // Random starting position within button
+            const startX = Math.random() * 80 + 10; // 10-90%
+            const startY = Math.random() * 60 + 20; // 20-80%
+            span.style.left = `${startX}%`;
+            span.style.top = `${startY}%`;
+
+            // Random direction for floating (up, down, left, right, diagonal)
+            const directions = [
+                { x: 0, y: -80 },      // up
+                { x: 0, y: 80 },       // down
+                { x: -80, y: 0 },      // left
+                { x: 80, y: 0 },       // right
+                { x: -60, y: -60 },    // top-left
+                { x: 60, y: -60 },     // top-right
+                { x: -60, y: 60 },     // bottom-left
+                { x: 60, y: 60 }       // bottom-right
+            ];
+
+            const direction = directions[Math.floor(Math.random() * directions.length)];
+            span.style.setProperty('--tx', `${direction.x}px`);
+            span.style.setProperty('--ty', `${direction.y}px`);
+
+            btn.appendChild(span);
+
+            setTimeout(() => {
+                if (span.parentElement) span.remove();
+            }, 1200);
+        }
+
+        function startEmojiSpawn() {
+            if (emojiSpawnInterval) clearInterval(emojiSpawnInterval);
+            // Spawn emoji every 3 seconds
+            emojiSpawnInterval = setInterval(spawnProgressEmoji, 3000);
+            // Spawn one immediately
+            spawnProgressEmoji();
+        }
+
+        function stopEmojiSpawn() {
+            if (emojiSpawnInterval) {
+                clearInterval(emojiSpawnInterval);
+                emojiSpawnInterval = null;
+            }
+        }
+
         function setCreateBtnProgress(percent) {
             const btn = document.getElementById("createProductBtn");
             if (!btn) return;
@@ -1769,20 +1877,15 @@
             if (p <= 0) {
                 btn.classList.remove("progress");
                 btn.style.removeProperty("--p");
-                btn.querySelectorAll('.progress-star').forEach(star => star.remove());
+                stopEmojiSpawn();
+                // Remove any remaining emojis
+                btn.querySelectorAll('.progress-emoji').forEach(emoji => emoji.remove());
             } else {
-                btn.classList.add("progress");
-                btn.style.setProperty("--p", `${p}%`);
-
-                if (Math.random() > 0.5) {
-                    const star = document.createElement('i');
-                    star.className = 'fas fa-star progress-star';
-                    star.style.left = `${Math.random() * 80 + 10}%`;
-                    star.style.top = `${Math.random() * 60 + 20}%`;
-                    star.style.animationDelay = `${Math.random() * 0.3}s`;
-                    btn.appendChild(star);
-                    setTimeout(() => star.remove(), 1500);
+                if (!btn.classList.contains("progress")) {
+                    btn.classList.add("progress");
+                    startEmojiSpawn();
                 }
+                btn.style.setProperty("--p", `${p}%`);
             }
         }
 
@@ -2062,19 +2165,23 @@
             updatePayoutUI(!!s.paypalEmail);
         }
 
-        async function loadTransactions() {
-            const data = await apiRequest("getTransactionHistory");
+        // Updated: Toggle button icon between + and -
+        function renderTransactions(transactions, showAll = false) {
             const list = document.getElementById("transactionList");
+            const showMoreBtn = document.getElementById("showMoreTransactions");
+
             list.innerHTML = "";
 
-            const txs = data.transactions || [];
-            if (txs.length === 0) {
+            if (transactions.length === 0) {
                 list.innerHTML = '<div class="no-transactions">No transactions</div>';
+                showMoreBtn.style.display = "none";
                 return;
             }
 
-            const sliced = txs.slice(0, 5);
-            for (const t of sliced) {
+            const displayCount = showAll ? transactions.length : Math.min(MAX_TRANSACTIONS_DISPLAY, transactions.length);
+            const transactionsToShow = transactions.slice(0, displayCount);
+
+            for (const t of transactionsToShow) {
                 const date = t.date ? new Date(t.date) : (t.createdAt ? new Date(t.createdAt) : new Date());
                 const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
 
@@ -2109,6 +2216,34 @@
 
                 list.appendChild(item);
             }
+
+            if (transactions.length > MAX_TRANSACTIONS_DISPLAY) {
+                showMoreBtn.style.display = "flex";
+                // Update icon based on state
+                showMoreBtn.innerHTML = showAll
+                    ? '<i class="fas fa-minus"></i>'
+                    : '<i class="fas fa-plus"></i>';
+
+                if (showAll) {
+                    list.classList.add("expanded");
+                } else {
+                    list.classList.remove("expanded");
+                }
+            } else {
+                showMoreBtn.style.display = "none";
+                list.classList.remove("expanded");
+            }
+        }
+
+        async function loadTransactions() {
+            const data = await apiRequest("getTransactionHistory");
+            allTransactions = data.transactions || [];
+            renderTransactions(allTransactions, showingAllTransactions);
+        }
+
+        function toggleShowAllTransactions() {
+            showingAllTransactions = !showingAllTransactions;
+            renderTransactions(allTransactions, showingAllTransactions);
         }
 
         async function loadLinks() {
@@ -2957,6 +3092,8 @@
             });
 
             document.getElementById("addMoreBtn").addEventListener("click", addAdditionalFileSlot);
+
+            document.getElementById("showMoreTransactions").addEventListener("click", toggleShowAllTransactions);
 
             document.getElementById("cancelDeleteProductBtn").addEventListener("click", () => {
                 pendingDeleteProductId = null;
