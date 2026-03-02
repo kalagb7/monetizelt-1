@@ -789,7 +789,7 @@
             pointer-events: none;
         }
 
-        .buffering.active .buffering-dot {
+        .video-container.buffering .buffering-dot {
             animation: pulse 1.2s ease-out infinite;
         }
 
@@ -1263,25 +1263,20 @@
             }
         });
 
-        /* ===== Config ===== */
         const API_BASE = "https://us-central1-monetizelt-1.cloudfunctions.net";
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
 
-        // UI elements
         const skeletonBlock = document.getElementById('skeletonBlock');
         const contentContainer = document.getElementById('contentContainer');
         const errorContainer = document.getElementById('errorContainer');
         const errorMessage = document.getElementById('errorMessage');
-
         const productLink = document.getElementById('productLink');
         const productIdPill = document.getElementById('productIdPill');
         const productIdText = document.getElementById('productIdText');
         const btnCopyId = document.getElementById('btnCopyId');
-
         const btnMyProducts = document.getElementById('btnMyProducts');
         const btnInstall = document.getElementById('btnInstall');
-
         const unlockBackdrop = document.getElementById('unlockBackdrop');
         const btnCloseUnlock = document.getElementById('btnCloseUnlock');
         const btnUnlockCancel = document.getElementById('btnUnlockCancel');
@@ -1289,17 +1284,15 @@
         const unlockEmail = document.getElementById('unlockEmail');
         const unlockCode = document.getElementById('unlockCode');
         const unlockError = document.getElementById('unlockError');
-
         const drawerBackdrop = document.getElementById('drawerBackdrop');
         const btnCloseDrawer = document.getElementById('btnCloseDrawer');
         const librarySkeleton = document.getElementById('librarySkeleton');
         const libraryList = document.getElementById('libraryList');
 
-        // State
         let deviceFingerprint = null;
         let lastProduct = null;
 
-        /* ===== Device fingerprint (STABLE + MIGRATION) ===== */
+        /* ===== Cookie / IDB helpers (fingerprint stable) ===== */
         function getCookie(name) {
             const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.$?*|{}()[\]\\/+^]/g, '\\$&') + '=([^;]*)'));
             return m ? decodeURIComponent(m[1]) : '';
@@ -1309,7 +1302,6 @@
             const secure = (location.protocol === 'https:') ? '; Secure' : '';
             document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; Expires=${expires}; Path=/; SameSite=Lax${secure}`;
         }
-
         async function idbGet(dbName, storeName, key) {
             return new Promise((resolve, reject) => {
                 try {
@@ -1322,17 +1314,13 @@
                     req.onsuccess = () => {
                         const db = req.result;
                         const tx = db.transaction([storeName], 'readonly');
-                        const store = tx.objectStore(storeName);
-                        const gr = store.get(key);
+                        const gr = tx.objectStore(storeName).get(key);
                         gr.onsuccess = () => resolve(gr.result || null);
                         gr.onerror = () => reject(gr.error);
                     };
-                } catch (e) {
-                    reject(e);
-                }
+                } catch (e) { reject(e); }
             });
         }
-
         async function idbSet(dbName, storeName, key, value) {
             return new Promise((resolve, reject) => {
                 try {
@@ -1345,17 +1333,13 @@
                     req.onsuccess = () => {
                         const db = req.result;
                         const tx = db.transaction([storeName], 'readwrite');
-                        const store = tx.objectStore(storeName);
-                        store.put(value, key);
+                        tx.objectStore(storeName).put(value, key);
                         tx.oncomplete = () => resolve(true);
                         tx.onerror = () => reject(tx.error);
                     };
-                } catch (e) {
-                    reject(e);
-                }
+                } catch (e) { reject(e); }
             });
         }
-
         function randomId() {
             try {
                 const b = new Uint8Array(16);
@@ -1365,60 +1349,36 @@
                 return String(Date.now()) + "_" + Math.random().toString(16).slice(2);
             }
         }
-
         async function getOrCreateDeviceFingerprint() {
             const KEY = 'monetizelt_device_fp_v2';
             const LEGACY_KEY = 'monetizelt_device_fp';
             const DB_NAME = 'MonetizeltLocal';
             const STORE = 'kv';
-
-            // 1) preferred v2 localStorage
-            try {
-                const v2 = localStorage.getItem(KEY);
-                if (v2) return v2;
-            } catch { }
-
-            // 2) migrate legacy
+            try { const v2 = localStorage.getItem(KEY); if (v2) return v2; } catch { }
             try {
                 const legacy = localStorage.getItem(LEGACY_KEY);
                 if (legacy) {
                     try { localStorage.setItem(KEY, legacy); } catch { }
                     try { await idbSet(DB_NAME, STORE, KEY, legacy); } catch { }
-                    setCookie(KEY, legacy);
-                    return legacy;
+                    setCookie(KEY, legacy); return legacy;
                 }
             } catch { }
-
-            // 3) cookie
             const c = getCookie(KEY);
             if (c) {
                 try { localStorage.setItem(KEY, c); } catch { }
                 try { await idbSet(DB_NAME, STORE, KEY, c); } catch { }
                 return c;
             }
-
-            // 4) idb
             try {
                 const v = await idbGet(DB_NAME, STORE, KEY);
-                if (v) {
-                    try { localStorage.setItem(KEY, v); } catch { }
-                    setCookie(KEY, v);
-                    return v;
-                }
+                if (v) { try { localStorage.setItem(KEY, v); } catch { } setCookie(KEY, v); return v; }
             } catch { }
-
-            // 5) create stable id
             const v = "mz_" + randomId();
             try { localStorage.setItem(KEY, v); } catch { }
             try { sessionStorage.setItem(KEY, v); } catch { }
             try { await idbSet(DB_NAME, STORE, KEY, v); } catch { }
             setCookie(KEY, v);
-
-            // keep legacy key too
-            try {
-                if (!localStorage.getItem(LEGACY_KEY)) localStorage.setItem(LEGACY_KEY, v);
-            } catch { }
-
+            try { if (!localStorage.getItem(LEGACY_KEY)) localStorage.setItem(LEGACY_KEY, v); } catch { }
             return v;
         }
 
@@ -1429,24 +1389,20 @@
             errorMessage.textContent = msg || 'Access denied';
             errorContainer.style.display = 'block';
         }
-
         function setLoading(on) {
             errorContainer.style.display = 'none';
             skeletonBlock.style.display = on ? 'grid' : 'none';
             contentContainer.style.display = on ? 'none' : 'block';
         }
-
         function formatTime(s) {
             const sec = Math.max(0, Number(s || 0));
             const m = Math.floor(sec / 60);
             const r = Math.floor(sec % 60);
             return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
         }
-
         function safeText(s) {
             return String(s || '').replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
         }
-
         function inferMediaType(file) {
             const ct = String(file?.contentType || '').toLowerCase();
             const name = String(file?.originalName || '').toLowerCase();
@@ -1456,282 +1412,241 @@
             if (/\.(mp3|wav|ogg|flac)$/i.test(name)) return 'audio';
             return 'unknown';
         }
-
-        function posKeyFor(token, fileIndex) {
-            return `mz_pos_${token}_${fileIndex}`;
-        }
-
+        function posKeyFor(t, fileIndex) { return `mz_pos_${t}_${fileIndex}`; }
         function setHeaderProductUI({ title, productId, productUrl }) {
             const t = title || 'Product';
             productLink.textContent = t;
-
-            if (productUrl) {
-                productLink.href = productUrl;
-                productLink.style.pointerEvents = 'auto';
-                productLink.style.opacity = '1';
-            } else {
-                productLink.href = '#';
-                productLink.style.pointerEvents = 'none';
-                productLink.style.opacity = '.95';
-            }
-
-            if (productId) {
-                productIdText.textContent = `#${productId}`;
-                productIdPill.style.display = 'inline-flex';
-            } else {
-                productIdPill.style.display = 'none';
-            }
-
+            if (productUrl) { productLink.href = productUrl; productLink.style.pointerEvents = 'auto'; productLink.style.opacity = '1'; }
+            else { productLink.href = '#'; productLink.style.pointerEvents = 'none'; productLink.style.opacity = '.95'; }
+            if (productId) { productIdText.textContent = `#${productId}`; productIdPill.style.display = 'inline-flex'; }
+            else { productIdPill.style.display = 'none'; }
             document.title = `Monetizelt — ${t}`;
         }
-
         async function copyText(text) {
             const s = String(text || '').trim();
             if (!s) return false;
-            try {
-                await navigator.clipboard.writeText(s);
-                return true;
-            } catch {
-                const ta = document.createElement('textarea');
-                ta.value = s;
-                ta.style.position = 'fixed';
-                ta.style.left = '-9999px';
-                document.body.appendChild(ta);
-                ta.select();
-                try {
-                    document.execCommand('copy');
-                    document.body.removeChild(ta);
-                    return true;
-                } catch {
-                    document.body.removeChild(ta);
-                    return false;
-                }
-            }
+            try { await navigator.clipboard.writeText(s); return true; } catch { }
+            const ta = document.createElement('textarea');
+            ta.value = s; ta.style.position = 'fixed'; ta.style.left = '-9999px';
+            document.body.appendChild(ta); ta.select();
+            try { document.execCommand('copy'); document.body.removeChild(ta); return true; }
+            catch { document.body.removeChild(ta); return false; }
         }
 
-        /* ===== Modal controls ===== */
-        function openUnlockModal(prefillEmail = '') {
-            unlockError.style.display = 'none';
-            unlockError.textContent = '';
-            if (prefillEmail) unlockEmail.value = prefillEmail;
-
-            unlockBackdrop.style.display = 'flex';
-            unlockBackdrop.setAttribute('aria-hidden', 'false');
-
-            setTimeout(() => unlockEmail.focus(), 0);
-        }
-
-        function closeUnlockModal() {
-            unlockBackdrop.style.display = 'none';
-            unlockBackdrop.setAttribute('aria-hidden', 'true');
-        }
-
-        function setUnlockError(msg) {
-            unlockError.textContent = msg || 'Unable to unlock.';
-            unlockError.style.display = 'block';
-        }
-
-        /* ===== Drawer ===== */
-        function openDrawer() {
-            drawerBackdrop.style.display = 'flex';
-            drawerBackdrop.setAttribute('aria-hidden', 'false');
-        }
-        function closeDrawer() {
-            drawerBackdrop.style.display = 'none';
-            drawerBackdrop.setAttribute('aria-hidden', 'true');
-        }
-
-        btnCloseDrawer.addEventListener('click', closeDrawer);
-        drawerBackdrop.addEventListener('click', (e) => { if (e.target === drawerBackdrop) closeDrawer(); });
-
-        btnMyProducts.addEventListener('click', async () => {
-            openDrawer();
-            await loadBuyerLibrary();
-        });
-
-        /* ===== A2HS ===== */
-        let deferredPrompt = null;
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            btnInstall.style.display = 'inline-flex';
-        });
-
-        btnInstall.addEventListener('click', async () => {
-            if (!deferredPrompt) {
-                showToastLikeHint("On iPhone/iPad: tap Share, then 'Add to Home Screen'.");
-                return;
-            }
-            try {
-                deferredPrompt.prompt();
-                await deferredPrompt.userChoice;
-            } catch { }
-            deferredPrompt = null;
-            btnInstall.style.display = 'none';
-        });
-
-        function showToastLikeHint(text) {
-            const el = document.createElement('div');
-            el.textContent = text;
-            el.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:rgba(18,18,18,.88);color:#fff;padding:10px 12px;border-radius:12px;font-weight:900;font-size:12px;z-index:10000;max-width:92vw;text-align:center;animation:slideUp 0.3s ease-out;';
-            document.body.appendChild(el);
-            setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .25s ease'; }, 1600);
-            setTimeout(() => el.remove(), 2000);
-        }
-
-        async function setDynamicIconsFromCover(coverUrl) {
-            if (!coverUrl) return;
-
-            try {
-                const img = new Image();
-                img.crossOrigin = "anonymous";
-                img.src = coverUrl;
-
-                await new Promise((resolve, reject) => {
-                    img.onload = () => resolve(true);
-                    img.onerror = reject;
-                });
-
-                const size = 256;
-                const canvas = document.createElement('canvas');
-                canvas.width = size;
-                canvas.height = size;
-                const ctx = canvas.getContext('2d');
-
-                const iw = img.width, ih = img.height;
-                const scale = Math.max(size / iw, size / ih);
-                const w = iw * scale, h = ih * scale;
-                const x = (size - w) / 2, y = (size - h) / 2;
-                ctx.fillStyle = "#ffffff";
-                ctx.fillRect(0, 0, size, size);
-                ctx.drawImage(img, x, y, w, h);
-
-                const dataUrl = canvas.toDataURL('image/png');
-
-                document.getElementById('appleTouchIcon').setAttribute('href', dataUrl);
-                document.getElementById('favicon').setAttribute('href', dataUrl);
-            } catch { }
-        }
-
-        /* ===== API calls ===== */
+        /* ===== API ===== */
         async function apiFetch(path, { method = 'GET', headers = {}, body = null } = {}) {
             const h = new Headers(headers);
+            // ✅ Toujours envoyer le fingerprint dans le header pour les appels fetch
             if (deviceFingerprint) h.set('X-Device-Fingerprint', deviceFingerprint);
 
             const res = await fetch(`${API_BASE}${path}`, { method, headers: h, body });
-
             const contentType = res.headers.get('content-type') || '';
             const isJson = contentType.includes('application/json');
-
             if (!isJson) {
                 const t = await res.text().catch(() => '');
                 throw new Error(t || `Request failed (${res.status})`);
             }
-
             const data = await res.json();
             if (!res.ok || data?.success === false) {
                 const err = new Error(data?.error || `Request failed (${res.status})`);
                 err.code = data?.code || null;
                 err.httpStatus = res.status;
+                err.meta = data?.meta || null;
                 err.data = data;
                 throw err;
             }
             return data;
         }
 
+        // ✅ GET — tente d'accéder avec le fingerprint actuel
         async function tryAccessContent() {
             if (!token) throw new Error('Missing access token.');
             const q = `?token=${encodeURIComponent(token)}&userAgent=${encodeURIComponent(navigator.userAgent)}`;
             return await apiFetch(`/accessContent${q}`, { method: 'GET' });
         }
 
-        async function unlockDeviceWithEmailCode(email, code) {
-            return await apiFetch(`/getBuyerLibrary`, {
+        // ✅ POST — valide email+code ET autorise l'appareil en même temps
+        async function unlockWithEmailCode(email, code) {
+            if (!token) throw new Error('Missing access token.');
+            const q = `?token=${encodeURIComponent(token)}&userAgent=${encodeURIComponent(navigator.userAgent)}`;
+            return await apiFetch(`/accessContent${q}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email: String(email || '').trim(),
                     code: String(code || '').trim(),
-                    userAgent: navigator.userAgent,
-                    deviceFingerprint: deviceFingerprint || ''
                 })
             });
         }
 
         async function loadBuyerLibrary() {
             if (!deviceFingerprint) return;
-
             libraryList.innerHTML = '';
             librarySkeleton.style.display = 'grid';
-
             try {
                 const data = await apiFetch(`/getBuyerLibrary`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        email: "",
-                        code: "",
+                        deviceFingerprint: deviceFingerprint || '',
                         userAgent: navigator.userAgent,
-                        deviceFingerprint: deviceFingerprint || ''
                     })
                 });
-
                 const purchases = Array.isArray(data?.purchases) ? data.purchases : [];
                 librarySkeleton.style.display = 'none';
-
                 if (!purchases.length) {
-                    libraryList.innerHTML = `
-                        <div class="muted" style="text-align:center;padding:14px;">
-                          No products found for this device yet.<br />
-                          Unlock a purchase first (email + access code).
-                        </div>
-                    `;
+                    libraryList.innerHTML = `<div class="muted" style="text-align:center;padding:14px;">No products found for this device yet.<br/>Unlock a purchase first (email + access code).</div>`;
                     return;
                 }
-
                 libraryList.innerHTML = purchases.map(p => {
                     const title = safeText(p.productTitle || 'Product');
                     const cover = p.coverUrl ? `<img src="${safeText(p.coverUrl)}" alt="">` : '';
                     const when = p.purchasedAt ? new Date(p.purchasedAt).toLocaleString() : '';
                     const accessUrl = p.accessUrl || '#';
-
                     return `
-                        <div class="library-item">
-                          <div class="thumb">${cover}</div>
-                          <div class="meta">
-                            <div class="t">${title}</div>
-                            <div class="s">${when ? `Purchased: ${safeText(when)}` : ''}</div>
-                            <div class="row2">
-                              <a class="mini-link" href="${safeText(accessUrl)}" target="_blank" rel="noopener">Open</a>
-                              <span class="muted">•</span>
-                              <span class="muted">Open the product, then tap "Add to Home Screen".</span>
-                            </div>
-                          </div>
+                    <div class="library-item">
+                      <div class="thumb">${cover}</div>
+                      <div class="meta">
+                        <div class="t">${title}</div>
+                        <div class="s">${when ? `Purchased: ${safeText(when)}` : ''}</div>
+                        <div class="row2">
+                          <a class="mini-link" href="${safeText(accessUrl)}" target="_blank" rel="noopener">Open</a>
+                          <span class="muted">•</span>
+                          <span class="muted">Open the product, then tap "Add to Home Screen".</span>
                         </div>
-                    `;
+                      </div>
+                    </div>`;
                 }).join('');
-
             } catch (e) {
                 librarySkeleton.style.display = 'none';
-                libraryList.innerHTML = `
-                    <div class="muted" style="text-align:center;padding:14px;">
-                      Unable to load your products on this device.
-                    </div>
-                `;
+                libraryList.innerHTML = `<div class="muted" style="text-align:center;padding:14px;">Unable to load your products on this device.</div>`;
             }
         }
+
+        /* ===== Modal unlock ===== */
+        function openUnlockModal() {
+            unlockError.style.display = 'none';
+            unlockError.textContent = '';
+            unlockEmail.value = '';
+            unlockCode.value = '';
+            unlockBackdrop.style.display = 'flex';
+            unlockBackdrop.setAttribute('aria-hidden', 'false');
+            setTimeout(() => unlockEmail.focus(), 100);
+        }
+        function closeUnlockModal() {
+            unlockBackdrop.style.display = 'none';
+            unlockBackdrop.setAttribute('aria-hidden', 'true');
+        }
+        function setUnlockError(msg) {
+            unlockError.textContent = msg || 'Unable to unlock.';
+            unlockError.style.display = 'block';
+        }
+
+        btnCloseUnlock.addEventListener('click', closeUnlockModal);
+        btnUnlockCancel.addEventListener('click', closeUnlockModal);
+        unlockBackdrop.addEventListener('click', (e) => { if (e.target === unlockBackdrop) closeUnlockModal(); });
+
+        btnUnlockSubmit.addEventListener('click', async () => {
+            unlockError.style.display = 'none';
+            btnUnlockSubmit.disabled = true;
+            btnUnlockSubmit.textContent = 'Unlocking...';
+
+            try {
+                const email = String(unlockEmail.value || '').trim();
+                const code = String(unlockCode.value || '').trim();
+
+                if (!email || !email.includes('@')) {
+                    setUnlockError('Please enter a valid email address.');
+                    return;
+                }
+                if (!code || code.length < 6) {
+                    setUnlockError('Please enter your access code (min 6 characters).');
+                    return;
+                }
+
+                // ✅ POST vers accessContent → valide email+code → autorise appareil → retourne product
+                const data = await unlockWithEmailCode(email, code);
+
+                closeUnlockModal();
+
+                // Afficher directement le contenu retourné
+                setLoading(false);
+                if (data.product) {
+                    renderProduct(data.product);
+                } else {
+                    showError('Access granted but no product data returned.');
+                }
+
+                // Charger la bibliothèque en arrière-plan
+                loadBuyerLibrary().catch(() => { });
+
+            } catch (e) {
+                setUnlockError(e.message || 'Unlock failed. Check your email and access code.');
+            } finally {
+                btnUnlockSubmit.disabled = false;
+                btnUnlockSubmit.textContent = 'Unlock';
+            }
+        });
+
+        /* ===== Drawer ===== */
+        function openDrawer() { drawerBackdrop.style.display = 'flex'; drawerBackdrop.setAttribute('aria-hidden', 'false'); }
+        function closeDrawer() { drawerBackdrop.style.display = 'none'; drawerBackdrop.setAttribute('aria-hidden', 'true'); }
+        btnCloseDrawer.addEventListener('click', closeDrawer);
+        drawerBackdrop.addEventListener('click', (e) => { if (e.target === drawerBackdrop) closeDrawer(); });
+        btnMyProducts.addEventListener('click', async () => { openDrawer(); await loadBuyerLibrary(); });
+
+        /* ===== A2HS ===== */
+        let deferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; btnInstall.style.display = 'inline-flex'; });
+        btnInstall.addEventListener('click', async () => {
+            if (!deferredPrompt) { showToastLikeHint("On iPhone/iPad: tap Share → 'Add to Home Screen'."); return; }
+            try { deferredPrompt.prompt(); await deferredPrompt.userChoice; } catch { }
+            deferredPrompt = null; btnInstall.style.display = 'none';
+        });
+        function showToastLikeHint(text) {
+            const el = document.createElement('div');
+            el.textContent = text;
+            el.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:rgba(18,18,18,.88);color:#fff;padding:10px 12px;border-radius:12px;font-weight:900;font-size:12px;z-index:10000;max-width:92vw;text-align:center;';
+            document.body.appendChild(el);
+            setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .25s ease'; }, 1600);
+            setTimeout(() => el.remove(), 2000);
+        }
+
+        /* ===== Dynamic icons ===== */
+        async function setDynamicIconsFromCover(coverUrl) {
+            if (!coverUrl) return;
+            try {
+                const img = new Image(); img.crossOrigin = "anonymous"; img.src = coverUrl;
+                await new Promise((resolve, reject) => { img.onload = () => resolve(true); img.onerror = reject; });
+                const size = 256;
+                const canvas = document.createElement('canvas'); canvas.width = size; canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                const iw = img.width, ih = img.height;
+                const scale = Math.max(size / iw, size / ih);
+                const w = iw * scale, h = ih * scale;
+                const x = (size - w) / 2, y = (size - h) / 2;
+                ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, size, size); ctx.drawImage(img, x, y, w, h);
+                const dataUrl = canvas.toDataURL('image/png');
+                document.getElementById('appleTouchIcon').setAttribute('href', dataUrl);
+                document.getElementById('favicon').setAttribute('href', dataUrl);
+            } catch { }
+        }
+
+        /* ===== Copy product id ===== */
+        btnCopyId.addEventListener('click', async () => {
+            const txt = (productIdText.textContent || '').replace(/^#/, '').trim();
+            if (!txt || txt === '—') return;
+            const ok = await copyText(txt); if (ok) showToastLikeHint('Copied');
+        });
 
         /* ===== Render product ===== */
         function renderProduct(product) {
             lastProduct = product || {};
             const title = lastProduct.title || 'Product';
-
             const productId = lastProduct.id || lastProduct.productId || null;
             const productUrl = lastProduct.productUrl || (productId ? `/product.html?productId=${encodeURIComponent(productId)}` : null);
 
             setHeaderProductUI({ title, productId, productUrl });
-
             setDynamicIconsFromCover(lastProduct.coverUrl || null);
 
             const files = Array.isArray(lastProduct.files) ? lastProduct.files : [];
@@ -1741,39 +1656,41 @@
             }
 
             contentContainer.innerHTML = `
-                <div id="nowPlayingMount"></div>
-
-                <div class="section-title">${(String(lastProduct.subtype || '').toLowerCase() === 'album' || String(lastProduct.subtype || '').toLowerCase() === 'series') ? 'Playlist' : 'Content'}</div>
-                <div class="media-list" id="mediaList"></div>
-            `;
+            <div id="nowPlayingMount"></div>
+            <div class="section-title">${(String(lastProduct.subtype || '').toLowerCase() === 'album' || String(lastProduct.subtype || '').toLowerCase() === 'series') ? 'Playlist' : 'Content'}</div>
+            <div class="media-list" id="mediaList"></div>
+        `;
 
             const mediaList = document.getElementById('mediaList');
-
             const coverHtml = lastProduct.coverUrl ? `<img src="${safeText(lastProduct.coverUrl)}" alt="">` : '';
+            const fp = deviceFingerprint || '';
 
             mediaList.innerHTML = files.map((f, idx0) => {
                 const idx = Number(f.index || (idx0 + 1));
                 const kind = inferMediaType(f);
                 const titleLine = safeText(f.originalName || (kind === 'audio' ? `Track ${idx}` : `Episode ${idx}`));
                 const sub = safeText(kind === 'audio' ? 'Audio' : (kind === 'video' ? 'Video' : 'File'));
-
                 const playIcon = (kind === 'audio')
                     ? `<svg width="22" height="22" viewBox="0 0 24 24"><path fill="#007bff" d="M12,3V13.55A4,4 0 1,0 14,17V7H18V3H12Z"/></svg>`
                     : `<svg width="22" height="22" viewBox="0 0 24 24"><path fill="#007bff" d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg>`;
 
+                // ✅ FIX CRITIQUE: fingerprint en query param pour que <video src> et <audio src> fonctionnent
+                const streamUrl = f.downloadUrl
+                    ? `${f.downloadUrl}&fp=${encodeURIComponent(fp)}`
+                    : '';
+
                 return `
-                    <div class="media-item" data-index="${idx}" data-url="${safeText(f.downloadUrl || '')}" data-kind="${kind}">
-                        <div class="thumb">${coverHtml}</div>
-                        <div class="meta">
-                          <div class="t">${titleLine}</div>
-                          <div class="s">${sub}</div>
-                        </div>
-                        <div class="action">
-                          ${playIcon}
-                          <div class="eq" aria-hidden="true"><span></span><span></span><span></span></div>
-                        </div>
+                <div class="media-item" data-index="${idx}" data-url="${safeText(streamUrl)}" data-kind="${kind}">
+                    <div class="thumb">${coverHtml}</div>
+                    <div class="meta">
+                      <div class="t">${titleLine}</div>
+                      <div class="s">${sub}</div>
                     </div>
-                `;
+                    <div class="action">
+                      ${playIcon}
+                      <div class="eq" aria-hidden="true"><span></span><span></span><span></span></div>
+                    </div>
+                </div>`;
             }).join('');
 
             mediaList.querySelectorAll('.media-item').forEach(el => {
@@ -1786,12 +1703,11 @@
             });
 
             const first = files[0];
-            playSelected({
-                index: Number(first.index || 1),
-                url: String(first.downloadUrl || ''),
-                kind: inferMediaType(first),
-                title
-            }, { autoPlay: false });
+            const firstFp = deviceFingerprint || '';
+            const firstUrl = first.downloadUrl
+                ? `${first.downloadUrl}&fp=${encodeURIComponent(firstFp)}`
+                : '';
+            playSelected({ index: Number(first.index || 1), url: firstUrl, kind: inferMediaType(first), title }, { autoPlay: false });
         }
 
         function markPlayingItem(index, isPlaying) {
@@ -1807,95 +1723,69 @@
         function playSelected({ index, url, kind, title }, { autoPlay = false } = {}) {
             const mount = document.getElementById('nowPlayingMount');
             if (!mount) return;
-            if (!url) {
-                mount.innerHTML = `<div class="muted" style="text-align:center;padding:14px;">Missing file URL.</div>`;
-                return;
-            }
+            if (!url) { mount.innerHTML = `<div class="muted" style="text-align:center;padding:14px;">Missing file URL.</div>`; return; }
 
             if (kind === 'audio') {
                 mount.innerHTML = `
-                    <div class="audio-player" id="audioPlayer">
-                        <div class="thumb">${lastProduct?.coverUrl ? `<img src="${safeText(lastProduct.coverUrl)}" alt="">` : ''}</div>
-
-                        <div class="audio-controls">
-                          <div class="meta">
-                            <div class="t">${safeText(title || 'Audio')}</div>
-                            <div class="s">${safeText(lastProduct?.subtype === 'album' ? `Track #${index}` : `Audio #${index}`)}</div>
-                          </div>
-
-                          <div class="audio-progress" id="audioProgress" aria-label="Seek">
-                            <div class="bar" id="audioBar"></div>
-                          </div>
-
-                          <div class="audio-time">
-                            <span id="audioCur">00:00</span>
-                            <span id="audioDur">00:00</span>
-                          </div>
-                        </div>
-
-                        <div class="action" id="audioPlayBtn" title="Play / Pause">
-                          <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#007bff" d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg>
-                          <div class="eq" id="audioEq" aria-hidden="true" style="display:none;"><span></span><span></span><span></span></div>
-                        </div>
-
-                        <audio id="audioEl" preload="metadata" crossorigin="anonymous"></audio>
+                <div class="audio-player" id="audioPlayer">
+                    <div class="thumb">${lastProduct?.coverUrl ? `<img src="${safeText(lastProduct.coverUrl)}" alt="">` : ''}</div>
+                    <div class="audio-controls">
+                      <div class="meta">
+                        <div class="t">${safeText(title || 'Audio')}</div>
+                        <div class="s">${safeText(lastProduct?.subtype === 'album' ? `Track #${index}` : `Audio #${index}`)}</div>
+                      </div>
+                      <div class="audio-progress" id="audioProgress" aria-label="Seek"><div class="bar" id="audioBar"></div></div>
+                      <div class="audio-time"><span id="audioCur">00:00</span><span id="audioDur">00:00</span></div>
                     </div>
-                `;
-
+                    <div class="action" id="audioPlayBtn" title="Play / Pause">
+                      <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#007bff" d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg>
+                      <div class="eq" id="audioEq" aria-hidden="true" style="display:none;"><span></span><span></span><span></span></div>
+                    </div>
+                    <audio id="audioEl" preload="metadata" crossorigin="use-credentials"></audio>
+                </div>`;
                 initAudioPlayer(index, url, { autoPlay });
-
             } else if (kind === 'video') {
                 mount.innerHTML = `
-                    <div class="video-container" id="videoContainer">
-                        <video id="videoElement" class="custom-video" playsinline preload="metadata" crossorigin="anonymous" controlslist="nodownload"></video>
-
-                        <div class="buffering-dot" aria-hidden="true"></div>
-                        <div class="watermark" id="videoWatermark"></div>
-
-                        <div class="video-controls-container" id="videoControlsContainer">
-                          <div class="video-progress-container" id="videoProgressContainer" aria-label="Seek">
-                            <div class="video-buffered" id="videoBuffered"></div>
-                            <div class="video-progress-bar" id="videoProgressBar"></div>
-                            <div class="video-progress-preview" id="videoProgressPreview">00:00</div>
-                          </div>
-
-                          <div class="video-controls">
-                            <div class="video-left" style="display:flex;align-items:center;gap:6px;">
-                              <button class="ctrl-btn" id="videoPlayBtn" aria-label="Play/Pause">
-                                <svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg>
-                              </button>
-                              <div class="video-time" id="videoTime">00:00 / 00:00</div>
-                              <div class="video-volume-container">
-                                <button class="ctrl-btn" id="videoMuteBtn" aria-label="Mute/Unmute">
-                                  <svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z"/></svg>
-                                </button>
-                                <div class="video-volume-slider" id="videoVolumeSlider">
-                                  <div class="video-volume-level" id="videoVolumeLevel"></div>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div class="video-right">
-                              <select id="speedSelect" class="selector" title="Speed">
-                                <option value="0.5">0.5x</option>
-                                <option value="1" selected>1x</option>
-                                <option value="1.5">1.5x</option>
-                                <option value="2">2x</option>
-                              </select>
-
-                              <button class="ctrl-btn" id="pipBtn" title="Picture in Picture">
-                                <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#fff" d="M21,3A2,2 0 0,1 23,5V19A2,2 0 0,1 21,21H3A2,2 0 0,1 1,19V5A2,2 0 0,1 3,3H21M21,5H3V15H21V5M19,12H13V9H19V12Z"/></svg>
-                              </button>
-
-                              <button class="ctrl-btn" id="videoFullscreenBtn" aria-label="Fullscreen">
-                                <svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M5,5H10V7H7V10H5V5M19,5V10H17V7H14V5H19M5,19V14H7V17H10V19H5M19,19H14V17H17V14H19V19Z"/></svg>
-                              </button>
-                            </div>
+                <div class="video-container" id="videoContainer">
+                    <video id="videoElement" class="custom-video" playsinline preload="metadata" crossorigin="use-credentials" controlslist="nodownload"></video>
+                    <div class="buffering-dot" aria-hidden="true"></div>
+                    <div class="watermark" id="videoWatermark"></div>
+                    <div class="video-controls-container" id="videoControlsContainer">
+                      <div class="video-progress-container" id="videoProgressContainer" aria-label="Seek">
+                        <div class="video-buffered" id="videoBuffered"></div>
+                        <div class="video-progress-bar" id="videoProgressBar"></div>
+                        <div class="video-progress-preview" id="videoProgressPreview">00:00</div>
+                      </div>
+                      <div class="video-controls">
+                        <div style="display:flex;align-items:center;gap:6px;">
+                          <button class="ctrl-btn" id="videoPlayBtn" aria-label="Play/Pause">
+                            <svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg>
+                          </button>
+                          <div class="video-time" id="videoTime">00:00 / 00:00</div>
+                          <div class="video-volume-container">
+                            <button class="ctrl-btn" id="videoMuteBtn" aria-label="Mute/Unmute">
+                              <svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z"/></svg>
+                            </button>
+                            <div class="video-volume-slider" id="videoVolumeSlider"><div class="video-volume-level" id="videoVolumeLevel"></div></div>
                           </div>
                         </div>
+                        <div class="video-right">
+                          <select id="speedSelect" class="selector" title="Speed">
+                            <option value="0.5">0.5x</option>
+                            <option value="1" selected>1x</option>
+                            <option value="1.5">1.5x</option>
+                            <option value="2">2x</option>
+                          </select>
+                          <button class="ctrl-btn" id="pipBtn" title="Picture in Picture">
+                            <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#fff" d="M21,3A2,2 0 0,1 23,5V19A2,2 0 0,1 21,21H3A2,2 0 0,1 1,19V5A2,2 0 0,1 3,3H21M21,5H3V15H21V5M19,12H13V9H19V12Z"/></svg>
+                          </button>
+                          <button class="ctrl-btn" id="videoFullscreenBtn" aria-label="Fullscreen">
+                            <svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M5,5H10V7H7V10H5V5M19,5V10H17V7H14V5H19M5,19V14H7V17H10V19H5M19,19H14V17H17V14H19V19Z"/></svg>
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                `;
-
+                </div>`;
                 initVideoPlayer(index, url, title, { autoPlay });
             } else {
                 mount.innerHTML = `<div class="muted" style="text-align:center;padding:14px;">Unsupported file type.</div>`;
@@ -1909,71 +1799,39 @@
             const bar = document.getElementById('audioBar');
             const cur = document.getElementById('audioCur');
             const dur = document.getElementById('audioDur');
-
             audio.src = src;
-
             const key = posKeyFor(token, fileIndex);
-
             function setIcon(paused) {
                 playBtn.innerHTML = paused
-                    ? `<svg width="22" height="22" viewBox="0 0 24 24"><path fill="#007bff" d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg>
-                       <div class="eq" id="audioEq" aria-hidden="true" style="display:none;"><span></span><span></span><span></span></div>`
-                    : `<svg width="22" height="22" viewBox="0 0 24 24"><path fill="#007bff" d="M14,19H18V5H14M6,19H10V5H6V19Z"/></svg>
-                       <div class="eq" id="audioEq" aria-hidden="true" style="display:flex;"><span></span><span></span><span></span></div>`;
+                    ? `<svg width="22" height="22" viewBox="0 0 24 24"><path fill="#007bff" d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg><div class="eq" style="display:none;"><span></span><span></span><span></span></div>`
+                    : `<svg width="22" height="22" viewBox="0 0 24 24"><path fill="#007bff" d="M14,19H18V5H14M6,19H10V5H6V19Z"/></svg><div class="eq" style="display:flex;"><span></span><span></span><span></span></div>`;
             }
-
             function update() {
-                const d = audio.duration || 0;
-                const t = audio.currentTime || 0;
-                cur.textContent = formatTime(t);
-                dur.textContent = formatTime(d);
+                const d = audio.duration || 0, t = audio.currentTime || 0;
+                cur.textContent = formatTime(t); dur.textContent = formatTime(d);
                 bar.style.width = d ? `${(t / d) * 100}%` : '0%';
                 markPlayingItem(fileIndex, !audio.paused);
             }
-
             playBtn.addEventListener('click', async () => {
-                try {
-                    if (audio.paused) {
-                        await audio.play();
-                        setIcon(false);
-                    } else {
-                        audio.pause();
-                        setIcon(true);
-                    }
-                } catch { }
+                try { if (audio.paused) { await audio.play(); setIcon(false); } else { audio.pause(); setIcon(true); } } catch { }
             });
-
-            audio.addEventListener('timeupdate', () => {
-                update();
-                try { localStorage.setItem(key, String(audio.currentTime || 0)); } catch { }
-            });
-
+            audio.addEventListener('timeupdate', () => { update(); try { localStorage.setItem(key, String(audio.currentTime || 0)); } catch { } });
             audio.addEventListener('loadedmetadata', () => {
                 const saved = parseFloat(localStorage.getItem(key) || '');
                 if (!isNaN(saved) && saved > 0 && saved < (audio.duration || 1)) audio.currentTime = saved;
                 update();
-                if (autoPlay) {
-                    audio.play().then(() => setIcon(false)).catch(() => setIcon(true));
-                } else {
-                    setIcon(true);
-                }
+                if (autoPlay) audio.play().then(() => setIcon(false)).catch(() => setIcon(true));
+                else setIcon(true);
             });
-
             audio.addEventListener('play', () => { setIcon(false); update(); });
             audio.addEventListener('pause', () => { setIcon(true); update(); });
-            audio.addEventListener('ended', () => {
-                setIcon(true);
-                markPlayingItem(fileIndex, false);
-            });
-
+            audio.addEventListener('ended', () => { setIcon(true); markPlayingItem(fileIndex, false); });
             progress.addEventListener('click', (e) => {
                 const rect = progress.getBoundingClientRect();
                 const r = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
                 if (audio.duration) audio.currentTime = r * audio.duration;
             });
-
-            setIcon(true);
-            update();
+            setIcon(true); update();
         }
 
         function initVideoPlayer(fileIndex, src, title, { autoPlay = false } = {}) {
@@ -1992,168 +1850,85 @@
             const fullscreenBtn = document.getElementById('videoFullscreenBtn');
             const speedSelect = document.getElementById('speedSelect');
             const pipBtn = document.getElementById('pipBtn');
-
             video.src = src;
-
             const key = posKeyFor(token, fileIndex);
-
             const volKey = 'mz_video_vol';
             let savedVol = parseFloat(localStorage.getItem(volKey));
             if (isNaN(savedVol)) savedVol = 1;
             video.volume = savedVol;
             volumeLevel.style.width = `${video.volume * 100}%`;
-
             function setPlayIcon(paused) {
                 playBtn.innerHTML = paused
                     ? `<svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg>`
                     : `<svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M14,19H18V5H14M6,19H10V5H6V19Z"/></svg>`;
             }
-
             function updateVolumeIcon() {
-                if (video.volume === 0) {
-                    muteBtn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M12,4L9.91,6.09L12,8.18M4.27,3L3,4.27L7.73,9H3V15H7L12,20V13.27L16.25,17.53C15.58,18.04 14.83,18.46 14,18.7V20.77C15.38,20.45 16.63,19.82 17.68,18.96L19.73,21L21,19.73L12,10.73M19,12C19,12.94 18.8,13.82 18.46,14.64L19.97,16.15C20.62,14.91 21,13.5 21,12C21,7.72 18,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,12.63C16.5,12.43 16.5,12.21 16.5,12Z"/></svg>`;
-                } else if (video.volume < 0.5) {
-                    muteBtn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M5,9V15H9L14,20V4L9,9M18.5,12C18.5,10.23 17.5,8.71 16,7.97V16C17.5,15.29 18.5,13.76 18.5,12Z"/></svg>`;
-                } else {
-                    muteBtn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z"/></svg>`;
-                }
+                if (video.volume === 0) muteBtn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M12,4L9.91,6.09L12,8.18M4.27,3L3,4.27L7.73,9H3V15H7L12,20V13.27L16.25,17.53C15.58,18.04 14.83,18.46 14,18.7V20.77C15.38,20.45 16.63,19.82 17.68,18.96L19.73,21L21,19.73L12,10.73M19,12C19,12.94 18.8,13.82 18.46,14.64L19.97,16.15C20.62,14.91 21,13.5 21,12C21,7.72 18,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,12.63C16.5,12.43 16.5,12.21 16.5,12Z"/></svg>`;
+                else if (video.volume < 0.5) muteBtn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M5,9V15H9L14,20V4L9,9M18.5,12C18.5,10.23 17.5,8.71 16,7.97V16C17.5,15.29 18.5,13.76 18.5,12Z"/></svg>`;
+                else muteBtn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z"/></svg>`;
             }
-
             updateVolumeIcon();
             video.playbackRate = parseFloat(speedSelect.value || '1');
-
             function updateProgress() {
                 if (!video.duration) return;
                 const percent = (video.currentTime / video.duration) * 100;
                 progressBar.style.width = `${percent}%`;
                 timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
-
-                try {
-                    if (video.buffered.length) {
-                        const end = video.buffered.end(video.buffered.length - 1);
-                        bufferedBar.style.width = `${Math.min(100, (end / video.duration) * 100)}%`;
-                    }
-                } catch { }
+                try { if (video.buffered.length) { const end = video.buffered.end(video.buffered.length - 1); bufferedBar.style.width = `${Math.min(100, (end / video.duration) * 100)}%`; } } catch { }
             }
-
             function toggleFullscreen() {
                 if (document.fullscreenElement) document.exitFullscreen();
                 else videoContainer.requestFullscreen().catch(() => { });
             }
-
             function togglePlay() {
-                if (video.paused) {
-                    video.play().then(() => setPlayIcon(false)).catch(() => { });
-                } else {
-                    video.pause();
-                    setPlayIcon(true);
-                }
+                if (video.paused) video.play().then(() => setPlayIcon(false)).catch(() => { });
+                else { video.pause(); setPlayIcon(true); }
             }
-
             playBtn.addEventListener('click', togglePlay);
             video.addEventListener('click', togglePlay);
-
             videoContainer.addEventListener('dblclick', () => toggleFullscreen());
             fullscreenBtn.addEventListener('click', toggleFullscreen);
-
-            function seekAt(clientX) {
-                const rect = progressContainer.getBoundingClientRect();
-                const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-                if (video.duration) video.currentTime = ratio * video.duration;
-            }
-
             let isScrubbing = false;
-            progressContainer.addEventListener('mousedown', e => { isScrubbing = true; seekAt(e.clientX); });
-            window.addEventListener('mousemove', e => { if (isScrubbing) seekAt(e.clientX); });
+            progressContainer.addEventListener('mousedown', e => { isScrubbing = true; const rect = progressContainer.getBoundingClientRect(); const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width)); if (video.duration) video.currentTime = ratio * video.duration; });
+            window.addEventListener('mousemove', e => { if (!isScrubbing) return; const rect = progressContainer.getBoundingClientRect(); const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width)); if (video.duration) video.currentTime = ratio * video.duration; });
             window.addEventListener('mouseup', () => { isScrubbing = false; });
-
             progressContainer.addEventListener('mousemove', e => {
                 const rect = progressContainer.getBoundingClientRect();
                 const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
-                if (video.duration) {
-                    preview.style.display = 'block';
-                    preview.style.left = `${ratio * 100}%`;
-                    preview.textContent = formatTime(ratio * video.duration);
-                }
+                if (video.duration) { preview.style.display = 'block'; preview.style.left = `${ratio * 100}%`; preview.textContent = formatTime(ratio * video.duration); }
             });
             progressContainer.addEventListener('mouseleave', () => { preview.style.display = 'none'; });
-
             volumeSlider.addEventListener('click', e => {
                 const rect = volumeSlider.getBoundingClientRect();
-                const nv = (e.clientX - rect.left) / rect.width;
-                video.volume = Math.min(1, Math.max(0, nv));
+                video.volume = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
                 volumeLevel.style.width = `${video.volume * 100}%`;
-                localStorage.setItem(volKey, String(video.volume));
-                updateVolumeIcon();
+                localStorage.setItem(volKey, String(video.volume)); updateVolumeIcon();
             });
-
             muteBtn.addEventListener('click', () => {
-                if (video.volume > 0) {
-                    video.dataset.lastVolume = String(video.volume);
-                    video.volume = 0;
-                } else {
-                    video.volume = parseFloat(video.dataset.lastVolume) || 1;
-                }
+                if (video.volume > 0) { video.dataset.lastVolume = String(video.volume); video.volume = 0; }
+                else video.volume = parseFloat(video.dataset.lastVolume) || 1;
                 volumeLevel.style.width = `${video.volume * 100}%`;
-                localStorage.setItem(volKey, String(video.volume));
-                updateVolumeIcon();
+                localStorage.setItem(volKey, String(video.volume)); updateVolumeIcon();
             });
-
             let hideTo;
-            function showControls() {
-                videoContainer.classList.add('controls-visible');
-                controlsContainer.style.opacity = '1';
-            }
-            function scheduleHide() {
-                clearTimeout(hideTo);
-                hideTo = setTimeout(() => {
-                    if (!video.paused) controlsContainer.style.opacity = '0';
-                }, 2500);
-            }
-            videoContainer.addEventListener('mousemove', () => { showControls(); scheduleHide(); });
-            video.addEventListener('play', () => { showControls(); scheduleHide(); setPlayIcon(false); markPlayingItem(fileIndex, true); });
+            videoContainer.addEventListener('mousemove', () => { videoContainer.classList.add('controls-visible'); controlsContainer.style.opacity = '1'; clearTimeout(hideTo); hideTo = setTimeout(() => { if (!video.paused) controlsContainer.style.opacity = '0'; }, 2500); });
+            video.addEventListener('play', () => { videoContainer.classList.add('controls-visible'); controlsContainer.style.opacity = '1'; clearTimeout(hideTo); hideTo = setTimeout(() => { controlsContainer.style.opacity = '0'; }, 2500); setPlayIcon(false); markPlayingItem(fileIndex, true); });
             video.addEventListener('pause', () => { clearTimeout(hideTo); controlsContainer.style.opacity = '1'; setPlayIcon(true); markPlayingItem(fileIndex, false); });
-
-            function setBuffering(on) { videoContainer.classList.toggle('buffering', !!on); }
-            video.addEventListener('waiting', () => setBuffering(true));
-            video.addEventListener('playing', () => setBuffering(false));
-
+            video.addEventListener('waiting', () => videoContainer.classList.add('buffering'));
+            video.addEventListener('playing', () => videoContainer.classList.remove('buffering'));
             if (!('pictureInPictureEnabled' in document)) pipBtn.style.display = 'none';
-            pipBtn.addEventListener('click', async () => {
-                try {
-                    if (document.pictureInPictureElement) await document.exitPictureInPicture();
-                    else await video.requestPictureInPicture();
-                } catch { }
-            });
-
+            pipBtn.addEventListener('click', async () => { try { if (document.pictureInPictureElement) await document.exitPictureInPicture(); else await video.requestPictureInPicture(); } catch { } });
             speedSelect.addEventListener('change', () => { video.playbackRate = parseFloat(speedSelect.value || '1'); });
-
             video.addEventListener('loadedmetadata', () => {
                 timeDisplay.textContent = `00:00 / ${formatTime(video.duration)}`;
-
                 const saved = parseFloat(localStorage.getItem(key) || '');
                 if (!isNaN(saved) && saved > 0 && saved < (video.duration || 1)) video.currentTime = saved;
-
                 updateProgress();
-
-                if (autoPlay) {
-                    video.play().then(() => setPlayIcon(false)).catch(() => setPlayIcon(true));
-                } else {
-                    setPlayIcon(true);
-                }
+                if (autoPlay) video.play().then(() => setPlayIcon(false)).catch(() => setPlayIcon(true));
+                else setPlayIcon(true);
             });
-
-            video.addEventListener('timeupdate', () => {
-                updateProgress();
-                try { localStorage.setItem(key, String(video.currentTime || 0)); } catch { }
-            });
-
-            video.addEventListener('ended', () => {
-                setPlayIcon(true);
-                progressBar.style.width = '0%';
-                markPlayingItem(fileIndex, false);
-            });
-
+            video.addEventListener('timeupdate', () => { updateProgress(); try { localStorage.setItem(key, String(video.currentTime || 0)); } catch { } });
+            video.addEventListener('ended', () => { setPlayIcon(true); progressBar.style.width = '0%'; markPlayingItem(fileIndex, false); });
             document.addEventListener('keydown', (e) => {
                 if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
                 if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
@@ -2161,89 +1936,40 @@
                 else if (e.code === 'ArrowRight') { e.preventDefault(); video.currentTime = Math.min(video.duration || 1, (video.currentTime || 0) + 5); }
                 else if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggleFullscreen(); }
             });
-
             video.addEventListener('contextmenu', e => e.preventDefault());
         }
-
-        /* ===== Unlock flow ===== */
-        btnCloseUnlock.addEventListener('click', closeUnlockModal);
-        btnUnlockCancel.addEventListener('click', closeUnlockModal);
-        unlockBackdrop.addEventListener('click', (e) => { if (e.target === unlockBackdrop) closeUnlockModal(); });
-
-        btnUnlockSubmit.addEventListener('click', async () => {
-            unlockError.style.display = 'none';
-            btnUnlockSubmit.disabled = true;
-
-            try {
-                const email = String(unlockEmail.value || '').trim();
-                const code = String(unlockCode.value || '').trim();
-
-                if (!email || !email.includes('@')) {
-                    setUnlockError('Please enter a valid email.');
-                    return;
-                }
-                if (!code || code.length < 6) {
-                    setUnlockError('Please enter your access code.');
-                    return;
-                }
-
-                await unlockDeviceWithEmailCode(email, code);
-
-                closeUnlockModal();
-                setLoading(true);
-                const data = await tryAccessContent();
-                setLoading(false);
-                renderProduct(data.product || {});
-                await loadBuyerLibrary();
-
-            } catch (e) {
-                setUnlockError(e.message || 'Unlock failed.');
-            } finally {
-                btnUnlockSubmit.disabled = false;
-            }
-        });
-
-        /* ===== Copy product id ===== */
-        btnCopyId.addEventListener('click', async () => {
-            const txt = (productIdText.textContent || '').replace(/^#/, '').trim();
-            if (!txt || txt === '—') return;
-            const ok = await copyText(txt);
-            if (ok) showToastLikeHint('Copied');
-        });
 
         /* ===== Boot ===== */
         async function boot() {
             try {
-                if (!token) {
-                    showError('Missing access token.');
-                    return;
-                }
+                if (!token) { showError('Missing access token.'); return; }
 
                 setLoading(true);
-
                 deviceFingerprint = await getOrCreateDeviceFingerprint();
 
                 try {
+                    // ✅ Essai GET d'abord — marche si ce device est déjà autorisé
                     const data = await tryAccessContent();
                     setLoading(false);
                     renderProduct(data.product || {});
-
                     loadBuyerLibrary().catch(() => { });
 
                 } catch (e) {
                     setLoading(false);
 
-                    const msg = String(e.message || '');
-                    const isDeviceBlocked =
-                        msg.toLowerCase().includes('device') ||
-                        msg.toLowerCase().includes('verified device') ||
-                        msg.toLowerCase().includes('purchase device') ||
-                        String(e.code || '') === 'permission_denied';
+                    // ✅ Si device non autorisé → ouvrir modal unlock
+                    const needsUnlock =
+                        String(e.code || '') === 'device_verification_required' ||
+                        String(e.code || '') === 'permission_denied' ||
+                        (e.httpStatus === 401) ||
+                        String(e.message || '').toLowerCase().includes('device') ||
+                        String(e.message || '').toLowerCase().includes('not authorized');
 
-                    if (isDeviceBlocked) {
-                        openUnlockModal('');
-                        contentContainer.style.display = 'none';
+                    if (needsUnlock) {
+                        // Montrer le skeleton pendant que modal est ouvert
                         skeletonBlock.style.display = 'grid';
+                        contentContainer.style.display = 'none';
+                        openUnlockModal();
                     } else {
                         showError(e.message || 'Access denied.');
                     }

@@ -96,6 +96,8 @@ const PRODUCT_STATUS = {
 const PRODUCT_COLLECTION_ACTIVE = "products";
 const PRODUCT_COLLECTION_ARCHIVED = "archivedProducts";
 
+
+
 // Payout constraints
 const PAYPAL_PAYOUT_MAX_ITEMS_PER_BATCH = 100;
 const PAYPAL_PAYOUT_INTER_BATCH_DELAY_MS = 2200; // a few seconds between batches (safety)
@@ -125,6 +127,15 @@ const ALLOWED_ORIGINS = new Set([
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]);
+
+function sanitizeEmailSubject(text) {
+    return String(text || "")
+        .replace(/[\r\n\t]/g, " ")
+        .replace(/\s+/g, " ")
+        .replace(/[^\x20-\x7E]/g, "")
+        .trim()
+        .slice(0, 120);
+}
 
 function isAllowedOrigin(origin) {
     if (!origin) return false;
@@ -3730,15 +3741,16 @@ exports.stripeWebhook = onRequest(
             const orderRef = db.collection("orders").doc();
             const purchaseRef = db.collection("purchases").doc(orderRef.id);
 
-            // 🔒 Initialize authorized devices - USE REGULAR TIMESTAMP
             const nowDate = admin.firestore.Timestamp.now();
 
+            // ✅ FIX: Si on a un fingerprint depuis la session de paiement, on l'autorise
+            // directement. Sinon tableau vide → l'acheteur devra valider via email+code.
             const authorizedDevices = deviceFingerprintHash
                 ? [{
                     fingerprintHash: deviceFingerprintHash,
                     deviceInfo: orderDeviceInfo,
                     authorizedAt: nowDate,
-                    source: "purchase",
+                    source: "purchase_session",
                 }]
                 : [];
 
@@ -3877,39 +3889,39 @@ exports.stripeWebhook = onRequest(
             try {
                 await sendEmail("buyer_purchase_confirmed", {
                     to: buyerEmail,
-                    subject: ` Purchase Confirmed: ${productTitle}`,
+                    subject: `Purchase Confirmed: ${sanitizeEmailSubject(productTitle)}`,
                     title: "Your purchase is confirmed!",
                     preheader: "Your access link and code are ready.",
                     bodyHtml: `
-                        <p style="font-size:16px;line-height:24px;margin:16px 0;">
-                            Thank you for your purchase! Your content is now ready to access.
-                        </p>
-                        ${emailButton({
+                    <p style="font-size:16px;line-height:24px;margin:16px 0;">
+                        Thank you for your purchase! Your content is now ready to access.
+                    </p>
+                    ${emailButton({
                         href: accessUrl,
-                        label: " Access Your Content",
+                        label: "Access Your Content",
                         tone: "success"
                     })}
-                        <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;">
-                            <p style="margin:0 0 8px;font-weight:600;color:#212529;">
-                                Your Access Code:
-                            </p>
-                            <p style="margin:0;">
-                                <span style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:20px;font-weight:900;letter-spacing:2px;color:#007bff;">
-                                    ${accessCodePlain}
-                                </span>
-                            </p>
-                            <p style="margin:12px 0 0;font-size:13px;color:#6c757d;">
-                                Keep this code safe. You'll need it to access your purchase.
-                            </p>
-                        </div>
-<p style="font-size:14px;color:#6c757d;margin:24px 0 0;">
-    If you have any issues, please contact 
-    <a href="mailto:contact@monetizelt.com" 
-       style="color:#007bff;text-decoration:none;font-weight:600;">
-       contact@monetizelt.com
-    </a>.
-</p>
-                    `,
+                    <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;">
+                        <p style="margin:0 0 8px;font-weight:600;color:#212529;">
+                            Your Access Code:
+                        </p>
+                        <p style="margin:0;">
+                            <span style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:20px;font-weight:900;letter-spacing:2px;color:#007bff;">
+                                ${accessCodePlain}
+                            </span>
+                        </p>
+                        <p style="margin:12px 0 0;font-size:13px;color:#6c757d;">
+                            Keep this code safe. You'll need it to access your purchase.
+                        </p>
+                    </div>
+                    <p style="font-size:14px;color:#6c757d;margin:24px 0 0;">
+                        If you have any issues, please contact 
+                        <a href="mailto:contact@monetizelt.com" 
+                           style="color:#007bff;text-decoration:none;font-weight:600;">
+                           contact@monetizelt.com
+                        </a>.
+                    </p>
+                `,
                     productId: productRef.id,
                     meta: { orderId: orderRef.id },
                 });
@@ -3929,49 +3941,49 @@ exports.stripeWebhook = onRequest(
 
                     await sendEmail("seller_sale_notification", {
                         to: sellerEmail,
-                        subject: ` New Sale: ${productTitle}`,
+                        subject: `New Sale: ${sanitizeEmailSubject(productTitle)}`,
                         title: "You made a sale!",
                         preheader: `You earned $${sellerAmount.toFixed(2)} USD`,
                         bodyHtml: `
-                            <p style="font-size:16px;line-height:24px;margin:16px 0;">
-                                Great news! Your product "<strong>${productTitle}</strong>" was just purchased.
-                            </p>
-                            <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;">
-                                <table style="width:100%;border-collapse:collapse;">
-                                    <tr>
-                                        <td style="padding:8px 0;color:#6c757d;">Gross amount:</td>
-                                        <td style="padding:8px 0;text-align:right;font-weight:600;">
-                                            $${productPrice.toFixed(2)}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding:8px 0;color:#6c757d;">Stripe fee:</td>
-                                        <td style="padding:8px 0;text-align:right;color:#dc3545;">
-                                            -$${stripeFee.toFixed(2)}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding:8px 0;color:#6c757d;">Platform fee:</td>
-                                        <td style="padding:8px 0;text-align:right;color:#dc3545;">
-                                            -$${platformFee.toFixed(2)}
-                                        </td>
-                                    </tr>
-                                    <tr style="border-top:2px solid #dee2e6;">
-                                        <td style="padding:12px 0 0;font-weight:600;font-size:16px;">
-                                            Your earnings:
-                                        </td>
-                                        <td style="padding:12px 0 0;text-align:right;font-weight:700;font-size:18px;color:#28a745;">
-                                            $${sellerAmount.toFixed(2)}
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                            ${emailButton({
+                        <p style="font-size:16px;line-height:24px;margin:16px 0;">
+                            Great news! Your product "<strong>${productTitle}</strong>" was just purchased.
+                        </p>
+                        <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;">
+                            <table style="width:100%;border-collapse:collapse;">
+                                <tr>
+                                    <td style="padding:8px 0;color:#6c757d;">Gross amount:</td>
+                                    <td style="padding:8px 0;text-align:right;font-weight:600;">
+                                        $${productPrice.toFixed(2)}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:8px 0;color:#6c757d;">Stripe fee:</td>
+                                    <td style="padding:8px 0;text-align:right;color:#dc3545;">
+                                        -$${stripeFee.toFixed(2)}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:8px 0;color:#6c757d;">Platform fee:</td>
+                                    <td style="padding:8px 0;text-align:right;color:#dc3545;">
+                                        -$${platformFee.toFixed(2)}
+                                    </td>
+                                </tr>
+                                <tr style="border-top:2px solid #dee2e6;">
+                                    <td style="padding:12px 0 0;font-weight:600;font-size:16px;">
+                                        Your earnings:
+                                    </td>
+                                    <td style="padding:12px 0 0;text-align:right;font-weight:700;font-size:18px;color:#28a745;">
+                                        $${sellerAmount.toFixed(2)}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        ${emailButton({
                             href: dashUrl,
-                            label: "📊 View Dashboard",
+                            label: "View Dashboard",
                             tone: "primary"
                         })}
-                        `,
+                    `,
                         uid: String(sellerUid),
                         productId: productRef.id,
                     });
@@ -4021,7 +4033,7 @@ exports.stripeWebhook = onRequest(
 
 /* ============================= BUYER LIBRARY + ACCESS (AUTHORIZED DEVICES ONLY) ============================= */
 
-const MAX_AUTH_DEVICES_PER_ORDER = 2;
+const MAX_AUTH_DEVICES_PER_ORDER = 3;
 
 function uniqPush(arr, v) {
     const a = Array.isArray(arr) ? arr : [];
@@ -4067,10 +4079,28 @@ function normalizeAuthorized(order) {
     return { authorizedDevices, authorizedFingerprintHashes };
 }
 
+/**
+ * ✅ FIX: isFpAuthorized fiable (arrays + legacy)
+ */
 function isFpAuthorized(order, fpHash) {
     if (!fpHash) return false;
-    const { authorizedFingerprintHashes } = normalizeAuthorized(order);
-    return authorizedFingerprintHashes.includes(fpHash);
+    const o = order || {};
+
+    // Check direct array
+    const hashes = Array.isArray(o.authorizedFingerprintHashes)
+        ? o.authorizedFingerprintHashes
+        : [];
+    if (hashes.includes(fpHash)) return true;
+
+    // Check devices array (legacy)
+    const devices = Array.isArray(o.authorizedDevices) ? o.authorizedDevices : [];
+    if (devices.some(d => String(d?.fingerprintHash || "") === fpHash)) return true;
+
+    // Check legacy single fingerprint
+    const legacy = String(o.deviceFingerprintHash || "").trim();
+    if (legacy && legacy === fpHash) return true;
+
+    return false;
 }
 
 /**
@@ -4146,6 +4176,147 @@ async function migrateLegacyOrderAuthIfNeeded(orderDocRef, order) {
     }
 
     return { ...o, authorizedDevices, authorizedFingerprintHashes };
+}
+
+/* ============================= BUYER LIBRARY ============================= */
+
+exports.getBuyerLibrary = onRequest({ invoker: "public" }, async (req, res) => {
+    corsMiddleware(req, res, async (req2, res2) => {
+        const FN = "getBuyerLibrary";
+        try {
+            if (req2.method !== "POST") throw createHttpError(405, "method_not_allowed", "POST required.");
+
+            const { email = "", code = "", userAgent = "" } = req2.body || {};
+
+            // Fingerprint depuis header ou body
+            const fp = getDeviceFingerprintFromReq(req2)
+                || String(req2.body?.deviceFingerprint || "").trim();
+            const fpHash = fp ? sha256Hex(fp) : null;
+
+            if (!fpHash) {
+                throw createHttpError(400, "invalid_argument", "Unable to identify device.");
+            }
+
+            const apiBase = `https://${req2.get("host")}`;
+            const base = getPublicSiteOrigin();
+
+            let orderDocs = [];
+
+            // Si email fourni → chercher par email
+            if (email && isEmail(normalizeEmail(email))) {
+                const emailHash = sha256Hex(normalizeEmail(email));
+                const snap = await db.collection("orders")
+                    .where("buyerEmailHash", "==", emailHash)
+                    .limit(50)
+                    .get();
+                orderDocs = snap.docs;
+            } else {
+                // Chercher par fingerprint directement
+                const snap = await db.collection("orders")
+                    .where("authorizedFingerprintHashes", "array-contains", fpHash)
+                    .limit(50)
+                    .get();
+                orderDocs = snap.docs;
+
+                // ✅ Fallback: chercher par deviceFingerprintHash (legacy / premier achat)
+                if (orderDocs.length === 0) {
+                    const snap2 = await db.collection("orders")
+                        .where("deviceFingerprintHash", "==", fpHash)
+                        .limit(50)
+                        .get();
+                    orderDocs = snap2.docs;
+                }
+            }
+
+            const purchases = [];
+
+            for (const d of orderDocs) {
+                const o = d.data() || {};
+
+                // Vérifier que ce fingerprint est bien autorisé
+                if (!isFpAuthorized(o, fpHash)) continue;
+
+                const productId = String(o.productId || "");
+                let coverUrl = null;
+                let productTitle = o.productTitle || "Product";
+
+                if (productId) {
+                    coverUrl = `${apiBase}/getProductCover?productId=${encodeURIComponent(productId)}`;
+                    try {
+                        const pSnap = await db.collection(PRODUCT_COLLECTION_ACTIVE).doc(productId).get();
+                        if (pSnap.exists) {
+                            productTitle = pSnap.data()?.title || productTitle;
+                        }
+                    } catch { }
+                }
+
+                const accessUrl = `${base}/access.html?token=${encodeURIComponent(o.accessToken || "")}`;
+
+                purchases.push({
+                    orderId: d.id,
+                    productId,
+                    productTitle,
+                    coverUrl,
+                    accessUrl,
+                    accessToken: o.accessToken || null,
+                    purchasedAt: o.createdAt?.toDate?.()?.toISOString?.() || null,
+                });
+            }
+
+            res2.status(200).json({ success: true, purchases });
+        } catch (e) {
+            console.error(FN, e);
+            await logSystemError(FN, e);
+            res2.status(e.httpStatus || 500).json({
+                success: false,
+                error: e.message || "Internal error",
+                code: e.code || "internal"
+            });
+        }
+    });
+});
+
+/* ===== AUTHORIZE DEVICE ON ORDER (manquait) ===== */
+async function authorizeDeviceOnOrder({ orderDocRef, order, fpHash, deviceInfo, reason }) {
+    const { authorizedDevices, authorizedFingerprintHashes } = normalizeAuthorized(order);
+
+    // Déjà autorisé
+    if (authorizedFingerprintHashes.includes(fpHash)) {
+        return { added: false, count: authorizedFingerprintHashes.length };
+    }
+
+    // Limite max 2 appareils
+    if (authorizedFingerprintHashes.length >= MAX_AUTH_DEVICES_PER_ORDER) {
+        throw createHttpError(
+            403,
+            "max_devices_reached",
+            `Maximum ${MAX_AUTH_DEVICES_PER_ORDER} devices allowed per purchase.`
+        );
+    }
+
+    // ✅ FIX: utiliser un vrai timestamp JS, pas FieldValue
+    const newDevice = {
+        fingerprintHash: fpHash,
+        deviceInfo: deviceInfo || {},
+        authorizedAt: admin.firestore.Timestamp.now(),
+        source: reason || "email_code_verification",
+    };
+
+    const newDevices = [...authorizedDevices, newDevice];
+    const newHashes = [...authorizedFingerprintHashes, fpHash];
+
+    await orderDocRef.set({
+        authorizedDevices: newDevices,
+        authorizedFingerprintHashes: newHashes,
+        updatedAt: nowServerTimestamp(),
+    }, { merge: true });
+
+    // Sync purchases aussi
+    await db.collection("purchases").doc(String(orderDocRef.id))
+        .set({ authorizedFingerprintHashes: newHashes, updatedAt: nowServerTimestamp() }, { merge: true })
+        .catch(() => null);
+
+    return { added: true, count: newHashes.length };
 }
 
 /* ============================= ACCESS CONTENT (AUTHORIZED DEVICES ONLY) ============================= */
@@ -4304,12 +4475,12 @@ exports.accessContent = onRequest({ invoker: "public" }, async (req, res) => {
                     originalName: a.originalName,
                     contentType: a.contentType,
                     sizeBytes: a.sizeBytes || null,
-                    downloadUrl: `${apiBase}/downloadProductAsset?token=${encodeURIComponent(token)}&productId=${encodeURIComponent(order.productId)}&index=${encodeURIComponent(a.index)}`,
+                    downloadUrl: `${apiBase}/downloadProductAsset?token=${encodeURIComponent(token)}&productId=${encodeURIComponent(String(order.productId || ""))}&index=${encodeURIComponent(a.index)}`,
                 });
             }
 
             const coverUrl = product.coverPath
-                ? `${apiBase}/getProductCover?productId=${encodeURIComponent(order.productId)}`
+                ? `${apiBase}/getProductCover?productId=${encodeURIComponent(String(order.productId || ""))}`
                 : null;
 
             const { authorizedFingerprintHashes } = normalizeAuthorized(order);
@@ -4352,6 +4523,9 @@ exports.accessContent = onRequest({ invoker: "public" }, async (req, res) => {
             res2.status(200).json({
                 success: true,
                 product: {
+                    id: String(order.productId || ""),
+                    productId: String(order.productId || ""),
+                    productUrl: `${getPublicSiteOrigin()}/product.html?productId=${encodeURIComponent(String(order.productId || ""))}`,
                     title: product.title || "",
                     description: product.description || "",
                     category: product.category || "",
@@ -4368,7 +4542,7 @@ exports.accessContent = onRequest({ invoker: "public" }, async (req, res) => {
         } catch (e) {
             console.error(FN, e);
             await logSystemError(FN, e, {
-                token: req2.query.token ? req2.query.token.slice(0, 8) + "..." : null,
+                token: req2.query.token ? String(req2.query.token).slice(0, 8) + "..." : null,
                 method: req2.method,
                 hasFingerprint: !!getDeviceFingerprintFromReq(req2)
             });
@@ -4400,11 +4574,18 @@ exports.downloadProductAsset = onRequest({ invoker: "public" }, async (req, res)
                 throw createHttpError(400, "invalid_argument", "Invalid index.");
             }
 
-            const deviceFingerprint = getDeviceFingerprintFromReq(req2);
+            // ✅ FIX: <video src="..."> et <audio src="..."> ne peuvent pas envoyer
+            // de headers custom. On accepte donc le fingerprint en query param aussi.
+            const deviceFingerprint = getDeviceFingerprintFromReq(req2)
+                || String(req2.query.fp || req2.query.fingerprint || "").trim();
             const fpHash = deviceFingerprint ? sha256Hex(deviceFingerprint) : null;
 
             if (!fpHash) {
-                throw createHttpError(400, "invalid_argument", "Unable to identify device.");
+                throw createHttpError(
+                    400,
+                    "invalid_argument",
+                    "Unable to identify device. Please enable cookies and JavaScript."
+                );
             }
 
             // Vérifier token
