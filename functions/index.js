@@ -7,6 +7,7 @@ const { setGlobalOptions } = require("firebase-functions/v2");
 const { onRequest } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { onMessagePublished } = require("firebase-functions/v2/pubsub");
+const { beforeUserCreated } = require("firebase-functions/v2/identity");
 
 const admin = require("firebase-admin");
 const crypto = require("crypto");
@@ -21,7 +22,19 @@ const stripeWebhookSecret = defineSecret("STRIPE_WEBHOOK_SECRET");
 const appBaseUrl = defineSecret("APP_BASE_URL");
 
 // Optional (ops/admin alerts). If not configured, system still logs to Firestore.
+// ✅ Set this secret to: takeaction.monetizelt@outlook.com
 const adminAlertEmail = defineSecret("ADMIN_ALERT_EMAIL");
+
+// ✅ Weekly admin reports
+const adminOperationsEmail = defineSecret("ADMIN_OPERATIONS_EMAIL");   // operations.monetizelt@outlook.com
+const adminThisWeekEmail = defineSecret("ADMIN_THISWEEK_EMAIL");       // thisweek.monetizelt@outlook.com
+
+// ✅ Product reports -> admin review & actions
+const adminReportProductEmail = defineSecret("ADMIN_REPORTPRODUCT_EMAIL"); // reportproduct.monetizelt@outlook.com
+const adminActionSigningSecret = defineSecret("ADMIN_ACTION_SIGNING_SECRET");
+
+// ✅ Payouts report (Friday)
+const adminPayoutReportEmail = defineSecret("ADMIN_PAYOUTREPORT_EMAIL");   // report.monetizelt@outlook.com
 
 /* ============================= GLOBAL CONFIG ============================= */
 
@@ -775,7 +788,103 @@ async function sendEmail(type, { to, subject, title, bodyHtml, preheader = "", u
     });
 }
 
+exports.sendWelcomeEmail = beforeUserCreated(
+    { region: "us-central1", secrets: [sendgridApiKey, appBaseUrl] },
+    async (event) => {
+        const FN = "sendWelcomeEmail";
+        try {
+            const user = event.data;
+            const to = user?.email ? normalizeEmail(user.email) : null;
+            if (!to || !isEmail(to)) return {};
+
+            const base = getPublicSiteOrigin();
+            const dashboardUrl = `${base}/dashboard.html`;
+
+            await sendEmail("welcome", {
+                to,
+                subject: "Welcome to Monetizelt — Your market, your rules",
+                title: "Welcome to Monetizelt",
+                preheader: "Your market, your rules — create, share, cash in.",
+                bodyHtml: `
+                  <p style="font-size:16px;line-height:24px;margin:12px 0;">
+                    <strong>Your market, your rules</strong><br/>
+                    Create, share, cash in.
+                  </p>
+                  <p>
+                    You can now monetize your <strong>stories</strong>, <strong>videos</strong> and <strong>audio</strong> by creating products as:
+                    <strong>single</strong>, <strong>album</strong> or <strong>series</strong>.
+                  </p>
+                  ${emailButton({ href: dashboardUrl, label: "Open dashboard", tone: "primary" })}
+                  <p style="color:#6c757d;font-size:12px;margin-top:10px;">
+                    Need help? Reply to this email or contact <strong>contact@monetizelt.com</strong>.
+                  </p>
+                `,
+                meta: { uid: user.uid },
+            });
+
+            // Optional: ensure user doc has createdAt for weekly stats
+            await db.collection("users").doc(user.uid).set(
+                { createdAt: nowServerTimestamp(), updatedAt: nowServerTimestamp(), email: to },
+                { merge: true }
+            );
+        } catch (e) {
+            console.error(FN, e);
+            await logSystemError(FN, e);
+        }
+
+        return {};
+    }
+);
+
 /* ============================= STATS HELPERS ============================= */
+
+async function computeWeeklySalesAgg({ start, end }) {
+    const startTs = admin.firestore.Timestamp.fromDate(start);
+    const endTs = admin.firestore.Timestamp.fromDate(end);
+
+    const snap = await db
+        .collection("transactions")
+        .orderBy("createdAt", "asc")
+        .startAt(startTs)
+        .endBefore(endTs)
+        .limit(5000)
+        .get();
+
+    let salesCount = 0;
+    let gross = 0;
+    let stripeFees = 0;
+    let platformFees = 0;
+    let sellerNet = 0;
+
+    const sellerSet = new Set();
+
+    for (const d of snap.docs) {
+        const t = d.data() || {};
+        if (String(t.type || "") !== "sale") continue;
+
+        salesCount++;
+        if (t.userId) sellerSet.add(String(t.userId));
+
+        const g = Number(t.grossAmount || 0);
+        const sf = Number(t.stripeFee || 0);
+        const pf = Number(t.platformFee || 0);
+        const amt = Number(t.amount || 0); // sellerAmount
+
+        if (Number.isFinite(g)) gross += g;
+        if (Number.isFinite(sf)) stripeFees += sf;
+        if (Number.isFinite(pf)) platformFees += pf;
+        if (Number.isFinite(amt)) sellerNet += amt;
+    }
+
+    return {
+        sellersWithSales: sellerSet.size,
+        salesCount,
+        gross: Number(gross.toFixed(2)),
+        stripeFees: Number(stripeFees.toFixed(2)),
+        platformFees: Number(platformFees.toFixed(2)),
+        sellerNet: Number(sellerNet.toFixed(2)),
+    };
+}
 
 async function statsInitIfMissing(uid) {
     const ref = db.collection("userStats").doc(uid);
@@ -828,6 +937,46 @@ function fridayKeyFromDate(d) {
     return `${y}-${m}-${day}`;
 }
 
+function previousFridayNoonUtc(from = new Date()) {
+    const d = nextFridayNoonUtc(from);
+    d.setUTCDate(d.getUTCDate() - 7);
+    return d;
+}
+
+function weekRangeForFridayKey(fridayDate /* Date @ Friday noon UTC */) {
+    const end = new Date(fridayDate.getTime());
+    const start = new Date(fridayDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+    return { start, end };
+}
+
+function adminEmailOrFallback(secretName, fallback) {
+    const env = getEnvSecret(secretName);
+    if (env && isEmail(env)) return env;
+    return fallback;
+}
+
+function hmacHex(secret, payload) {
+    return crypto.createHmac("sha256", String(secret)).update(String(payload)).digest("hex");
+}
+
+function makeAdminSig({ action, reportId, exp }) {
+    const secret = adminActionSigningSecret.value();
+    const payload = `${action}|${reportId}|${exp}`;
+    return hmacHex(secret, payload);
+}
+
+function verifyAdminSig({ action, reportId, exp, sig }) {
+    const now = Date.now();
+    const e = Number(exp || 0);
+    if (!Number.isFinite(e) || e < now - 60_000) return false; // allow 1 min clock skew
+    const expected = makeAdminSig({ action, reportId, exp: e });
+    try {
+        return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(String(sig || "")));
+    } catch {
+        return false;
+    }
+}
+
 function weeklyScheduleLabel() {
     return "Weekly (Friday)";
 }
@@ -851,6 +1000,161 @@ function createPaypalPayoutsClient() {
     const client = new paypalPayouts.core.PayPalHttpClient(environment);
     return { paypalPayouts, client };
 }
+
+exports.sendWeeklyPayoutReport = onSchedule(
+    {
+        schedule: "30 18 * * 5", // Fri 18:30 UTC
+        timeZone: "UTC",
+        memory: "256MiB",
+        maxInstances: 1,
+        secrets: [sendgridApiKey, appBaseUrl, adminPayoutReportEmail],
+    },
+    async () => {
+        const FN = "sendWeeklyPayoutReport";
+        try {
+            const now = new Date();
+            const fridayNoon = new Date(now.getTime());
+            fridayNoon.setUTCHours(12, 0, 0, 0);
+            const fridayKey = fridayKeyFromDate(fridayNoon);
+
+            const to = adminEmailOrFallback("ADMIN_PAYOUTREPORT_EMAIL", "report.monetizelt@outlook.com");
+
+            const dedupSnap = await db
+                .collection("payoutDedup")
+                .where("fridayKey", "==", fridayKey)
+                .limit(5000)
+                .get();
+
+            let completed = 0, sent = 0, failed = 0, pending = 0, deferred = 0, preparing = 0, unknown = 0;
+            let totalNet = 0;
+
+            for (const d of dedupSnap.docs) {
+                const x = d.data() || {};
+                const st = String(x.status || "unknown");
+                const amt = Number(x.netAmount || 0);
+                if (Number.isFinite(amt)) totalNet += amt;
+
+                if (st === "completed") completed++;
+                else if (st === "sent") sent++;
+                else if (st === "failed") failed++;
+                else if (st === "pending") pending++;
+                else if (st === "deferred") deferred++;
+                else if (st === "preparing") preparing++;
+                else unknown++;
+            }
+
+            await sendEmail("admin_payout_report", {
+                to,
+                subject: `Monetizelt — Payout Report (${fridayKey})`,
+                title: `Payout Report — ${fridayKey}`,
+                preheader: `Completed: ${completed} • Total: ${money2(totalNet)} USD`,
+                bodyHtml: `
+                  <p>Weekly payout execution report (PayPal batch payouts).</p>
+                  ${kvTable([
+                    ["Payout key", `<span style="font-weight:900;color:#007bff;">${fridayKey}</span>`],
+                    ["Total payout amount (net)", `<span style="font-weight:900;color:#28a745;">${money2(totalNet)} USD</span>`],
+                    ["Completed", `<span style="font-weight:900;">${completed}</span>`],
+                    ["Sent (not yet finalized)", `<span style="font-weight:900;">${sent}</span>`],
+                    ["Pending", `<span style="font-weight:900;">${pending}</span>`],
+                    ["Failed", `<span style="font-weight:900;color:#dc3545;">${failed}</span>`],
+                    ["Deferred", `<span style="font-weight:900;">${deferred}</span>`],
+                    ["Preparing", `<span style="font-weight:900;">${preparing}</span>`],
+                    ["Unknown", `<span style="font-weight:900;">${unknown}</span>`],
+                    ["PayPal fees charged to sellers", `<span style="font-weight:900;">0.00 USD</span>`],
+                ])}
+                `,
+                meta: { fridayKey, counts: { completed, sent, pending, failed, deferred, preparing, unknown }, totalNet: Number(totalNet.toFixed(2)) },
+            });
+        } catch (e) {
+            console.error(FN, e);
+            await logSystemError(FN, e);
+        }
+    }
+);
+
+exports.emailUnderMinPayoutUsers = onSchedule(
+    {
+        schedule: "20 12 * * 5", // Fri 12:20 UTC
+        timeZone: "UTC",
+        memory: "256MiB",
+        maxInstances: 1,
+        secrets: [sendgridApiKey, appBaseUrl],
+    },
+    async () => {
+        const FN = "emailUnderMinPayoutUsers";
+        try {
+            const now = new Date();
+            const fridayNoon = new Date(now.getTime());
+            fridayNoon.setUTCHours(12, 0, 0, 0);
+            const fridayKey = fridayKeyFromDate(fridayNoon);
+
+            const base = getPublicSiteOrigin();
+            const dashboardUrl = `${base}/dashboard.html`;
+
+            let lastDoc = null;
+            const bw = db.bulkWriter();
+            let emailed = 0;
+
+            while (true) {
+                let q = db.collection("users").orderBy(admin.firestore.FieldPath.documentId()).limit(400);
+                if (lastDoc) q = q.startAfter(lastDoc);
+
+                const snap = await q.get();
+                if (snap.empty) break;
+
+                for (const docSnap of snap.docs) {
+                    lastDoc = docSnap;
+                    const uid = docSnap.id;
+                    const u = docSnap.data() || {};
+
+                    if (u.isBanned) continue;
+                    if (String(u.accountStatus || "active").toLowerCase() === "frozen") continue;
+
+                    const balance = Number(u.balance || 0);
+                    if (!Number.isFinite(balance) || balance <= 0) continue;
+                    if (balance >= MIN_PAYOUT_AMOUNT) continue;
+
+                    const to = u.email;
+                    if (!to || !isEmail(to)) continue;
+
+                    // dedupe per week
+                    const nudgeId = `${fridayKey}_${uid}`;
+                    const nudgeRef = db.collection("payoutNudges").doc(nudgeId);
+
+                    try {
+                        await bw.create(nudgeRef, { fridayKey, uid, balance, createdAt: nowServerTimestamp() });
+                    } catch {
+                        continue; // already sent
+                    }
+
+                    await sendEmail("payout_under_minimum", {
+                        to,
+                        subject: "Payout day update — not eligible yet",
+                        title: "You’re close to payout",
+                        preheader: `Minimum payout is ${MIN_PAYOUT_AMOUNT.toFixed(2)} USD.`,
+                        bodyHtml: `
+                          <p>Today is payout day at Monetizelt.</p>
+                          <p>Your current available balance is <strong>${money2(balance)} USD</strong>, which is below the <strong>${MIN_PAYOUT_AMOUNT.toFixed(2)} USD</strong> minimum.</p>
+                          <p>No payout was sent this week — you’ll automatically participate next Friday once you reach the minimum.</p>
+                          ${emailButton({ href: dashboardUrl, label: "Open dashboard", tone: "primary" })}
+                        `,
+                        uid,
+                    });
+
+                    emailed++;
+                }
+
+                if (snap.size < 400) break;
+            }
+
+            await bw.close();
+            console.log(`[${FN}] emailed=${emailed} fridayKey=${fridayKey}`);
+        } catch (e) {
+            console.error(FN, e);
+            await logSystemError(FN, e);
+        }
+    }
+);
 
 /**
  * ✅ IMPORTANT CHANGE (per your request):
@@ -882,8 +1186,23 @@ async function prepareWeeklyPayoutCandidates({ trigger = "schedule" } = {}) {
     console.log(`[${FN}] trigger=${trigger} now=${now.toISOString()} upcomingFriday=${upcomingFriday.toISOString()} key=${fridayKey}`);
 
     let lastDoc = null;
+
     let prepared = 0;
     let scanned = 0;
+
+    // ✅ New counters
+    let eligiblePreparedUsers = 0;
+    let eligiblePreparedAmount = 0;
+
+    let belowMinUsers = 0;
+    let belowMinAmount = 0;
+
+    let missingPaypalUsers = 0;
+
+    let bannedUsers = 0;
+    let bannedBalance = 0;
+
+    let frozenUsers = 0;
 
     const bw = db.bulkWriter();
 
@@ -901,14 +1220,36 @@ async function prepareWeeklyPayoutCandidates({ trigger = "schedule" } = {}) {
             const uid = docSnap.id;
             const u = docSnap.data() || {};
 
-            if (u.isBanned) continue;
-            if (String(u.accountStatus || "active").toLowerCase() === "frozen") continue;
-
             const balance = Number(u.balance || 0);
             const paypalEmail = String(u.paypalEmail || "").trim();
 
+            // ✅ banned
+            if (u.isBanned) {
+                bannedUsers++;
+                if (Number.isFinite(balance) && balance > 0) bannedBalance += balance;
+                continue;
+            }
+
+            // ✅ frozen
+            if (String(u.accountStatus || "active").toLowerCase() === "frozen") {
+                frozenUsers++;
+                continue;
+            }
+
+            // ✅ under minimum (informational)
+            if (Number.isFinite(balance) && balance > 0 && balance < MIN_PAYOUT_AMOUNT) {
+                belowMinUsers++;
+                belowMinAmount += balance;
+            }
+
+            // only >= min are candidates
             if (!Number.isFinite(balance) || balance < MIN_PAYOUT_AMOUNT) continue;
-            if (!isEmail(paypalEmail)) continue;
+
+            // ✅ missing PayPal for eligible balance
+            if (!isEmail(paypalEmail)) {
+                missingPaypalUsers++;
+                continue;
+            }
 
             // If already prepared for this Friday, skip
             const existing = u.payoutCandidate || null;
@@ -932,13 +1273,27 @@ async function prepareWeeklyPayoutCandidates({ trigger = "schedule" } = {}) {
             );
 
             prepared++;
+            eligiblePreparedUsers++;
+            eligiblePreparedAmount += balance;
         }
     }
 
     await bw.close();
 
-    console.log(`[${FN}] scanned=${scanned} prepared=${prepared}`);
-    return { scanned, prepared, fridayKey };
+    const stats = {
+        eligiblePreparedUsers,
+        eligiblePreparedAmount: Number(eligiblePreparedAmount.toFixed(2)),
+        belowMinUsers,
+        belowMinAmount: Number(belowMinAmount.toFixed(2)),
+        missingPaypalUsers,
+        bannedUsers,
+        bannedBalance: Number(bannedBalance.toFixed(2)),
+        frozenUsers,
+    };
+
+    console.log(`[${FN}] scanned=${scanned} prepared=${prepared} stats=${JSON.stringify(stats)}`);
+
+    return { scanned, prepared, fridayKey, stats };
 }
 
 /**
@@ -4249,184 +4604,420 @@ async function freezeSellerAccountForReports({ sellerUid, productId, productTitl
     return { until };
 }
 
-exports.reportProduct = onRequest({ invoker: "public", secrets: [sendgridApiKey, appBaseUrl] }, async (req, res) => {
-    corsMiddleware(req, res, async (req2, res2) => {
-        const FN = "reportProduct";
-        try {
-            const { productId, reason, reporterUid = "" } = req2.body || {};
-            if (!productId) throw createHttpError(400, "invalid_argument", "Missing productId.");
-            if (!reason || String(reason).length < 3) throw createHttpError(400, "invalid_argument", "Missing reason.");
+exports.reportProduct = onRequest(
+    { invoker: "public", secrets: [sendgridApiKey, appBaseUrl, adminReportProductEmail, adminActionSigningSecret] },
+    async (req, res) => {
+        corsMiddleware(req, res, async (req2, res2) => {
+            const FN = "reportProduct";
+            try {
+                const { productId, reason, reporterUid = "" } = req2.body || {};
+                if (!productId) throw createHttpError(400, "invalid_argument", "Missing productId.");
+                if (!reason || String(reason).length < 3) throw createHttpError(400, "invalid_argument", "Missing reason.");
 
-            const reasonKey = normalizeReportReason(reason);
-            if (!reasonKey) {
-                throw createHttpError(400, "invalid_argument", "Invalid reason. Allowed: Violence, Copyright, Adult, Scam.");
-            }
+                const reasonKey = normalizeReportReason(reason);
+                if (!reasonKey) {
+                    throw createHttpError(400, "invalid_argument", "Invalid reason. Allowed: Violence, Copyright, Adult, Scam.");
+                }
 
-            const productRef = db.collection(PRODUCT_COLLECTION_ACTIVE).doc(String(productId));
-            const productSnap = await productRef.get();
-            if (!productSnap.exists) throw createHttpError(404, "not_found", "Product not found.");
-            const product = productSnap.data();
+                const productRef = db.collection(PRODUCT_COLLECTION_ACTIVE).doc(String(productId));
+                const productSnap = await productRef.get();
+                if (!productSnap.exists) throw createHttpError(404, "not_found", "Product not found.");
+                const product = productSnap.data() || {};
 
-            const ip = req2.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req2.ip || "";
-            const reporterKey = sha256Hex(reporterUid || ip || "anonymous");
+                const ip = req2.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req2.ip || "";
+                const reporterKey = sha256Hex(reporterUid || ip || "anonymous");
 
-            // ✅ Dedupe per product + reason + reporter
-            const reportId = `${productRef.id}_${reasonKey}_${reporterKey}`;
-            const reportRef = db.collection("productReports").doc(reportId);
+                // ✅ Dedupe per product + reason + reporter
+                const reportId = `${productRef.id}_${reasonKey}_${reporterKey}`;
+                const reportRef = db.collection("productReports").doc(reportId);
 
-            const created = await db.runTransaction(async (tx) => {
-                const existing = await tx.get(reportRef);
-                if (existing.exists) return false;
+                const created = await db.runTransaction(async (tx) => {
+                    const existing = await tx.get(reportRef);
+                    if (existing.exists) return false;
 
-                tx.set(reportRef, {
-                    productId: productRef.id,
-                    sellerUid: product.uid,
-                    reason: reasonKey,
-                    reporterKey,
-                    createdAt: nowServerTimestamp(),
-                });
-
-                tx.set(
-                    productRef,
-                    {
-                        reportAgg: {
-                            [reasonKey]: {
-                                uniqueCount: admin.firestore.FieldValue.increment(1),
-                                lastUpdated: nowServerTimestamp(),
-                            },
-                        },
+                    tx.set(reportRef, {
+                        productId: productRef.id,
+                        sellerUid: product.uid,
+                        reason: reasonKey,
+                        reporterKey,
+                        status: "open",
+                        createdAt: nowServerTimestamp(),
                         updatedAt: nowServerTimestamp(),
-                    },
-                    { merge: true }
-                );
-
-                return true;
-            });
-
-            // Load latest count
-            const fresh = await productRef.get();
-            const agg = Number(fresh.data()?.reportAgg?.[reasonKey]?.uniqueCount || 0);
-
-            // ✅ Enforce once when threshold reached (>=3) for same allowed reason
-            let enforced = false;
-            let freezeInfo = null;
-
-            if (created && agg >= 3) {
-                const sellerUid = String(fresh.data()?.uid || product.uid || "");
-                const productTitle = String(fresh.data()?.title || product.title || "Untitled");
-
-                // Transaction ensures we don't enforce multiple times
-                const { didEnforce } = await db.runTransaction(async (tx) => {
-                    const pSnap2 = await tx.get(productRef);
-                    if (!pSnap2.exists) return { didEnforce: false };
-                    const p2 = pSnap2.data() || {};
-
-                    const already = String(p2?.enforcement?.autoAction || "") === "reports_auto_takedown"
-                        && String(p2?.enforcement?.reasonKey || "") === String(reasonKey);
-
-                    if (already) return { didEnforce: false };
-                    if (String(p2.status || "") !== PRODUCT_STATUS.ACTIVE) return { didEnforce: false };
+                    });
 
                     tx.set(
                         productRef,
                         {
-                            status: PRODUCT_STATUS.TAKEN_DOWN,
-                            enforcement: {
-                                autoAction: "reports_auto_takedown",
-                                status: "taken_down_by_reports",
-                                reasonKey,
-                                reasonLabel: REPORT_REASON_LABEL[reasonKey] || reasonKey,
-                                threshold: 3,
-                                decidedAt: nowServerTimestamp(),
-                                note: `Auto takedown: '${reasonKey}' reported by 3 unique reporters.`,
+                            reportAgg: {
+                                [reasonKey]: {
+                                    uniqueCount: admin.firestore.FieldValue.increment(1),
+                                    lastUpdated: nowServerTimestamp(),
+                                },
                             },
                             updatedAt: nowServerTimestamp(),
                         },
                         { merge: true }
                     );
 
-                    return { didEnforce: true };
+                    return true;
                 });
 
-                if (didEnforce) {
-                    enforced = true;
+                const fresh = await productRef.get();
+                const agg = Number(fresh.data()?.reportAgg?.[reasonKey]?.uniqueCount || 0);
 
-                    // Freeze seller for 7 days
-                    freezeInfo = await freezeSellerAccountForReports({
-                        sellerUid,
-                        productId: productRef.id,
-                        productTitle,
-                        reasonKey,
-                    });
+                // ✅ No auto enforcement anymore. Always notify admin.
+                const adminTo = adminEmailOrFallback("ADMIN_REPORTPRODUCT_EMAIL", "reportproduct.monetizelt@outlook.com");
 
-                    // Email seller: improved (English) + buttons only
-                    try {
-                        const sellerDoc = await db.collection("users").doc(sellerUid).get();
-                        const sellerEmail = sellerDoc.data()?.email;
+                const base = getPublicSiteOrigin();
+                const productUrl = `${base}/product.html?productId=${productRef.id}`;
 
-                        if (sellerEmail && isEmail(sellerEmail)) {
-                            const base = getPublicSiteOrigin();
-                            const dashboardUrl = `${base}/dashboard.html`;
+                // Signed review link (valid 7 days)
+                const exp = Date.now() + 7 * 24 * 60 * 60 * 1000;
+                const reviewAction = "review";
+                const sig = makeAdminSig({ action: reviewAction, reportId: reportRef.id, exp });
 
-                            const reasonLabel = REPORT_REASON_LABEL[reasonKey] || reasonKey;
-                            const untilStr = freezeInfo?.until ? freezeInfo.until.toUTCString() : "in 7 days";
+                const apiBase = `https://${req2.get("host")}`;
+                const reviewUrl = `${apiBase}/adminReportReviewPage?reportId=${encodeURIComponent(reportRef.id)}&exp=${exp}&sig=${sig}`;
 
-                            await sendEmail("product_takedown_reports", {
-                                to: sellerEmail,
-                                subject: "Product removed & account temporarily frozen (7 days)",
-                                title: "Account temporarily frozen",
-                                preheader: `Your product was removed due to repeated reports (${reasonLabel}).`,
-                                bodyHtml: `
-                                  <p>
-                                    Your product <strong>${productTitle}</strong> has been removed from Monetizelt after receiving
-                                    <strong> independent report</strong> for the same subject.
-                                  </p>
+                await sendEmail("admin_product_reported", {
+                    to: adminTo,
+                    subject: `Product report — ${REPORT_REASON_LABEL[reasonKey] || reasonKey} (count: ${agg})`,
+                    title: "Product reported",
+                    preheader: `Reason: ${REPORT_REASON_LABEL[reasonKey] || reasonKey} • Unique reports: ${agg}`,
+                    bodyHtml: `
+                      <p>A buyer reported a product. No automatic action was taken.</p>
+                      ${kvTable([
+                        ["Product ID", `<span style="font-weight:900;">${productRef.id}</span>`],
+                        ["Seller UID", `<span style="font-weight:900;">${product.uid}</span>`],
+                        ["Reason", `<span style="font-weight:900;color:#dc3545;">${REPORT_REASON_LABEL[reasonKey] || reasonKey}</span>`],
+                        ["Unique reports (same reason)", `<span style="font-weight:900;">${agg}</span>`],
+                    ])}
+                      ${emailButton({ href: productUrl, label: "Open product page", tone: "neutral" })}
+                      ${emailButton({ href: reviewUrl, label: "Review & take action (Admin)", tone: "danger" })}
+                      <p style="color:#6c757d;font-size:12px;margin-top:10px;">
+                        This admin link expires automatically. Actions require confirmation.
+                      </p>
+                    `,
+                    meta: { productId: productRef.id, sellerUid: product.uid, reasonKey, agg, reportId: reportRef.id, created },
+                });
 
-                                  ${kvTable([
-                                    ["Reported category", `<span style="font-weight:900;color:#dc3545;">${reasonLabel}</span>`],
-                                    ["Product status", `<span style="font-weight:800;">Removed from sale</span>`],
-                                    ["Account status", `<span style="font-weight:900;color:#dc3545;">Frozen</span>`],
-                                    ["Freeze duration", `<span style="font-weight:800;">7 days</span>`],
-                                    ["Expected reactivation", `<span style="font-weight:800;">${untilStr}</span>`],
-                                ])}
+                res2.status(200).json({
+                    success: true,
+                    created,
+                    reason: reasonKey,
+                    reasonLabel: REPORT_REASON_LABEL[reasonKey] || reasonKey,
+                    uniqueCountForReason: agg,
+                    enforced: false,
+                });
+            } catch (e) {
+                console.error(FN, e);
+                await logSystemError(FN, e);
+                res2.status(e.httpStatus || 500).json({ success: false, error: e.message || "Internal error", code: e.code || "internal" });
+            }
+        });
+    }
+);
 
-                                  <p style="margin-top:12px;">
-                                    During this time, your account is temporarily restricted while we make a final decision.
-                                    If the report is confirmed, your account may be permanently banned.
-                                  </p>
+exports.adminReportReviewPage = onRequest(
+    { invoker: "public", secrets: [appBaseUrl, adminActionSigningSecret] },
+    async (req, res) => {
+        const FN = "adminReportReviewPage";
+        try {
+            const reportId = String(req.query.reportId || "").trim();
+            const exp = String(req.query.exp || "");
+            const sig = String(req.query.sig || "");
 
-                                  ${emailButton({ href: dashboardUrl, label: "Open dashboard", tone: "primary" })}
-
-                                  <p style="color:#6c757d;font-size:12px;margin-top:10px;">
-                                    If you believe this is a mistake, reply to this email with any context or proof. We will review it.
-                                    If everything is fine, access will be restored automatically after 7 days.
-                                  </p>
-                                `,
-                                uid: sellerUid,
-                                productId: productRef.id,
-                            });
-                        }
-                    } catch (e) {
-                        console.error(`[${FN}] product_takedown_reports email failed:`, e?.message);
-                    }
-                }
+            if (!reportId) throw createHttpError(400, "invalid_argument", "Missing reportId.");
+            if (!verifyAdminSig({ action: "review", reportId, exp, sig })) {
+                throw createHttpError(403, "permission_denied", "Invalid or expired admin link.");
             }
 
-            res2.status(200).json({
-                success: true,
-                created,
-                reason: reasonKey,
-                reasonLabel: REPORT_REASON_LABEL[reasonKey] || reasonKey,
-                uniqueCountForReason: agg,
-                enforced,
-            });
+            const rSnap = await db.collection("productReports").doc(reportId).get();
+            if (!rSnap.exists) throw createHttpError(404, "not_found", "Report not found.");
+
+            const r = rSnap.data() || {};
+            const productId = String(r.productId || "");
+            const sellerUid = String(r.sellerUid || "");
+            const reason = String(r.reason || "");
+
+            const pSnap = productId ? await db.collection(PRODUCT_COLLECTION_ACTIVE).doc(productId).get() : null;
+            const p = pSnap?.exists ? (pSnap.data() || {}) : null;
+
+            const sellerSnap = sellerUid ? await db.collection("users").doc(sellerUid).get() : null;
+            const seller = sellerSnap?.exists ? (sellerSnap.data() || {}) : null;
+
+            // Signed action links (valid 24h)
+            const exp2 = Date.now() + 24 * 60 * 60 * 1000;
+
+            const makeActionUrl = (action) => {
+                const s = makeAdminSig({ action, reportId, exp: exp2 });
+                const apiBase = `https://${req.get("host")}`;
+                return `${apiBase}/adminReportAction?reportId=${encodeURIComponent(reportId)}&action=${encodeURIComponent(action)}&exp=${exp2}&sig=${s}`;
+            };
+
+            const base = getPublicSiteOrigin();
+            const productUrl = productId ? `${base}/product.html?productId=${productId}` : "#";
+
+            // cover signed url best-effort
+            let coverSigned = null;
+            try {
+                const coverPath = p?.coverPath || null;
+                if (coverPath) {
+                    const [url] = await bucket.file(String(coverPath)).getSignedUrl({
+                        action: "read",
+                        expires: Date.now() + 15 * 60 * 1000,
+                    });
+                    coverSigned = url;
+                }
+            } catch { }
+
+            res.setHeader("Content-Type", "text/html; charset=utf-8");
+            res.status(200).send(`<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Monetizelt Admin — Report Review</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#fff;margin:0;padding:18px;color:#212529}
+    .card{border:2px solid #007bff;border-radius:14px;max-width:980px;margin:0 auto;overflow:hidden}
+    .head{background:#f2f8ff;border-bottom:2px solid #007bff;padding:14px 16px;font-weight:900;color:#007bff;text-align:center}
+    .content{padding:16px}
+    .grid{display:grid;gap:12px;grid-template-columns:1fr}
+    @media(min-width:900px){.grid{grid-template-columns:1.2fr .8fr}}
+    .box{border:1px solid #007bff;border-radius:12px;padding:12px}
+    .k{color:#6c757d;font-size:12px;font-weight:700}
+    .v{font-weight:900;margin-top:4px;word-break:break-word}
+    .btn{display:inline-block;padding:10px 14px;border-radius:12px;text-decoration:none;font-weight:900;border:2px solid #007bff;margin-right:8px;margin-top:8px}
+    .btn-primary{background:#007bff;color:#fff}
+    .btn-danger{background:#dc3545;color:#fff;border-color:#dc3545}
+    .btn-neutral{background:#fff;color:#007bff}
+    img{max-width:100%;border-radius:12px;border:2px solid #007bff}
+    .muted{color:#6c757d;font-size:12px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="head">Admin — Product Report Review</div>
+    <div class="content">
+      <div class="grid">
+        <div class="box">
+          <div class="k">Report ID</div><div class="v">${reportId}</div>
+          <div style="height:10px"></div>
+
+          <div class="k">Reason</div><div class="v" style="color:#dc3545">${REPORT_REASON_LABEL[reason] || reason}</div>
+          <div style="height:10px"></div>
+
+          <div class="k">Product</div>
+          <div class="v">${p ? (p.title || "(no title)") : "(product not found in active collection)"}</div>
+          <div class="muted">${productId}</div>
+
+          <div style="height:10px"></div>
+
+          <div class="k">Seller UID</div><div class="v">${sellerUid || "N/A"}</div>
+          <div class="muted">${seller?.email ? "Seller email: " + String(seller.email) : ""}</div>
+
+          <div style="height:14px"></div>
+
+          <a class="btn btn-neutral" href="${productUrl}" target="_blank" rel="noreferrer">Open product page</a>
+
+          <div style="height:10px"></div>
+          <div class="muted">Actions below require confirmation. No automatic moderation is performed.</div>
+
+          <div>
+            <a class="btn btn-danger" href="${makeActionUrl("takedown_product")}">Take down product</a>
+            <a class="btn btn-danger" href="${makeActionUrl("ban_seller")}">Ban seller</a>
+            <a class="btn btn-primary" href="${makeActionUrl("dismiss_report")}">Dismiss report</a>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="k">Preview</div>
+          <div style="height:8px"></div>
+          ${coverSigned ? `<img src="${coverSigned}" alt="cover preview" />` : `<div class="muted">No preview available.</div>`}
+          <div style="height:10px"></div>
+          <div class="muted">Note: this page focuses on safe preview + admin actions.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`);
         } catch (e) {
             console.error(FN, e);
-            await logSystemError(FN, e);
-            res2.status(e.httpStatus || 500).json({ success: false, error: e.message || "Internal error", code: e.code || "internal" });
+            res.status(e.httpStatus || 500).send(`Admin review error: ${e.message || "Internal error"}`);
         }
-    });
-});
+    }
+);
+
+exports.adminReportAction = onRequest(
+    { invoker: "public", secrets: [sendgridApiKey, appBaseUrl, adminActionSigningSecret, adminAlertEmail] },
+    async (req, res) => {
+        const FN = "adminReportAction";
+        try {
+            const reportId = String(req.query.reportId || "").trim();
+            const action = String(req.query.action || "").trim();
+            const exp = String(req.query.exp || "");
+            const sig = String(req.query.sig || "");
+
+            if (!reportId || !action) throw createHttpError(400, "invalid_argument", "Missing reportId/action.");
+            if (!verifyAdminSig({ action, reportId, exp, sig })) {
+                throw createHttpError(403, "permission_denied", "Invalid or expired admin link.");
+            }
+
+            const allowed = new Set(["ban_seller", "takedown_product", "dismiss_report"]);
+            if (!allowed.has(action)) throw createHttpError(400, "invalid_argument", "Unknown action.");
+
+            // Confirmation page on GET
+            if (req.method !== "POST") {
+                res.setHeader("Content-Type", "text/html; charset=utf-8");
+                res.status(200).send(`<!doctype html>
+<html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Confirm action</title>
+<style>
+ body{font-family:system-ui;background:#fff;padding:18px;color:#212529}
+ .card{max-width:720px;margin:0 auto;border:2px solid #007bff;border-radius:14px;overflow:hidden}
+ .head{background:#f2f8ff;padding:12px 14px;border-bottom:2px solid #007bff;font-weight:900;color:#007bff;text-align:center}
+ .content{padding:14px}
+ .btn{padding:10px 14px;border-radius:12px;border:2px solid #007bff;font-weight:900}
+ .danger{background:#dc3545;border-color:#dc3545;color:#fff}
+</style></head>
+<body>
+<div class="card">
+  <div class="head">Confirm admin action</div>
+  <div class="content">
+    <p><strong>Action:</strong> ${action}</p>
+    <p><strong>Report ID:</strong> ${reportId}</p>
+    <form method="POST">
+      <button class="btn danger" type="submit">Confirm</button>
+    </form>
+    <p style="color:#6c757d;font-size:12px;margin-top:10px;">This action is logged.</p>
+  </div>
+</div>
+</body></html>`);
+                return;
+            }
+
+            const rRef = db.collection("productReports").doc(reportId);
+            const rSnap = await rRef.get();
+            if (!rSnap.exists) throw createHttpError(404, "not_found", "Report not found.");
+
+            const r = rSnap.data() || {};
+            const productId = String(r.productId || "");
+            const sellerUid = String(r.sellerUid || "");
+            const reason = String(r.reason || "");
+
+            if (action === "dismiss_report") {
+                await rRef.set(
+                    { status: "dismissed", dismissedAt: nowServerTimestamp(), updatedAt: nowServerTimestamp() },
+                    { merge: true }
+                );
+            }
+
+            if (action === "takedown_product") {
+                if (!productId) throw createHttpError(400, "invalid_argument", "Missing productId on report.");
+
+                await db.collection(PRODUCT_COLLECTION_ACTIVE).doc(productId).set(
+                    {
+                        status: PRODUCT_STATUS.TAKEN_DOWN,
+                        enforcement: {
+                            autoAction: "admin_takedown",
+                            status: "taken_down_by_admin",
+                            reasonKey: reason || null,
+                            reasonLabel: REPORT_REASON_LABEL[reason] || reason || null,
+                            decidedAt: nowServerTimestamp(),
+                            note: `Manual takedown from report ${reportId}.`,
+                        },
+                        updatedAt: nowServerTimestamp(),
+                    },
+                    { merge: true }
+                );
+
+                await rRef.set(
+                    { status: "actioned", action: "takedown_product", actionedAt: nowServerTimestamp(), updatedAt: nowServerTimestamp() },
+                    { merge: true }
+                );
+            }
+
+            if (action === "ban_seller") {
+                if (!sellerUid) throw createHttpError(400, "invalid_argument", "Missing sellerUid on report.");
+
+                await db.collection("users").doc(sellerUid).set(
+                    {
+                        isBanned: true,
+                        bannedAt: nowServerTimestamp(),
+                        ban: {
+                            type: "admin_action_from_report",
+                            reportId,
+                            productId: productId || null,
+                            reason: reason || null,
+                            reasonLabel: REPORT_REASON_LABEL[reason] || reason || null,
+                        },
+                        updatedAt: nowServerTimestamp(),
+                    },
+                    { merge: true }
+                );
+
+                try {
+                    await admin.auth().updateUser(sellerUid, { disabled: true });
+                } catch (e) {
+                    console.error(`[${FN}] disable auth failed:`, e?.message);
+                }
+
+                // Best-effort email seller
+                try {
+                    const sellerSnap = await db.collection("users").doc(sellerUid).get();
+                    const to = sellerSnap.data()?.email;
+                    if (to && isEmail(to)) {
+                        const supportMail = "mailto:contact@monetizelt.com";
+
+                        await sendEmail("seller_banned_admin", {
+                            to,
+                            subject: "Your Monetizelt account has been banned",
+                            title: "Account banned",
+                            preheader: "Your account access has been restricted.",
+                            bodyHtml: `
+                              <p>Your Monetizelt account has been banned following a manual review.</p>
+                              ${kvTable([
+                                ["Reason", `<span style="font-weight:900;color:#dc3545;">${REPORT_REASON_LABEL[reason] || reason || "Policy violation"}</span>`],
+                                ["Related product", productId ? `<span style="font-weight:900;">${productId}</span>` : `<span style="font-weight:900;">N/A</span>`],
+                            ])}
+                              <p style="color:#6c757d;font-size:12px;margin-top:10px;">
+                                If you believe this is a mistake, contact support: <a href="${supportMail}" style="color:#007bff;text-decoration:none;font-weight:800;">contact@monetizelt.com</a>
+                              </p>
+                            `,
+                            uid: sellerUid,
+                            productId: productId || null,
+                        });
+                    }
+                } catch (e) {
+                    console.error(`[${FN}] ban email failed:`, e?.message);
+                }
+
+                await rRef.set(
+                    { status: "actioned", action: "ban_seller", actionedAt: nowServerTimestamp(), updatedAt: nowServerTimestamp() },
+                    { merge: true }
+                );
+            }
+
+            await db.collection("adminActions").add({
+                type: "report_action",
+                reportId,
+                action,
+                productId: productId || null,
+                sellerUid: sellerUid || null,
+                createdAt: nowServerTimestamp(),
+            });
+
+            res.setHeader("Content-Type", "text/html; charset=utf-8");
+            res.status(200).send(`Action completed: ${action} (report: ${reportId})`);
+        } catch (e) {
+            console.error(FN, e);
+            await logSystemError(FN, e, { query: req.query, method: req.method });
+            res.status(e.httpStatus || 500).send(`Action error: ${e.message || "Internal error"}`);
+        }
+    }
+);
 
 /* ============================= TRANSACTIONS ============================= */
 
@@ -4527,15 +5118,135 @@ exports.deleteUserAccount = onRequest({ invoker: "public", secrets: [sendgridApi
 
 exports.prepareWeeklyPayoutCandidates = onSchedule(
     {
-        schedule: "10 0 * * 4",
+        schedule: "10 0 * * 4", // Thu 00:10 UTC
         timeZone: "UTC",
         memory: "256MiB",
         maxInstances: 1,
+        secrets: [
+            sendgridApiKey,
+            appBaseUrl,
+            adminOperationsEmail,
+            adminThisWeekEmail,
+            adminAlertEmail,
+        ],
     },
     async () => {
         const FN = "prepareWeeklyPayoutCandidates";
         try {
-            await prepareWeeklyPayoutCandidates({ trigger: FN });
+            const prep = await prepareWeeklyPayoutCandidates({ trigger: FN });
+
+            // Window: last Friday noon -> upcoming Friday noon
+            const upcomingFriday = nextFridayNoonUtc(new Date());
+            const { start, end } = weekRangeForFridayKey(upcomingFriday);
+
+            const salesAgg = await computeWeeklySalesAgg({ start, end });
+
+            const opsTo = adminEmailOrFallback("ADMIN_OPERATIONS_EMAIL", "operations.monetizelt@outlook.com");
+            const thisWeekTo = adminEmailOrFallback("ADMIN_THISWEEK_EMAIL", "thisweek.monetizelt@outlook.com");
+
+            const fridayKey = prep.fridayKey;
+            const st = prep.stats || {};
+
+            const base = getPublicSiteOrigin();
+            const dashboardUrl = `${base}/dashboard.html`;
+
+            // ---- Email 1: OPERATIONS ----
+            await sendEmail("admin_weekly_operations", {
+                to: opsTo,
+                subject: `Monetizelt — Weekly Operations Prep (${fridayKey})`,
+                title: `Weekly Operations (Prep) — ${fridayKey}`,
+                preheader: `Payable: ${money2(st.eligiblePreparedAmount || 0)} USD • Sellers w/ sales: ${salesAgg.sellersWithSales}`,
+                bodyHtml: `
+                  <p>This report is generated after Thursday payout-candidate preparation for the upcoming Friday run.</p>
+
+                  ${kvTable([
+                    ["Week window (UTC)", `<span style="font-weight:900;">${start.toUTCString()} → ${end.toUTCString()}</span>`],
+                    ["Upcoming payout key", `<span style="font-weight:900;color:#007bff;">${fridayKey}</span>`],
+                ])}
+
+                  <div style="height:12px"></div>
+
+                  <div style="font-weight:900;color:#007bff;margin:0 0 8px 0;">Sales (this week)</div>
+                  ${kvTable([
+                    ["Sellers with sales", `<span style="font-weight:900;">${salesAgg.sellersWithSales}</span>`],
+                    ["Sales count", `<span style="font-weight:900;">${salesAgg.salesCount}</span>`],
+                    ["Gross captured (Stripe)", `<span style="font-weight:900;">${money2(salesAgg.gross)} USD</span>`],
+                    ["Stripe fees", `<span style="font-weight:900;color:#6c757d;">${money2(salesAgg.stripeFees)} USD</span>`],
+                    ["Platform commission", `<span style="font-weight:900;color:#28a745;">${money2(salesAgg.platformFees)} USD</span>`],
+                    ["Net credited to sellers", `<span style="font-weight:900;">${money2(salesAgg.sellerNet)} USD</span>`],
+                ])}
+
+                  <div style="height:12px"></div>
+
+                  <div style="font-weight:900;color:#007bff;margin:0 0 8px 0;">Payout readiness (current balances)</div>
+                  ${kvTable([
+                    ["Eligible (≥ $10) — ready to pay", `<span style="font-weight:900;color:#28a745;">${Number(st.eligiblePreparedUsers || 0)}</span>`],
+                    ["Total to transfer to PayPal (est.)", `<span style="font-weight:900;color:#28a745;">${money2(st.eligiblePreparedAmount || 0)} USD</span>`],
+                    ["Below minimum (< $10)", `<span style="font-weight:900;">${Number(st.belowMinUsers || 0)}</span>`],
+                    ["Total held under minimum", `<span style="font-weight:900;">${money2(st.belowMinAmount || 0)} USD</span>`],
+                    ["Missing/invalid PayPal email", `<span style="font-weight:900;color:#dc3545;">${Number(st.missingPaypalUsers || 0)}</span>`],
+                    ["Frozen accounts (skipped)", `<span style="font-weight:900;">${Number(st.frozenUsers || 0)}</span>`],
+                    ["Banned accounts (funds held)", `<span style="font-weight:900;color:#dc3545;">${Number(st.bannedUsers || 0)} / ${money2(st.bannedBalance || 0)} USD</span>`],
+                    ["PayPal payout fees charged to sellers", `<span style="font-weight:900;">0.00 USD</span>`],
+                ])}
+
+                  ${emailButton({ href: dashboardUrl, label: "Open dashboard", tone: "primary" })}
+                `,
+                meta: { fridayKey, start: start.toISOString(), end: end.toISOString(), prep, salesAgg },
+            });
+
+            // ---- Email 2: THISWEEK (enriched) ----
+            let usersTotal = null;
+            let productsActiveTotal = null;
+
+            try {
+                const uCount = await db.collection("users").count().get();
+                usersTotal = Number(uCount.data().count || 0);
+            } catch { }
+
+            try {
+                const pCount = await db.collection(PRODUCT_COLLECTION_ACTIVE).count().get();
+                productsActiveTotal = Number(pCount.data().count || 0);
+            } catch { }
+
+            await sendEmail("admin_weekly_thisweek", {
+                to: thisWeekTo,
+                subject: `Monetizelt — This Week Snapshot (${fridayKey})`,
+                title: `This Week Snapshot — ${fridayKey}`,
+                preheader: `Gross: ${money2(salesAgg.gross)} USD • Payable: ${money2(st.eligiblePreparedAmount || 0)} USD`,
+                bodyHtml: `
+                  <p>Weekly snapshot for monitoring the marketplace health and payouts readiness.</p>
+
+                  ${kvTable([
+                    ["Week window (UTC)", `<span style="font-weight:900;">${start.toUTCString()} → ${end.toUTCString()}</span>`],
+                    ["Upcoming payout key", `<span style="font-weight:900;color:#007bff;">${fridayKey}</span>`],
+                    ["Users (total)", usersTotal === null ? `<span style="font-weight:900;color:#6c757d;">N/A</span>` : `<span style="font-weight:900;">${usersTotal}</span>`],
+                    ["Active products (total)", productsActiveTotal === null ? `<span style="font-weight:900;color:#6c757d;">N/A</span>` : `<span style="font-weight:900;">${productsActiveTotal}</span>`],
+                ])}
+
+                  <div style="height:12px"></div>
+
+                  <div style="font-weight:900;color:#007bff;margin:0 0 8px 0;">Core weekly finance</div>
+                  ${kvTable([
+                    ["Gross revenue (Stripe)", `<span style="font-weight:900;">${money2(salesAgg.gross)} USD</span>`],
+                    ["Stripe fees", `<span style="font-weight:900;color:#6c757d;">${money2(salesAgg.stripeFees)} USD</span>`],
+                    ["Platform commission", `<span style="font-weight:900;color:#28a745;">${money2(salesAgg.platformFees)} USD</span>`],
+                    ["Net to sellers", `<span style="font-weight:900;">${money2(salesAgg.sellerNet)} USD</span>`],
+                ])}
+
+                  <div style="height:12px"></div>
+
+                  <div style="font-weight:900;color:#007bff;margin:0 0 8px 0;">Payout readiness</div>
+                  ${kvTable([
+                    ["Ready sellers (≥ $10)", `<span style="font-weight:900;color:#28a745;">${Number(st.eligiblePreparedUsers || 0)}</span>`],
+                    ["Total payable (to PayPal)", `<span style="font-weight:900;color:#28a745;">${money2(st.eligiblePreparedAmount || 0)} USD</span>`],
+                    ["Under-minimum sellers", `<span style="font-weight:900;">${Number(st.belowMinUsers || 0)}</span>`],
+                    ["Under-minimum funds held", `<span style="font-weight:900;">${money2(st.belowMinAmount || 0)} USD</span>`],
+                ])}
+                `,
+                meta: { fridayKey, start: start.toISOString(), end: end.toISOString(), prep, salesAgg, usersTotal, productsActiveTotal },
+            });
+
         } catch (e) {
             console.error(FN, e);
             await logSystemError(FN, e);
