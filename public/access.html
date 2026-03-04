@@ -1436,7 +1436,6 @@
         /* ===== API ===== */
         async function apiFetch(path, { method = 'GET', headers = {}, body = null } = {}) {
             const h = new Headers(headers);
-            // ✅ Toujours envoyer le fingerprint dans le header pour les appels fetch
             if (deviceFingerprint) h.set('X-Device-Fingerprint', deviceFingerprint);
 
             const res = await fetch(`${API_BASE}${path}`, { method, headers: h, body });
@@ -1458,14 +1457,12 @@
             return data;
         }
 
-        // ✅ GET — tente d'accéder avec le fingerprint actuel
         async function tryAccessContent() {
             if (!token) throw new Error('Missing access token.');
             const q = `?token=${encodeURIComponent(token)}&userAgent=${encodeURIComponent(navigator.userAgent)}`;
             return await apiFetch(`/accessContent${q}`, { method: 'GET' });
         }
 
-        // ✅ POST — valide email+code ET autorise l'appareil en même temps
         async function unlockWithEmailCode(email, code) {
             if (!token) throw new Error('Missing access token.');
             const q = `?token=${encodeURIComponent(token)}&userAgent=${encodeURIComponent(navigator.userAgent)}`;
@@ -1564,12 +1561,10 @@
                     return;
                 }
 
-                // ✅ POST vers accessContent → valide email+code → autorise appareil → retourne product
                 const data = await unlockWithEmailCode(email, code);
 
                 closeUnlockModal();
 
-                // Afficher directement le contenu retourné
                 setLoading(false);
                 if (data.product) {
                     renderProduct(data.product);
@@ -1577,7 +1572,6 @@
                     showError('Access granted but no product data returned.');
                 }
 
-                // Charger la bibliothèque en arrière-plan
                 loadBuyerLibrary().catch(() => { });
 
             } catch (e) {
@@ -1674,7 +1668,6 @@
                     ? `<svg width="22" height="22" viewBox="0 0 24 24"><path fill="#007bff" d="M12,3V13.55A4,4 0 1,0 14,17V7H18V3H12Z"/></svg>`
                     : `<svg width="22" height="22" viewBox="0 0 24 24"><path fill="#007bff" d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg>`;
 
-                // ✅ FIX CRITIQUE: fingerprint en query param pour que <video src> et <audio src> fonctionnent
                 const streamUrl = f.downloadUrl
                     ? `${f.downloadUrl}&fp=${encodeURIComponent(fp)}`
                     : '';
@@ -1939,7 +1932,7 @@
             video.addEventListener('contextmenu', e => e.preventDefault());
         }
 
-        /* ===== Boot ===== */
+        /* ===== Boot (simple, pas de retry) ===== */
         async function boot() {
             try {
                 if (!token) { showError('Missing access token.'); return; }
@@ -1948,25 +1941,19 @@
                 deviceFingerprint = await getOrCreateDeviceFingerprint();
 
                 try {
-                    // ✅ Essai GET d'abord — marche si ce device est déjà autorisé
                     const data = await tryAccessContent();
                     setLoading(false);
                     renderProduct(data.product || {});
                     loadBuyerLibrary().catch(() => { });
-
                 } catch (e) {
                     setLoading(false);
 
-                    // ✅ Si device non autorisé → ouvrir modal unlock
                     const needsUnlock =
                         String(e.code || '') === 'device_verification_required' ||
                         String(e.code || '') === 'permission_denied' ||
-                        (e.httpStatus === 401) ||
-                        String(e.message || '').toLowerCase().includes('device') ||
-                        String(e.message || '').toLowerCase().includes('not authorized');
+                        e.httpStatus === 401;
 
                     if (needsUnlock) {
-                        // Montrer le skeleton pendant que modal est ouvert
                         skeletonBlock.style.display = 'grid';
                         contentContainer.style.display = 'none';
                         openUnlockModal();

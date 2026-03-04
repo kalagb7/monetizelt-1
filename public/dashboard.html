@@ -29,6 +29,10 @@
             --panel-soft: #f6fbff;
             --border: #007BFF;
             --modal-radius: 23px;
+
+            /* NEW: progress green */
+            --progress-green: #22c55e;
+            --progress-green-dark: #15803d;
         }
 
         body {
@@ -179,8 +183,9 @@
             position: relative;
         }
 
+        /* Smaller gear (you said it made things feel slow / heavy) */
         .status-container .rotating-gear {
-            font-size: 18px;
+            font-size: 14px;
             color: var(--primary);
             animation: rotate 2s linear infinite;
             cursor: pointer;
@@ -190,19 +195,6 @@
 
         .status-container .rotating-gear:focus {
             outline: none;
-        }
-
-        .status-container .gear-label {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 0.7em;
-            color: var(--primary);
-            font-weight: 600;
-            pointer-events: none;
-            white-space: nowrap;
-            opacity: 0.9;
         }
 
         @keyframes rotate {
@@ -242,21 +234,15 @@
             height: 50px;
         }
 
-        .card.disabled-card {
-            opacity: 0.5;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-
         @media (hover: hover) and (pointer: fine) {
-            .card:not(.disabled-card):hover {
+            .card:hover {
                 transform: translateY(-2px);
                 background: #e9f5ff;
             }
         }
 
         @media (hover: none) and (pointer: coarse) {
-            .card:not(.disabled-card):active {
+            .card:active {
                 transform: scale(0.98);
                 background: #e9f5ff;
             }
@@ -344,10 +330,6 @@
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: contain;
-        }
-
-        .transaction-list-limited {
-            max-height: none;
         }
 
         .transaction-list-wrapper.expanded {
@@ -452,7 +434,6 @@
             padding: 5px;
         }
 
-        /* Updated: 13x13px toggle button centered below title */
         .show-more-btn {
             width: 13px;
             height: 13px;
@@ -950,13 +931,6 @@
             font-size: 14px;
         }
 
-        .files-count {
-            margin-top: 4px;
-            font-size: 0.7em;
-            color: var(--primary);
-            font-weight: 600;
-        }
-
         .additional-files-container {
             margin-top: 10px;
         }
@@ -994,30 +968,6 @@
 
         .additional-file-box i {
             font-size: 12px;
-        }
-
-        .add-more-btn {
-            width: 30px;
-            height: 30px;
-            border-radius: 10px;
-            border: 2px solid var(--primary);
-            background: #fff;
-            color: var(--primary);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 10px auto 0;
-            transition: all 0.2s ease;
-        }
-
-        .add-more-btn:hover {
-            background: #e9f5ff;
-            transform: scale(1.05);
-        }
-
-        .add-more-btn i {
-            font-size: 16px;
         }
 
         .price-breakdown {
@@ -1083,52 +1033,91 @@
             cursor: not-allowed;
         }
 
-        .create-product-button.progress {
-            background: var(--primary);
-        }
-
-        .create-product-button.progress::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: var(--p, 0%);
-            background: linear-gradient(90deg, #22c55e, #16a34a);
-            border-radius: 10px;
-            transition: width 0.3s ease;
-            z-index: 0;
-        }
-
-        /* Subtle pulsing dots animation */
-        .create-product-button.progress::after {
-            content: '●●●';
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 8px;
-            letter-spacing: 2px;
-            z-index: 2;
-            animation: pulse-dots 1.4s ease-in-out infinite;
-        }
-
-        @keyframes pulse-dots {
-
-            0%,
-            100% {
-                opacity: 0.3;
-            }
-
-            50% {
-                opacity: 1;
-            }
-        }
-
-        .create-product-button .btn-text {
+        /* MUCH smaller gear button */
+        .create-product-gear {
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            border: 1.5px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px auto 0;
+            transition: all 0.18s ease;
+            font-size: 14px;
             position: relative;
-            z-index: 2;
+        }
+
+        .create-product-gear:hover {
+            background: #e9f5ff;
+            transform: scale(1.03);
+        }
+
+        /* UPDATED: faster spin + green glow appears as progress goes up */
+        .create-product-gear.spinning {
+            animation: rotate 0.9s linear infinite;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .create-product-gear.progressing {
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.16), 0 0 18px rgba(34, 197, 94, 0.22);
+            border-color: var(--progress-green);
+        }
+
+        .create-product-gear.success {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+            animation: success-pop 0.5s ease;
+            box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.2);
+        }
+
+        /* NEW: progress bar under gear */
+        .create-progress-wrap {
+            width: 100%;
+            max-width: 320px;
+            margin: 8px auto 0;
+            display: none;
+        }
+
+        .create-progress-bar {
+            width: 100%;
+            height: 10px;
+            border-radius: 999px;
+            background: #eaf6ff;
+            border: 1px solid #b7dbff;
+            overflow: hidden;
+        }
+
+        .create-progress-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--progress-green) 0%, #34d399 50%, var(--progress-green-dark) 100%);
+            transition: width 0.18s ease;
+        }
+
+        .create-progress-meta {
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.72em;
+            color: #3b3b3b;
+            font-weight: 800;
+        }
+
+        .create-progress-meta .muted {
+            font-weight: 700;
+            color: #666;
+            max-width: 78%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .terms-area {
@@ -1259,12 +1248,32 @@
             text-align: left;
         }
 
-        .cooldown-timer {
-            font-size: 0.75em;
-            color: #ff6b6b;
-            margin-top: 6px;
-            text-align: center;
-            font-weight: 600;
+        .btn-with-spinner {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-spinner {
+            display: none;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .btn-with-spinner.loading .btn-spinner {
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .toast-container {
@@ -1325,6 +1334,37 @@
                 opacity: 0;
                 display: none;
             }
+        }
+
+        /* PayPal modal skeleton */
+        .payout-form-wrap {
+            position: relative;
+        }
+
+        .payout-skeleton {
+            display: none;
+            margin-top: 8px;
+        }
+
+        .payout-skeleton.show {
+            display: block;
+        }
+
+        .payout-skeleton .sk-line {
+            height: 14px;
+            border-radius: 8px;
+            margin: 8px 0;
+        }
+
+        .payout-skeleton .sk-input {
+            height: 38px;
+            border-radius: 10px;
+            margin: 6px 0 12px 0;
+        }
+
+        .payout-disabled {
+            opacity: 0.65;
+            pointer-events: none;
         }
 
         @media (max-width: 520px) {
@@ -1517,7 +1557,8 @@
 
             <div class="form-group">
                 <label class="form-label" for="productPrice">Price (USD)</label>
-                <input type="number" id="productPrice" class="form-control" placeholder="Minimum 1" min="1" step="0.01">
+                <input type="number" id="productPrice" class="form-control" placeholder="" step="0.01"
+                    inputmode="decimal">
                 <div id="priceBreakdown" class="price-breakdown">
                     <div class="row">
                         <span class="k">Your price</span>
@@ -1567,14 +1608,25 @@
 
             <div id="additionalFilesContainer" class="additional-files-container" style="display:none;">
                 <div id="additionalFilesGrid" class="additional-files-grid"></div>
-                <button type="button" id="addMoreBtn" class="add-more-btn" style="display:none;">
-                    <i class="fas fa-plus"></i>
-                </button>
             </div>
 
-            <button id="createProductBtn" class="create-product-button">
-                <span class="btn-text">Create product</span>
-            </button>
+            <div id="createGearContainer" style="text-align: center;">
+                <div class="create-product-gear" id="createProductGear" aria-label="Create product" role="button"
+                    tabindex="0">
+                    <i class="fas fa-cog"></i>
+                </div>
+
+                <!-- NEW: green progress bar + text -->
+                <div id="createProgressWrap" class="create-progress-wrap" aria-live="polite" aria-atomic="true">
+                    <div class="create-progress-bar">
+                        <div id="createProgressFill" class="create-progress-fill"></div>
+                    </div>
+                    <div class="create-progress-meta">
+                        <div id="createProgressText" class="muted">Ready</div>
+                        <div id="createProgressPct">0%</div>
+                    </div>
+                </div>
+            </div>
 
             <div class="terms-area">
                 <div class="terms-row">
@@ -1645,15 +1697,34 @@
                 if your balance reaches a minimum of $10.
             </div>
 
-            <div class="form-group">
-                <label class="form-label" for="paypalEmail">PayPal email</label>
-                <input type="email" id="paypalEmail" class="form-control" placeholder="your@email.com">
-                <div id="paypalEmailError" class="error-text">Please enter a valid email address</div>
+            <div class="payout-form-wrap" id="payoutFormWrap">
+                <div id="payoutSkeleton" class="payout-skeleton">
+                    <div class="skeleton sk-line" style="width: 45%;"></div>
+                    <div class="skeleton sk-input" style="width: 100%;"></div>
+
+                    <div class="skeleton sk-line" style="width: 65%;"></div>
+                    <div class="skeleton sk-input" style="width: 100%;"></div>
+                </div>
+
+                <div id="payoutFormFields">
+                    <div class="form-group">
+                        <label class="form-label" for="paypalEmail">PayPal email</label>
+                        <input type="email" id="paypalEmail" class="form-control" placeholder="your@email.com">
+                        <div id="paypalEmailError" class="error-text">Please enter a valid email address</div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 8px;">
+                        <label class="form-label" for="paypalPassword">Confirm with password</label>
+                        <input type="password" id="paypalPassword" class="form-control" placeholder="Your password">
+                        <div id="paypalPasswordError" class="error-text">Please enter your password</div>
+                    </div>
+
+                    <button id="savePayoutBtn" class="create-product-button btn-with-spinner">
+                        <span class="btn-spinner"></span>
+                        <span>Save</span>
+                    </button>
+                </div>
             </div>
-
-            <button id="savePayoutBtn" class="create-product-button">Save</button>
-
-            <div id="cooldownTimer" class="cooldown-timer" style="display:none;"></div>
         </div>
     </div>
 
@@ -1698,20 +1769,13 @@
 
         let coverFile = null;
         let contentFiles = [];
-        let additionalFiles = [];
+        let additionalFiles = []; // array of File | null
 
         let isCreatingProduct = false;
         let createFlow = null;
 
-        let paypalCooldownEnd = null;
-        let paypalCooldownInterval = null;
-        let userRegistrationTime = null;
-
         let allTransactions = [];
         let showingAllTransactions = false;
-        const MAX_TRANSACTIONS_DISPLAY = 5;
-
-        const PAYPAL_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
 
         const SIZE_LIMITS = {
             video: 3 * 1024 * 1024 * 1024,
@@ -1726,7 +1790,115 @@
         const toastQueue = [];
         let isShowingToast = false;
 
-        const MIN_PRODUCT_PRICE_USD = 1;
+        // Cache PayPal settings so modal can open instantly
+        const payoutSettingsCache = {
+            paypalEmail: "",
+            active: false,
+            loadedAt: 0
+        };
+
+        /* NEW: Create progress state */
+        const createProgress = {
+            totalChunks: 0,
+            uploadedChunks: 0,
+            phaseText: "Ready",
+            visible: false
+        };
+
+        function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+
+        function resetCreateProgressUI() {
+            createProgress.totalChunks = 0;
+            createProgress.uploadedChunks = 0;
+            createProgress.phaseText = "Ready";
+            createProgress.visible = false;
+
+            const wrap = document.getElementById("createProgressWrap");
+            const fill = document.getElementById("createProgressFill");
+            const txt = document.getElementById("createProgressText");
+            const pct = document.getElementById("createProgressPct");
+            const gear = document.getElementById("createProductGear");
+
+            if (wrap) wrap.style.display = "none";
+            if (fill) fill.style.width = "0%";
+            if (txt) txt.textContent = "Ready";
+            if (pct) pct.textContent = "0%";
+            if (gear) gear.classList.remove("progressing");
+        }
+
+        function showCreateProgressUI(show) {
+            createProgress.visible = !!show;
+            const wrap = document.getElementById("createProgressWrap");
+            if (wrap) wrap.style.display = show ? "block" : "none";
+
+            const gear = document.getElementById("createProductGear");
+            if (gear) {
+                if (show) gear.classList.add("progressing");
+                else gear.classList.remove("progressing");
+            }
+        }
+
+        function setCreateProgressPhase(text) {
+            createProgress.phaseText = String(text || "").trim() || "Working...";
+            const txt = document.getElementById("createProgressText");
+            if (txt) txt.textContent = createProgress.phaseText;
+        }
+
+        function setCreateProgressPct(pctNumber) {
+            const pct = clamp(Number(pctNumber || 0), 0, 100);
+            const fill = document.getElementById("createProgressFill");
+            const pctEl = document.getElementById("createProgressPct");
+            if (fill) fill.style.width = `${pct.toFixed(0)}%`;
+            if (pctEl) pctEl.textContent = `${pct.toFixed(0)}%`;
+        }
+
+        function recalcCreateProgressPct() {
+            if (!createProgress.totalChunks) return 0;
+            return (createProgress.uploadedChunks / createProgress.totalChunks) * 100;
+        }
+
+        function onChunkUploaded() {
+            createProgress.uploadedChunks++;
+            const pct = recalcCreateProgressPct();
+            // Keep it under 98% until finalize
+            setCreateProgressPct(Math.min(98, pct));
+        }
+
+        /* ------------------------ Improved rate limiting (dedupe + inFlight) ------------------------ */
+        const _rl = new Map();
+        function _now() { return Date.now(); }
+
+        function rateLimitRun(key, { maxCalls, windowMs, dedupeMs = 500 }, fn) {
+            const t = _now();
+            if (!_rl.has(key)) {
+                _rl.set(key, { timestamps: [], inFlight: null, lastStart: 0 });
+            }
+            const st = _rl.get(key);
+
+            // Clean old timestamps
+            st.timestamps = st.timestamps.filter(ts => t - ts < windowMs);
+
+            // Dedupe: if a call just started and it's still in flight, reuse it
+            if (st.inFlight && (t - st.lastStart) < dedupeMs) {
+                return st.inFlight;
+            }
+
+            if (st.timestamps.length >= maxCalls) {
+                const err = new Error(`Rate limited: ${key}`);
+                err._rateLimited = true;
+                throw err;
+            }
+
+            st.timestamps.push(t);
+            st.lastStart = t;
+
+            const p = Promise.resolve().then(fn).finally(() => {
+                if (st.inFlight === p) st.inFlight = null;
+            });
+
+            st.inFlight = p;
+            return p;
+        }
 
         function showToast(message, type = 'info') {
             toastQueue.push({ message, type });
@@ -1784,22 +1956,12 @@
         function setButtonLoading(btnId, loading) {
             const btn = document.getElementById(btnId);
             if (!btn) return;
-            btn.disabled = !!loading;
-        }
-
-        function setCreateBtnProgress(percent) {
-            const btn = document.getElementById("createProductBtn");
-            if (!btn) return;
-            const p = Math.max(0, Math.min(100, Number(percent || 0)));
-
-            if (p <= 0) {
-                btn.classList.remove("progress");
-                btn.style.removeProperty("--p");
+            if (loading) {
+                btn.classList.add('loading');
+                btn.disabled = true;
             } else {
-                if (!btn.classList.contains("progress")) {
-                    btn.classList.add("progress");
-                }
-                btn.style.setProperty("--p", `${p}%`);
+                btn.classList.remove('loading');
+                btn.disabled = false;
             }
         }
 
@@ -1960,123 +2122,64 @@
             }
         }
 
-        function isThursday() {
-            const now = new Date();
-            return now.getDay() === 4;
-        }
+        function setPayoutModalLoading(loading) {
+            const sk = document.getElementById("payoutSkeleton");
+            const fields = document.getElementById("payoutFormFields");
+            const wrap = document.getElementById("payoutFormWrap");
+            if (!sk || !fields || !wrap) return;
 
-        function canEditPaypalEmail() {
-            if (!paypalCooldownEnd) return true;
-            if (Date.now() >= paypalCooldownEnd) return true;
-            return isThursday();
-        }
-
-        function updatePayoutCardClickability() {
-            const card = document.getElementById("payoutCard");
-            if (!card) return;
-
-            if (canEditPaypalEmail()) {
-                card.classList.remove("disabled-card");
-                card.style.pointerEvents = "auto";
+            if (loading) {
+                sk.classList.add("show");
+                fields.classList.add("payout-disabled");
+                wrap.classList.add("payout-disabled"); // disables taps while skeleton is up
             } else {
-                card.classList.add("disabled-card");
-                card.style.pointerEvents = "none";
+                sk.classList.remove("show");
+                fields.classList.remove("payout-disabled");
+                wrap.classList.remove("payout-disabled");
             }
-        }
-
-        function loadPaypalCooldownFromStorage() {
-            try {
-                const stored = localStorage.getItem('paypalCooldownEnd');
-                if (stored) {
-                    const timestamp = parseInt(stored, 10);
-                    if (!isNaN(timestamp)) {
-                        paypalCooldownEnd = timestamp;
-                    }
-                }
-            } catch (e) {
-                console.error("Failed to load PayPal cooldown from localStorage:", e);
-            }
-        }
-
-        function savePaypalCooldownToStorage() {
-            try {
-                if (paypalCooldownEnd) {
-                    localStorage.setItem('paypalCooldownEnd', String(paypalCooldownEnd));
-                } else {
-                    localStorage.removeItem('paypalCooldownEnd');
-                }
-            } catch (e) {
-                console.error("Failed to save PayPal cooldown to localStorage:", e);
-            }
-        }
-
-        function startPaypalCooldownTimer() {
-            const saveBtn = document.getElementById("savePayoutBtn");
-            const timerDiv = document.getElementById("cooldownTimer");
-
-            if (!saveBtn || !timerDiv) return;
-
-            if (paypalCooldownInterval) {
-                clearInterval(paypalCooldownInterval);
-                paypalCooldownInterval = null;
-            }
-
-            function updateTimer() {
-                if (canEditPaypalEmail()) {
-                    paypalCooldownEnd = null;
-                    savePaypalCooldownToStorage();
-                    saveBtn.disabled = false;
-                    timerDiv.style.display = "none";
-                    updatePayoutCardClickability();
-                    if (paypalCooldownInterval) {
-                        clearInterval(paypalCooldownInterval);
-                        paypalCooldownInterval = null;
-                    }
-                    return;
-                }
-
-                if (paypalCooldownEnd && Date.now() < paypalCooldownEnd) {
-                    const remaining = Math.max(0, paypalCooldownEnd - Date.now());
-                    const days = Math.floor(remaining / (24 * 60 * 60 * 1000));
-                    const hours = Math.floor((remaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
-                    const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
-
-                    timerDiv.textContent = `Update available on Thursday or in ${days}d ${hours}h ${minutes}m`;
-                    timerDiv.style.display = "block";
-                    saveBtn.disabled = true;
-                }
-
-                updatePayoutCardClickability();
-            }
-
-            updateTimer();
-            paypalCooldownInterval = setInterval(updateTimer, 60000);
         }
 
         async function loadPayoutSettings() {
-            const data = await apiRequest("getPayoutSettings");
-            document.getElementById("paypalEmail").value = data.paypalEmail || "";
-            updatePayoutUI(!!data.paypalEmail);
+            return rateLimitRun("loadPayoutSettings", { maxCalls: 10, windowMs: 60000, dedupeMs: 800 }, async () => {
+                const data = await apiRequest("getPayoutSettings");
+                const paypalEmail = data.paypalEmail || "";
+                payoutSettingsCache.paypalEmail = paypalEmail;
+                payoutSettingsCache.active = !!paypalEmail;
+                payoutSettingsCache.loadedAt = Date.now();
+
+                document.getElementById("paypalEmail").value = paypalEmail;
+                updatePayoutUI(!!paypalEmail);
+                return data;
+            });
         }
 
         async function loadDashboardSummary() {
-            const data = await apiRequest("getDashboardSummary");
-            const s = data.summary || {};
+            return rateLimitRun("loadDashboardSummary", { maxCalls: 20, windowMs: 60000, dedupeMs: 500 }, async () => {
+                const data = await apiRequest("getDashboardSummary");
+                const s = data.summary || {};
 
-            updateCardWithData(
-                "linksCard",
-                "Active products",
-                s.productsActiveCount || 0,
-                prevSummary?.productsActiveCount
-            );
+                updateCardWithData(
+                    "linksCard",
+                    "Active products",
+                    s.productsActiveCount || 0,
+                    prevSummary?.productsActiveCount
+                );
 
-            updateCardWithData("viewsCard", "Views", s.viewsCount || 0, prevSummary?.viewsCount);
-            updateCardWithData("ordersCard", "Orders", s.ordersCount || 0, prevSummary?.ordersCount);
-            updateCardWithData("processedCard", "Processed", s.processedCount || 0, prevSummary?.processedCount);
-            updateCardWithData("incomeCard", "Earnings", s.incomeAvailable || 0, prevSummary?.incomeAvailable);
+                updateCardWithData("viewsCard", "Views", s.viewsCount || 0, prevSummary?.viewsCount);
+                updateCardWithData("ordersCard", "Orders", s.ordersCount || 0, prevSummary?.ordersCount);
+                updateCardWithData("processedCard", "Processed", s.processedCount || 0, prevSummary?.processedCount);
+                updateCardWithData("incomeCard", "Earnings", s.incomeAvailable || 0, prevSummary?.incomeAvailable);
 
-            prevSummary = s;
-            updatePayoutUI(!!s.paypalEmail);
+                prevSummary = s;
+
+                const active = !!s.paypalEmail;
+                payoutSettingsCache.active = active;
+                payoutSettingsCache.paypalEmail = s.paypalEmail || payoutSettingsCache.paypalEmail || "";
+                payoutSettingsCache.loadedAt = Date.now();
+
+                updatePayoutUI(active);
+                return data;
+            });
         }
 
         function renderTransactions(transactions, showAll = false) {
@@ -2092,17 +2195,14 @@
                 return;
             }
 
-            // Show button if there are transactions
             showMoreBtn.style.display = "flex";
             showMoreBtn.innerHTML = showAll
                 ? '<i class="fas fa-minus"></i>'
                 : '<i class="fas fa-plus"></i>';
 
-            // Only show transactions when expanded
             if (showAll) {
                 list.style.display = "block";
-                const displayCount = transactions.length;
-                const transactionsToShow = transactions.slice(0, displayCount);
+                const transactionsToShow = transactions.slice(0, transactions.length);
 
                 for (const t of transactionsToShow) {
                     const date = t.date ? new Date(t.date) : (t.createdAt ? new Date(t.createdAt) : new Date());
@@ -2148,9 +2248,12 @@
         }
 
         async function loadTransactions() {
-            const data = await apiRequest("getTransactionHistory");
-            allTransactions = data.transactions || [];
-            renderTransactions(allTransactions, showingAllTransactions);
+            return rateLimitRun("loadTransactions", { maxCalls: 15, windowMs: 60000, dedupeMs: 600 }, async () => {
+                const data = await apiRequest("getTransactionHistory");
+                allTransactions = data.transactions || [];
+                renderTransactions(allTransactions, showingAllTransactions);
+                return data;
+            });
         }
 
         function toggleShowAllTransactions() {
@@ -2159,13 +2262,15 @@
         }
 
         async function loadLinks() {
-            const data = await apiRequest("getLinks");
-            currentLinks = (data.links || []).map(p => ({
-                ...p,
-                shareableLink: normalizeProductLink(p.shareableLink, p.id),
-                productUrl: normalizeProductLink(p.productUrl, p.id)
-            }));
-            return currentLinks;
+            return rateLimitRun("loadLinks", { maxCalls: 15, windowMs: 60000, dedupeMs: 700 }, async () => {
+                const data = await apiRequest("getLinks");
+                currentLinks = (data.links || []).map(p => ({
+                    ...p,
+                    shareableLink: normalizeProductLink(p.shareableLink, p.id),
+                    productUrl: normalizeProductLink(p.productUrl, p.id)
+                }));
+                return currentLinks;
+            });
         }
 
         function renderLinksModal(links) {
@@ -2225,8 +2330,7 @@
                                 await navigator.clipboard.writeText(link);
                                 showToast("Share link copied!", "success");
                             }
-                        } catch {
-                        }
+                        } catch { }
                     }
                     if (action === "delete") {
                         pendingDeleteProductId = btn.getAttribute("data-id");
@@ -2248,38 +2352,74 @@
                 });
         }
 
-        function openPayoutModal() {
-            if (!canEditPaypalEmail()) {
-                showToast("PayPal email can only be updated on Thursdays or after the cooldown period.", "info");
+        async function openPayoutModal() {
+            openModal("payoutModal");
+
+            // Skeleton immediately, before email loads
+            setPayoutModalLoading(true);
+
+            document.getElementById("paypalEmailError").style.display = "none";
+            document.getElementById("paypalPasswordError").style.display = "none";
+            document.getElementById("paypalPassword").value = "";
+
+            // If we have a fresh cache, use it instantly
+            const freshMs = 60 * 1000;
+            const isFresh = payoutSettingsCache.loadedAt && (Date.now() - payoutSettingsCache.loadedAt) < freshMs;
+
+            if (isFresh) {
+                document.getElementById("paypalEmail").value = payoutSettingsCache.paypalEmail || "";
+                setTimeout(() => setPayoutModalLoading(false), 120);
                 return;
             }
 
-            openModal("payoutModal");
-            document.getElementById("paypalEmailError").style.display = "none";
-
-            if (!canEditPaypalEmail()) {
-                startPaypalCooldownTimer();
-            } else {
-                document.getElementById("savePayoutBtn").disabled = false;
-                document.getElementById("cooldownTimer").style.display = "none";
+            try {
+                await loadPayoutSettings();
+            } catch (e) {
+                console.error(e);
+            } finally {
+                setTimeout(() => setPayoutModalLoading(false), 120);
             }
         }
 
         async function savePayoutSettings() {
             try {
+                const user = auth.currentUser;
+                if (!user || !user.email) throw new Error("Not authenticated.");
+
                 const email = document.getElementById("paypalEmail").value.trim();
+                const password = document.getElementById("paypalPassword").value.trim();
+
+                document.getElementById("paypalEmailError").style.display = "none";
+                document.getElementById("paypalPasswordError").style.display = "none";
 
                 if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                     document.getElementById("paypalEmailError").style.display = "block";
                     return;
                 }
 
+                if (!password) {
+                    document.getElementById("paypalPasswordError").style.display = "block";
+                    return;
+                }
+
+                /* NEW: block saving the same PayPal email that's already saved */
+                const prev = String(payoutSettingsCache.paypalEmail || "").trim().toLowerCase();
+                const next = String(email || "").trim().toLowerCase();
+                if (prev && next === prev) {
+                    showToast("This PayPal email is already saved. Please enter a different email.", "error");
+                    return;
+                }
+
                 setButtonLoading("savePayoutBtn", true);
+
+                const credential = EmailAuthProvider.credential(user.email, password);
+                await reauthenticateWithCredential(user, credential);
+
                 await apiRequest("updatePayoutSettings", "POST", { paypalEmail: email });
 
-                paypalCooldownEnd = Date.now() + PAYPAL_COOLDOWN_MS;
-                savePaypalCooldownToStorage();
-                startPaypalCooldownTimer();
+                payoutSettingsCache.paypalEmail = email;
+                payoutSettingsCache.active = true;
+                payoutSettingsCache.loadedAt = Date.now();
 
                 showToast("PayPal settings saved", "success");
 
@@ -2287,7 +2427,11 @@
                 await loadDashboardSummary();
             } catch (e) {
                 console.error(e);
-                showToast(e.message || "Failed to save PayPal settings", "error");
+                if (e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
+                    showToast("Incorrect password", "error");
+                } else {
+                    showToast(e.message || "Failed to save PayPal settings", "error");
+                }
             } finally {
                 setButtonLoading("savePayoutBtn", false);
             }
@@ -2352,29 +2496,60 @@
             box.style.display = "block";
         }
 
+        /* ------------------ Intelligent "auto add 2 slots" additional files UI ------------------ */
+        function ensureTrailingEmptySlots(additionalArray, trailingCount, maxAdditional) {
+            if (additionalArray.length > maxAdditional) additionalArray.length = maxAdditional;
+
+            let trailingNulls = 0;
+            for (let i = additionalArray.length - 1; i >= 0; i--) {
+                if (additionalArray[i] === null) trailingNulls++;
+                else break;
+            }
+            while (trailingNulls > trailingCount) {
+                additionalArray.pop();
+                trailingNulls--;
+            }
+
+            trailingNulls = 0;
+            for (let i = additionalArray.length - 1; i >= 0; i--) {
+                if (additionalArray[i] === null) trailingNulls++;
+                else break;
+            }
+            while (trailingNulls < trailingCount && additionalArray.length < maxAdditional) {
+                additionalArray.push(null);
+                trailingNulls++;
+            }
+        }
+
         function updateAdditionalFilesUI() {
             const type = document.getElementById("productType").value;
             const container = document.getElementById("additionalFilesContainer");
             const grid = document.getElementById("additionalFilesGrid");
-            const addBtn = document.getElementById("addMoreBtn");
 
-            if (!type || contentFiles.length === 0) {
+            if (!type || contentFiles.length === 0 || !coverFile) {
                 container.style.display = "none";
+                grid.innerHTML = "";
                 return;
             }
 
             const maxFiles = FILE_LIMITS[type] || 0;
-            const totalFiles = 1 + additionalFiles.length;
+            const maxAdditional = Math.max(0, maxFiles - 1);
+            ensureTrailingEmptySlots(additionalFiles, 2, maxAdditional);
 
             container.style.display = "block";
             grid.innerHTML = "";
 
+            const iconClass = type === "video" ? "fas fa-video" : "fas fa-music";
+            const labelBase = type === "video" ? "Video" : "Track";
+
             additionalFiles.forEach((file, idx) => {
+                const number = idx + 2;
+
                 const box = document.createElement("div");
                 box.className = "additional-file-box";
                 box.innerHTML = `
-                    <i class="${type === 'video' ? 'fas fa-video' : 'fas fa-music'}" style="color:var(--primary);"></i>
-                    <div class="upload-label">${type === 'video' ? 'Video' : 'Track'} ${idx + 2}</div>
+                    <i class="${iconClass}" style="color:var(--primary);"></i>
+                    <div class="upload-label">${labelBase} ${number}</div>
                     ${file ? '<div class="upload-confirm" style="display:block;"><i class="fas fa-check-circle"></i></div>' : ''}
                 `;
 
@@ -2382,39 +2557,18 @@
                 input.type = "file";
                 input.className = "file-upload-input";
                 input.accept = type === "video" ? ".mp4,.mov,.webm,.mkv,video/*" : ".mp3,.wav,.ogg,.flac,audio/*";
+
                 input.addEventListener("change", (e) => {
-                    const f = e.target.files?.[0];
-                    if (f) {
-                        additionalFiles[idx] = f;
-                        updateAdditionalFilesUI();
-                    }
+                    const f = e.target.files?.[0] || null;
+                    if (!f) return;
+
+                    additionalFiles[idx] = f;
+                    updateAdditionalFilesUI();
                 });
 
                 box.appendChild(input);
                 grid.appendChild(box);
             });
-
-            if (totalFiles < maxFiles) {
-                addBtn.style.display = "flex";
-            } else {
-                addBtn.style.display = "none";
-            }
-        }
-
-        function addAdditionalFileSlot() {
-            const type = document.getElementById("productType").value;
-            if (!type) return;
-
-            const maxFiles = FILE_LIMITS[type] || 0;
-            const totalFiles = 1 + additionalFiles.length;
-
-            if (totalFiles >= maxFiles) {
-                showToast(`Maximum ${maxFiles} files allowed for ${type}.`, "info");
-                return;
-            }
-
-            additionalFiles.push(null);
-            updateAdditionalFilesUI();
         }
 
         function openProductModal() {
@@ -2428,7 +2582,9 @@
             document.getElementById("productTitle").value = "";
             document.getElementById("productType").value = "";
             document.getElementById("productDescription").value = "";
-            document.getElementById("productPrice").value = "";
+
+            document.getElementById("productPrice").value = "2.99";
+            updatePriceBreakdown();
 
             document.getElementById("coverFile").value = "";
             document.getElementById("contentFiles").value = "";
@@ -2439,7 +2595,6 @@
             document.getElementById("contentConfirm").style.display = "none";
 
             document.getElementById("descriptionCharCount").textContent = "0";
-            document.getElementById("priceBreakdown").style.display = "none";
 
             document.getElementById("policyConfirm").checked = false;
             document.getElementById("termsAccept").checked = false;
@@ -2447,10 +2602,11 @@
 
             document.getElementById("additionalFilesContainer").style.display = "none";
             document.getElementById("additionalFilesGrid").innerHTML = "";
-            document.getElementById("addMoreBtn").style.display = "none";
 
-            setCreateBtnProgress(0);
-            setButtonLoading("createProductBtn", false);
+            const gear = document.getElementById("createProductGear");
+            gear.classList.remove("spinning", "success", "progressing");
+
+            resetCreateProgressUI();
 
             setContentAcceptForType("");
 
@@ -2576,10 +2732,17 @@
 
             cancelProductCreationBestEffort();
 
-            setButtonLoading("createProductBtn", false);
-            setCreateBtnProgress(0);
+            const gear = document.getElementById("createProductGear");
+            gear.classList.remove("spinning", "success", "progressing");
+
+            resetCreateProgressUI();
 
             showToast("Product creation canceled.", "info");
+        }
+
+        function computeTotalChunksForFiles(files, chunkSizeBytes) {
+            if (!chunkSizeBytes || chunkSizeBytes <= 0) return 0;
+            return files.reduce((sum, f) => sum + Math.max(1, Math.ceil(f.size / chunkSizeBytes)), 0);
         }
 
         async function submitProduct() {
@@ -2608,7 +2771,8 @@
                 if (!title) throw new Error("Title is required.");
                 if (!type) throw new Error("Type is required.");
                 if (!description || description.length < 10) throw new Error("Description must be at least 10 characters.");
-                if (!Number.isFinite(price) || price < MIN_PRODUCT_PRICE_USD) throw new Error(`Minimum price is ${MIN_PRODUCT_PRICE_USD.toFixed(2)} USD.`);
+                if (!Number.isFinite(price) || price <= 0) throw new Error("Price must be greater than 0.");
+
                 if (!coverFile) throw new Error("Cover image is required.");
                 if (coverFile.size > 5 * 1024 * 1024) throw new Error("Cover image max size is 5MB.");
 
@@ -2646,8 +2810,13 @@
 
                 isCreatingProduct = true;
 
-                setButtonLoading("createProductBtn", true);
-                setCreateBtnProgress(3);
+                const gear = document.getElementById("createProductGear");
+                gear.classList.add("spinning");
+
+                /* NEW: show progress bar immediately */
+                showCreateProgressUI(true);
+                setCreateProgressPhase("Creating product...");
+                setCreateProgressPct(2);
 
                 const draft = await apiRequest("createProductDraft", "POST", {
                     title, description, price, category, subtype,
@@ -2667,16 +2836,12 @@
                     throw new Error("Upload session missing from backend response.");
                 }
 
-                const coverChunks = Math.max(1, Math.ceil(coverFile.size / chunkSizeBytes));
-                const assetsChunks = allContentFiles.reduce((sum, f) => sum + Math.max(1, Math.ceil(f.size / chunkSizeBytes)), 0);
-                const totalChunks = coverChunks + assetsChunks;
+                // NEW: compute chunk totals so green bar fills accurately
+                createProgress.uploadedChunks = 0;
+                createProgress.totalChunks = computeTotalChunksForFiles([coverFile, ...allContentFiles], chunkSizeBytes);
 
-                let uploaded = 0;
-                const tick = () => {
-                    uploaded += 1;
-                    const pct = Math.round((uploaded / totalChunks) * 100);
-                    setCreateBtnProgress(Math.min(96, Math.max(3, pct)));
-                };
+                setCreateProgressPhase("Uploading cover...");
+                setCreateProgressPct(5);
 
                 await uploadFileInChunks({
                     productId,
@@ -2685,11 +2850,12 @@
                     kind: "cover",
                     index: 0,
                     chunkSizeBytes,
-                    onChunkUploaded: tick,
+                    onChunkUploaded,
                     signal: abortController.signal
                 });
 
                 for (let i = 0; i < allContentFiles.length; i++) {
+                    setCreateProgressPhase(`Uploading file ${i + 1}/${allContentFiles.length}...`);
                     await uploadFileInChunks({
                         productId,
                         sessionId,
@@ -2697,26 +2863,40 @@
                         kind: "asset",
                         index: i + 1,
                         chunkSizeBytes,
-                        onChunkUploaded: tick,
+                        onChunkUploaded,
                         signal: abortController.signal
                     });
                 }
 
-                setCreateBtnProgress(98);
+                setCreateProgressPhase("Finalizing...");
+                setCreateProgressPct(99);
+
                 await apiRequest("finalizeProductUploads", "POST", { productId, sessionId }, { signal: abortController.signal });
-                setCreateBtnProgress(100);
+
+                // 100% and done
+                setCreateProgressPct(100);
+                setCreateProgressPhase("Done!");
 
                 isCreatingProduct = false;
                 createFlow = null;
 
-                closeModal("createProductModal");
-                setButtonLoading("createProductBtn", false);
-                setCreateBtnProgress(0);
+                gear.classList.remove("spinning", "progressing");
+                gear.classList.add("success");
+
+                // UPDATED: quicker close to feel faster in live demo
+                setTimeout(() => {
+                    closeModal("createProductModal");
+                    gear.classList.remove("success");
+                    resetCreateProgressUI();
+                }, 450);
 
                 showToast("Product created successfully.", "success");
 
-                await loadDashboardSummary();
-                await loadLinks();
+                // UPDATED: parallel refresh (faster)
+                await Promise.all([
+                    loadDashboardSummary().catch(() => { }),
+                    loadLinks().catch(() => [])
+                ]);
             } catch (e) {
                 console.error(e);
 
@@ -2730,8 +2910,10 @@
                 isCreatingProduct = false;
                 createFlow = null;
 
-                setButtonLoading("createProductBtn", false);
-                setCreateBtnProgress(0);
+                const gear = document.getElementById("createProductGear");
+                gear.classList.remove("spinning", "success", "progressing");
+
+                resetCreateProgressUI();
 
                 showToast(e.message || "Failed to create product", "error");
             }
@@ -2889,14 +3071,6 @@
                 return;
             }
 
-            const metadata = user.metadata;
-            if (metadata && metadata.creationTime) {
-                userRegistrationTime = new Date(metadata.creationTime).getTime();
-            }
-
-            loadPaypalCooldownFromStorage();
-            startPaypalCooldownTimer();
-
             const dataPromises = [
                 loadPayoutSettings().catch(() => updatePayoutUI(false)),
                 loadDashboardSummary().catch(() => { }),
@@ -2961,7 +3135,13 @@
                 openProductModal();
             });
 
-            document.getElementById("createProductBtn").addEventListener("click", submitProduct);
+            document.getElementById("createProductGear").addEventListener("click", submitProduct);
+            document.getElementById("createProductGear").addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    submitProduct();
+                }
+            });
 
             document.getElementById("productDescription").addEventListener("input", (e) => {
                 document.getElementById("descriptionCharCount").textContent = String(e.target.value.length);
@@ -2982,6 +3162,7 @@
                 if (!f.type.startsWith("image/")) { showToast("Cover must be an image.", "error"); return; }
                 coverFile = f;
                 document.getElementById("coverConfirm").style.display = "block";
+                updateAdditionalFilesUI();
             });
 
             document.getElementById("contentFiles").addEventListener("change", (e) => {
@@ -3002,8 +3183,6 @@
                     showToast(err.message || "Invalid file.", "error");
                 }
             });
-
-            document.getElementById("addMoreBtn").addEventListener("click", addAdditionalFileSlot);
 
             document.getElementById("showMoreTransactions").addEventListener("click", toggleShowAllTransactions);
 

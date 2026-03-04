@@ -5960,3 +5960,45 @@ exports.sendQuarterlyReport = onRequest({ invoker: "public", secrets: [sendgridA
         }
     });
 });
+
+// ============================= CHECK BUYER PURCHASE =============================
+// Add this function to your index.js backend file
+// It checks if an email has already purchased a specific product
+// Used by the report modal to verify reporter identity
+
+exports.checkBuyerPurchase = onRequest({ invoker: "public" }, async (req, res) => {
+    corsMiddleware(req, res, async (req2, res2) => {
+        const FN = "checkBuyerPurchase";
+        try {
+            if (req2.method !== "POST") throw createHttpError(405, "method_not_allowed", "POST required.");
+
+            const { email, productId } = req2.body || {};
+
+            if (!email || !productId) {
+                return res2.status(400).json({ success: false, error: "Missing email or productId." });
+            }
+
+            if (!isEmail(normalizeEmail(email))) {
+                return res2.status(200).json({ success: true, hasPurchase: false });
+            }
+
+            const emailHash = sha256Hex(normalizeEmail(email));
+
+            // Query orders by buyerEmailHash + productId
+            const snap = await db
+                .collection("orders")
+                .where("buyerEmailHash", "==", emailHash)
+                .where("productId", "==", String(productId))
+                .limit(1)
+                .get();
+
+            const hasPurchase = !snap.empty;
+
+            res2.status(200).json({ success: true, hasPurchase });
+        } catch (e) {
+            console.error(FN, e);
+            // Return false on error — don't expose internal errors
+            res2.status(200).json({ success: true, hasPurchase: false });
+        }
+    });
+});

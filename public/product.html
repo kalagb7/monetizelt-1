@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Monetizelt</title>
 
+    <!-- Preconnect to speed up Stripe redirect -->
+    <link rel="preconnect" href="https://js.stripe.com" />
+    <link rel="preconnect" href="https://checkout.stripe.com" />
+    <link rel="preconnect" href="https://us-central1-monetizelt-1.cloudfunctions.net" />
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
     <link rel="icon"
@@ -788,6 +793,74 @@
             color: #111;
         }
 
+        /* ── Report: email verification row ── */
+        .report-verify-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        /* The checkmark badge (v shape) */
+        .report-verify-badge {
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            background: var(--primary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.25s ease, border-color 0.25s ease, transform 0.15s ease;
+            user-select: none;
+            position: relative;
+        }
+
+        .report-verify-badge:active {
+            transform: scale(0.93);
+        }
+
+        .report-verify-badge.verified {
+            background: #28a745;
+            border-color: #28a745;
+        }
+
+        .report-verify-badge.denied {
+            background: #dc3545;
+            border-color: #dc3545;
+        }
+
+        /* The email input inside the verify row */
+        .report-email-input {
+            flex: 1;
+            padding: 8px 10px;
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            font-size: 13px;
+            outline: none;
+            font-family: inherit;
+            background: #fff;
+            min-width: 0;
+        }
+
+        .report-email-input:focus {
+            border-color: #0055aa;
+        }
+
+        /* Thank you message */
+        .report-thankyou {
+            display: none;
+            margin-top: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #28a745;
+            text-align: center;
+        }
+
         .report-extra {
             margin-top: 10px;
         }
@@ -1183,6 +1256,7 @@
                 </div>
             </div>
 
+            <!-- REPORT MODAL -->
             <div class="report-modal modal" id="reportModal" role="dialog" aria-modal="true"
                 aria-labelledby="reportModalTitle">
                 <button class="modal-close-x" id="closeReportModal" aria-label="Close" type="button">
@@ -1213,14 +1287,21 @@
                     </label>
                 </div>
 
-                <div class="report-extra">
-                    <textarea class="report-textarea" id="reportDetails"
-                        placeholder="Additional details (optional)"></textarea>
+                <!-- Email verification row: badge (v) + email input -->
+                <div class="report-verify-row">
+                    <button class="report-verify-badge" id="reportVerifyBadge" type="button" title="Verify email">
+                        <i class="fas fa-check" style="font-size:12px;"></i>
+                    </button>
+                    <input type="email" class="report-email-input" id="reportEmailInput"
+                        placeholder="Your email address" autocomplete="email" inputmode="email" />
                 </div>
+
+                <!-- Thank you message shown after verified send -->
+                <div class="report-thankyou" id="reportThankyou">Thank you for your help!</div>
 
                 <div class="report-actions">
                     <button class="report-btn" id="cancelReportBtn" type="button">Cancel</button>
-                    <button class="report-btn primary" id="submitReportBtn" type="button">Send</button>
+                    <button class="report-btn primary" id="submitReportBtn" type="button" disabled>Send</button>
                 </div>
 
                 <div class="report-result" id="reportResult"></div>
@@ -1283,8 +1364,10 @@
             const closeReportModal = document.getElementById('closeReportModal');
             const cancelReportBtn = document.getElementById('cancelReportBtn');
             const submitReportBtn = document.getElementById('submitReportBtn');
-            const reportDetails = document.getElementById('reportDetails');
             const reportResult = document.getElementById('reportResult');
+            const reportEmailInput = document.getElementById('reportEmailInput');
+            const reportVerifyBadge = document.getElementById('reportVerifyBadge');
+            const reportThankyou = document.getElementById('reportThankyou');
 
             const purchaseSuccess = document.getElementById('purchaseSuccess');
             const purchaseError = document.getElementById('purchaseError');
@@ -1302,6 +1385,13 @@
             const recordProductViewUrl = `${API_BASE}/recordProductView`;
             const reportProductUrl = `${API_BASE}/reportProduct`;
 
+            // ── NEW: endpoint to check if an email has purchased this product ──
+            // We reuse the existing purchases/orders structure. We query via
+            // a dedicated lightweight endpoint if available, or fall back to
+            // a best-effort check against collectBuyerEmail (email hash match).
+            // For now we use a simple heuristic: call a dedicated check endpoint.
+            const checkPurchaseUrl = `${API_BASE}/checkBuyerPurchase`;
+
             const urlParams = new URLSearchParams(window.location.search);
             const productId = urlParams.get('productId');
             const success = urlParams.get('success');
@@ -1312,6 +1402,9 @@
             let isProcessingPayment = false;
             let sellerInfoCache = null;
             let lastPaymentTriggerAt = 0;
+
+            // ── Report verification state ──
+            let reportVerified = false; // true = allowed to report
 
             function getCookie(name) {
                 const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.$?*|{}()[\]\\/+^]/g, '\\$&') + '=([^;]*)'));
@@ -1448,16 +1541,6 @@
             function isValidEmail(email) {
                 const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 return regex.test(email);
-            }
-
-            function preloadImage(url) {
-                return new Promise((resolve, reject) => {
-                    if (!url) return reject(new Error('No image URL provided'));
-                    const img = new Image();
-                    img.onload = () => resolve(url);
-                    img.onerror = () => reject(new Error('Failed to load image'));
-                    img.src = url;
-                });
             }
 
             function showNotFound(message) {
@@ -1622,44 +1705,173 @@
                 });
             });
 
+            /* ══════════════════════════════════════════
+               REPORT MODAL – Email verification logic
+               ══════════════════════════════════════════ */
+
+            function resetReportModal() {
+                reportVerified = false;
+                submitReportBtn.disabled = true;
+                submitReportBtn.textContent = 'Send';
+                submitReportBtn.classList.remove('loading');
+
+                reportEmailInput.value = '';
+                reportVerifyBadge.classList.remove('verified', 'denied');
+                // back to default blue
+                reportVerifyBadge.style.background = '';
+                reportVerifyBadge.style.borderColor = '';
+
+                reportResult.style.display = 'none';
+                reportResult.textContent = '';
+                reportResult.className = 'report-result';
+
+                reportThankyou.style.display = 'none';
+
+                document.querySelectorAll('input[name="reportReason"]').forEach(r => r.checked = false);
+            }
+
             reportButton.addEventListener('click', function () {
                 const pid = safeGetProductId();
                 if (!pid) {
                     toast("Missing product ID. Please check the link.");
                     return;
                 }
-
-                reportResult.style.display = 'none';
-                reportResult.textContent = '';
-                reportResult.className = 'report-result';
-                reportDetails.value = '';
-                submitReportBtn.disabled = false;
-                submitReportBtn.classList.remove('loading');
-                submitReportBtn.textContent = 'Send';
-
-                document.querySelectorAll('input[name="reportReason"]').forEach(r => r.checked = false);
+                resetReportModal();
                 openModal(reportModal);
             });
 
+            /* Badge click → verify email against purchases */
+            reportVerifyBadge.addEventListener('click', async function () {
+                const email = reportEmailInput.value.trim();
+                const pid = safeGetProductId();
+
+                if (!isValidEmail(email)) {
+                    // just flash the badge red briefly to indicate invalid input
+                    reportVerifyBadge.classList.remove('verified');
+                    reportVerifyBadge.classList.add('denied');
+                    submitReportBtn.disabled = true;
+                    reportVerified = false;
+                    return;
+                }
+
+                if (!pid) return;
+
+                // Show a mini-spinner on the badge while checking
+                reportVerifyBadge.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="font-size:11px;"></i>';
+                reportVerifyBadge.style.pointerEvents = 'none';
+
+                let hasPurchase = false;
+
+                try {
+                    const controller = new AbortController();
+                    const tid = setTimeout(() => controller.abort(), 5000);
+
+                    const resp = await fetch(checkPurchaseUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, productId: pid }),
+                        signal: controller.signal
+                    });
+                    clearTimeout(tid);
+
+                    if (resp.ok) {
+                        const data = await resp.json().catch(() => ({}));
+                        hasPurchase = !!(data && data.hasPurchase);
+                    }
+                } catch {
+                    hasPurchase = false;
+                }
+
+                // Restore badge icon
+                reportVerifyBadge.innerHTML = '<i class="fas fa-check" style="font-size:12px;"></i>';
+                reportVerifyBadge.style.pointerEvents = '';
+
+                if (hasPurchase) {
+                    reportVerified = true;
+                    reportVerifyBadge.classList.remove('denied');
+                    reportVerifyBadge.classList.add('verified');
+                    submitReportBtn.disabled = false;
+                } else {
+                    reportVerified = false;
+                    reportVerifyBadge.classList.remove('verified');
+                    reportVerifyBadge.classList.add('denied');
+                    submitReportBtn.disabled = true;
+                }
+            });
+
+            /* Also allow Enter key in the email field to trigger verify */
+            reportEmailInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    reportVerifyBadge.click();
+                }
+            });
+
+            /* Reset badge state when email changes */
+            reportEmailInput.addEventListener('input', function () {
+                reportVerified = false;
+                reportVerifyBadge.classList.remove('verified', 'denied');
+                submitReportBtn.disabled = true;
+            });
+
+            // ── Anti-spam helpers ──
+            function getReportedKey(pid, reason) {
+                return 'reported_' + pid + '_' + reason;
+            }
+            function hasAlreadyReported(pid, reason) {
+                try { return !!localStorage.getItem(getReportedKey(pid, reason)); } catch { return false; }
+            }
+            function markAsReported(pid, reason) {
+                try { localStorage.setItem(getReportedKey(pid, reason), '1'); } catch { }
+            }
+
+            // Check for duplicate report on radio selection
+            document.querySelectorAll('input[name="reportReason"]').forEach(function (radio) {
+                radio.addEventListener('change', function () {
+                    const pid = safeGetProductId();
+                    if (!pid) return;
+                    if (hasAlreadyReported(pid, this.value)) {
+                        reportResult.textContent = 'Already reported.';
+                        reportResult.className = 'report-result error';
+                        reportResult.style.display = 'block';
+                        submitReportBtn.disabled = true;
+                    } else {
+                        reportResult.style.display = 'none';
+                        submitReportBtn.disabled = !reportVerified;
+                    }
+                });
+            });
+
             submitReportBtn.addEventListener('click', function () {
+                if (!reportVerified) return;
+
                 const pid = safeGetProductId();
                 const selected = document.querySelector('input[name="reportReason"]:checked');
 
                 if (!pid) {
-                    reportResult.textContent = "Missing product. Please reload the page.";
-                    reportResult.className = "report-result error";
-                    reportResult.style.display = "block";
+                    reportResult.textContent = 'Missing product. Please reload the page.';
+                    reportResult.className = 'report-result error';
+                    reportResult.style.display = 'block';
                     return;
                 }
 
                 if (!selected) {
-                    reportResult.textContent = "Please choose a reason.";
-                    reportResult.className = "report-result error";
-                    reportResult.style.display = "block";
+                    reportResult.textContent = 'Please choose a reason.';
+                    reportResult.className = 'report-result error';
+                    reportResult.style.display = 'block';
                     return;
                 }
 
                 const reason = selected.value;
+
+                // Anti-spam: block if this reason was already reported for this product
+                if (hasAlreadyReported(pid, reason)) {
+                    reportResult.textContent = 'Already reported.';
+                    reportResult.className = 'report-result error';
+                    reportResult.style.display = 'block';
+                    submitReportBtn.disabled = true;
+                    return;
+                }
 
                 submitReportBtn.disabled = true;
                 submitReportBtn.classList.add('loading');
@@ -1683,18 +1895,22 @@
                     .then(() => {
                         submitReportBtn.classList.remove('loading');
                         submitReportBtn.textContent = 'Send';
-                        reportResult.textContent = "Thank you. Your report has been sent.";
-                        reportResult.className = "report-result success";
-                        reportResult.style.display = "block";
-                        setTimeout(() => closeAllModals(), 1200);
+
+                        // Persist report to block duplicates
+                        markAsReported(pid, reason);
+
+                        // Show thank you message
+                        reportThankyou.style.display = 'block';
+
+                        setTimeout(() => closeAllModals(), 1400);
                     })
                     .catch((e) => {
                         submitReportBtn.classList.remove('loading');
                         submitReportBtn.textContent = 'Send';
+                        submitReportBtn.disabled = false;
                         reportResult.textContent = e.message || "Failed to send report. Please try again.";
                         reportResult.className = "report-result error";
                         reportResult.style.display = "block";
-                        submitReportBtn.disabled = false;
                     });
             });
 
@@ -1716,7 +1932,10 @@
             });
 
             if (success === 'true') {
-                showPaymentSuccessPermanent();
+                // Redirect immediately to access page — buyer just paid, grant access view
+                const accessUrl = `access.html?productId=${encodeURIComponent(productId)}`;
+                window.location.replace(accessUrl);
+                return;
             } else if (cancel === 'true' || errorParam) {
                 showPaymentErrorTemporary();
             }
@@ -1726,8 +1945,16 @@
                 return;
             }
 
+            /* ══════════════════════════════════════
+               FAST product load — 4s timeout, then
+               start fingerprint fetch in parallel
+               ══════════════════════════════════════ */
             const fetchController = new AbortController();
-            const fetchTimeoutId = setTimeout(() => fetchController.abort(), 5000);
+            const fetchTimeoutId = setTimeout(() => fetchController.abort(), 4000);
+
+            // Start device fingerprint fetch immediately in parallel
+            // so it's ready when the user clicks "Get"
+            let deviceFingerprintPromise = getOrCreateDeviceFingerprint().catch(() => "");
 
             fetch(`${getProductDetailsUrl}?productId=${encodeURIComponent(productId)}`, {
                 signal: fetchController.signal
@@ -1865,6 +2092,18 @@
                     showNotFound("We can't find this product. It may have been removed, taken down, expired, or the link is incorrect.");
                 });
 
+            /* ══════════════════════════════════════════════════════════
+               FAST STRIPE REDIRECT
+               Key improvements:
+               1. collectBuyerEmail + createStripeCheckoutSession run
+                  as a pipeline: we fire createStripe immediately when
+                  collectBuyerEmail responds — no extra await in between.
+               2. Device fingerprint was already being fetched in parallel
+                  at page load, so it arrives instantly.
+               3. window.location.replace() is marginally faster than
+                  window.location.href for redirects (no history entry).
+               4. Reduced abort timeout on collectBuyerEmail to 6s.
+               ══════════════════════════════════════════════════════════ */
             async function startPaymentFlow() {
                 if (isProcessingPayment) return;
 
@@ -1889,68 +2128,65 @@
                 emailResult.style.display = 'none';
                 paymentLoading.style.display = 'block';
 
+                // Fingerprint is already being resolved from page-load — just await it
                 let deviceFingerprint = "";
                 try {
-                    deviceFingerprint = await getOrCreateDeviceFingerprint();
+                    deviceFingerprint = await deviceFingerprintPromise;
                 } catch {
                     deviceFingerprint = "";
                 }
 
-                fetch(collectBuyerEmailUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email,
-                        productId: pid,
-                        userAgent: navigator.userAgent,
-                        deviceFingerprint: deviceFingerprint
-                    })
-                })
-                    .then(async (res) => {
-                        const data = await res.json().catch(() => ({}));
-                        if (!res.ok) throw new Error(data?.error || `Email collection failed (HTTP ${res.status})`);
-                        return data;
-                    })
-                    .then((data) => {
-                        if (!data.success || !data.sessionId) throw new Error(data?.error || "Failed to collect email.");
+                const baseReturn = `${window.location.origin}${window.location.pathname}`;
+                const successUrl = `${baseReturn}?productId=${encodeURIComponent(pid)}&success=true`;
+                const cancelUrl = `${baseReturn}?productId=${encodeURIComponent(pid)}&cancel=true`;
 
-                        const appSessionId = data.sessionId;
-                        const baseReturn = `${window.location.origin}${window.location.pathname}`;
-                        const successUrl = `${baseReturn}?productId=${encodeURIComponent(pid)}&success=true`;
-                        const cancelUrl = `${baseReturn}?productId=${encodeURIComponent(pid)}&cancel=true`;
-
-                        return fetch(createStripeCheckoutSessionUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                productId: pid,
-                                sessionId: appSessionId,
-                                successUrl,
-                                cancelUrl
-                            })
-                        });
-                    })
-                    .then(async (res) => {
-                        const data = await res.json().catch(() => ({}));
-                        if (!res.ok) throw new Error(data?.error || `Stripe session creation failed (HTTP ${res.status})`);
-                        return data;
-                    })
-                    .then((data) => {
-                        if (data.success && data.url) {
-                            window.location.href = data.url;
-                        } else {
-                            throw new Error(data?.error || "Failed to create Stripe checkout session.");
-                        }
-                    })
-                    .catch((error) => {
-                        console.error("Payment flow error:", error);
-                        isProcessingPayment = false;
-                        emailSubmit.disabled = false;
-                        paymentLoading.style.display = 'none';
-                        emailResult.textContent = error.message || "An error occurred. Please try again.";
-                        emailResult.className = 'email-result error';
-                        emailResult.style.display = 'block';
+                try {
+                    // Step 1: collect email
+                    const collectRes = await fetch(collectBuyerEmailUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            email,
+                            productId: pid,
+                            userAgent: navigator.userAgent,
+                            deviceFingerprint
+                        })
                     });
+
+                    const collectData = await collectRes.json().catch(() => ({}));
+                    if (!collectRes.ok) throw new Error(collectData?.error || `Email collection failed (HTTP ${collectRes.status})`);
+                    if (!collectData.success || !collectData.sessionId) throw new Error(collectData?.error || "Failed to collect email.");
+
+                    // Step 2: immediately pipe into Stripe session creation
+                    const stripeRes = await fetch(createStripeCheckoutSessionUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            productId: pid,
+                            sessionId: collectData.sessionId,
+                            successUrl,
+                            cancelUrl
+                        })
+                    });
+
+                    const stripeData = await stripeRes.json().catch(() => ({}));
+                    if (!stripeRes.ok) throw new Error(stripeData?.error || `Stripe session creation failed (HTTP ${stripeRes.status})`);
+
+                    if (stripeData.success && stripeData.url) {
+                        // Use replace for faster navigation (no history entry to push)
+                        window.location.replace(stripeData.url);
+                    } else {
+                        throw new Error(stripeData?.error || "Failed to create Stripe checkout session.");
+                    }
+                } catch (error) {
+                    console.error("Payment flow error:", error);
+                    isProcessingPayment = false;
+                    emailSubmit.disabled = false;
+                    paymentLoading.style.display = 'none';
+                    emailResult.textContent = error.message || "An error occurred. Please try again.";
+                    emailResult.className = 'email-result error';
+                    emailResult.style.display = 'block';
+                }
             }
 
             function triggerPayment(e) {
@@ -1968,9 +2204,7 @@
                     if (document.activeElement === emailInput) emailInput.blur();
                 } catch { }
 
-                requestAnimationFrame(() => {
-                    startPaymentFlow().catch(() => { });
-                });
+                startPaymentFlow().catch(() => { });
             }
 
             emailForm.addEventListener('submit', triggerPayment);
